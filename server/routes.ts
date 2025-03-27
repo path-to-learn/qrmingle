@@ -279,8 +279,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scansByDate: Record<string, number> = {};
       
       scanLogs.forEach((log) => {
-        const date = log.timestamp.toISOString().split('T')[0];
-        scansByDate[date] = (scansByDate[date] || 0) + 1;
+        if (log.timestamp) {
+          const date = log.timestamp.toISOString().split('T')[0];
+          scansByDate[date] = (scansByDate[date] || 0) + 1;
+        }
       });
       
       // Get device distribution
@@ -289,23 +291,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       scanLogs.forEach((log) => {
         let deviceType = 'Unknown';
         
-        if (log.device.includes('Android')) {
+        if (log.device?.includes('Android')) {
           deviceType = 'Android';
-        } else if (log.device.includes('iPhone') || log.device.includes('iPad')) {
+        } else if (log.device?.includes('iPhone') || log.device?.includes('iPad')) {
           deviceType = 'iOS';
-        } else if (log.device.includes('Windows')) {
+        } else if (log.device?.includes('Windows')) {
           deviceType = 'Windows';
-        } else if (log.device.includes('Mac')) {
+        } else if (log.device?.includes('Mac')) {
           deviceType = 'Mac';
         }
         
         deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
       });
       
+      // Get location distribution
+      const locationCounts: Record<string, number> = {};
+      
+      scanLogs.forEach((log) => {
+        const location = log.location || 'Unknown';
+        locationCounts[location] = (locationCounts[location] || 0) + 1;
+      });
+      
       res.json({
         totalScans: profile.scanCount,
         scansByDate,
         deviceDistribution: deviceCounts,
+        locationDistribution: locationCounts,
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get analytics" });

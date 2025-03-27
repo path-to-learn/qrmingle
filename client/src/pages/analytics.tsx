@@ -3,6 +3,8 @@ import { useAuth } from "@/App";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import {
   Select,
   SelectContent,
@@ -52,10 +54,11 @@ export default function Analytics() {
 
   // Helper function to process data for charts
   const processChartData = () => {
-    if (!analytics) return { scanData: [], deviceData: [] };
+    if (!analytics) return { scanData: [], deviceData: [], locationData: [] };
 
     const scansByDate = analytics.scansByDate || {};
     const deviceDistribution = analytics.deviceDistribution || {};
+    const locationDistribution = analytics.locationDistribution || {};
 
     // Process scan data for area chart
     const scanData = Object.keys(scansByDate).map((date) => ({
@@ -72,7 +75,16 @@ export default function Analytics() {
       value: deviceDistribution[device],
     }));
 
-    return { scanData, deviceData };
+    // Process location data for bar chart
+    const locationData = Object.keys(locationDistribution || {}).map((location) => ({
+      name: location || "Unknown",
+      value: locationDistribution[location],
+    }));
+
+    // Sort location data by value in descending order
+    locationData.sort((a, b) => b.value - a.value);
+
+    return { scanData, deviceData, locationData };
   };
 
   // Format date for display
@@ -81,7 +93,7 @@ export default function Analytics() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const { scanData, deviceData } = processChartData();
+  const { scanData, deviceData, locationData } = processChartData();
 
   // Colors for the pie chart
   const COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'];
@@ -93,7 +105,9 @@ export default function Analytics() {
         <p className="text-muted-foreground mb-6">
           Please log in to view your profile analytics
         </p>
-        <Button>Log In</Button>
+        <Link href="/login">
+          <Button>Log In</Button>
+        </Link>
       </div>
     );
   }
@@ -173,6 +187,7 @@ export default function Analytics() {
             <TabsList className="mb-4">
               <TabsTrigger value="activity">Scan Activity</TabsTrigger>
               <TabsTrigger value="devices">Device Types</TabsTrigger>
+              <TabsTrigger value="locations">Locations</TabsTrigger>
             </TabsList>
             
             <TabsContent value="activity" className="mt-0">
@@ -247,6 +262,37 @@ export default function Analytics() {
                 )}
               </div>
             </TabsContent>
+            
+            <TabsContent value="locations" className="mt-0">
+              <div className="h-64 bg-muted/10 rounded-lg p-4">
+                {locationData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={locationData.slice(0, 7)} layout="vertical" margin={{ left: 100 }}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} horizontal={false} />
+                      <XAxis type="number" />
+                      <YAxis 
+                        dataKey="name" 
+                        type="category" 
+                        tick={{ fontSize: 12 }}
+                        width={100}
+                      />
+                      <Tooltip formatter={(value) => [`${value} scans`, 'Scans']} />
+                      <Bar 
+                        dataKey="value" 
+                        fill="#8B5CF6"
+                        background={{ fill: '#eee' }}
+                        animationDuration={500}
+                        label={{ position: 'right', formatter: (val) => val }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    No location data available
+                  </div>
+                )}
+              </div>
+            </TabsContent>
           </Tabs>
         )}
       </div>
@@ -315,19 +361,93 @@ export default function Analytics() {
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Average Visit Duration</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Top Location</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">
-              {isLoadingAnalytics ? (
-                <Loader2 className="h-5 w-5 animate-spin text-primary inline" />
-              ) : (
-                "1:24"
-              )}
-            </div>
+            {!selectedProfile ? (
+              <div className="text-muted-foreground text-sm">Select a profile</div>
+            ) : isLoadingAnalytics ? (
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            ) : locationData.length > 0 ? (
+              <>
+                <div className="text-lg font-semibold">
+                  {locationData[0]?.name}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {locationData[0]?.value} scans
+                </div>
+              </>
+            ) : (
+              <div className="text-muted-foreground text-sm">No data</div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Growth summary section */}
+      {selectedProfile && !isLoadingAnalytics && (
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-4">Growth Summary</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Scan Activity Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-muted-foreground mb-2">
+                  {scanData.length > 0 ? (
+                    <span>Your QR code was scanned on {scanData.length} different days</span>
+                  ) : (
+                    <span>No scan activity recorded yet</span>
+                  )}
+                </div>
+                <div className="flex items-center mt-4">
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full" 
+                      style={{ 
+                        width: `${Math.min(100, scanData.length * 3)}%`,
+                        transition: 'width 0.5s ease-in-out'
+                      }} 
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Device Diversity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-muted-foreground mb-2">
+                  {deviceData.length > 0 ? (
+                    <span>Your QR code was scanned on {deviceData.length} different device types</span>
+                  ) : (
+                    <span>No device data recorded yet</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-5 gap-1 mt-4">
+                  {COLORS.map((color, index) => (
+                    index < deviceData.length ? (
+                      <div 
+                        key={index}
+                        className="h-3 rounded-sm" 
+                        style={{ backgroundColor: color }}
+                      />
+                    ) : (
+                      <div 
+                        key={index}
+                        className="h-3 rounded-sm bg-muted" 
+                      />
+                    )
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
