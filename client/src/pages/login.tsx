@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,9 +98,9 @@ export default function Login() {
             </Button>
             <p className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}
-              <Button variant="link" className="p-0" onClick={() => setLocation("/register")}>
-                Sign up
-              </Button>
+              <Link href="/register">
+                <span className="text-primary hover:underline cursor-pointer">Sign up</span>
+              </Link>
             </p>
           </CardFooter>
         </form>
