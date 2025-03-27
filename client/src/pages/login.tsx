@@ -96,10 +96,10 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Login"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-sm text-center text-muted-foreground mt-2">
               Don't have an account?{" "}
               <Link href="/register">
-                <span className="text-primary hover:underline cursor-pointer">Sign up</span>
+                <span className="text-primary hover:underline cursor-pointer">Sign up here</span>
               </Link>
             </p>
           </CardFooter>
