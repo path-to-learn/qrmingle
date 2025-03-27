@@ -19,12 +19,12 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Link href="/">
-            <a className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 cursor-pointer">
               <svg className="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3.75 4.5C3.75 3.12 4.87 2 6.25 2h11.5c1.38 0 2.5 1.12 2.5 2.5v15c0 1.38-1.12 2.5-2.5 2.5H6.25C4.87 20 3.75 18.88 3.75 17.5v-15zM6.25 4c-.28 0-.5.22-.5.5v15c0 .28.22.5.5.5h11.5c.28 0 .5-.22.5-.5v-15c0-.28-.22-.5-.5-.5H6.25zM7.5 12.25h9M11.75 18a.75.75 0 100-1.5.75.75 0 000 1.5z" />
               </svg>
               <span className="font-bold text-xl text-primary">ContactQrConnect</span>
-            </a>
+            </div>
           </Link>
         </div>
         <div>
@@ -46,27 +46,27 @@ export default function Header() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
                   <Link href="/">
-                    <a className="flex items-center cursor-pointer">
+                    <div className="flex items-center cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>My Profiles</span>
-                    </a>
+                    </div>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/analytics">
-                    <a className="flex items-center cursor-pointer">
+                    <div className="flex items-center cursor-pointer">
                       <BarChart2 className="mr-2 h-4 w-4" />
                       <span>Analytics</span>
-                    </a>
+                    </div>
                   </Link>
                 </DropdownMenuItem>
                 {!user.isPremium && (
                   <DropdownMenuItem asChild>
                     <Link href="/premium">
-                      <a className="flex items-center cursor-pointer">
+                      <div className="flex items-center cursor-pointer">
                         <Crown className="mr-2 h-4 w-4" />
                         <span>Upgrade to Premium</span>
-                      </a>
+                      </div>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -79,10 +79,14 @@ export default function Header() {
             </DropdownMenu>
           ) : (
             <div className="flex space-x-2">
-              <Button variant="outline" className="hover:text-primary hover:border-primary">
-                Login
-              </Button>
-              <Button>Sign Up</Button>
+              <Link href="/login">
+                <Button variant="outline" className="hover:text-primary hover:border-primary">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button>Sign Up</Button>
+              </Link>
             </div>
           )}
         </div>
