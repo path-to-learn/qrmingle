@@ -1,0 +1,381 @@
+import type { Express, Request, Response } from "express";
+import express from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { insertProfileSchema, insertScanLogSchema, insertUserSchema, profileFormSchema } from "@shared/schema";
+import { z } from "zod";
+import crypto from "crypto";
+import Stripe from "stripe";
+
+// Initialize Stripe if secret key is available
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" }) 
+  : null;
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // API routes prefix
+  const apiRoutes = express.Router();
+  app.use('/api', apiRoutes);
+
+  // User authentication routes
+  apiRoutes.post('/auth/register', async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(409).json({ message: "Username already exists" });
+      }
+      
+      // Create the user
+      const user = await storage.createUser(userData);
+      
+      // Return user without password
+      const { password, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  apiRoutes.post('/auth/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Find user by username
+      const user = await storage.getUserByUsername(username);
+      if (!user || user.password !== password) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to authenticate" });
+    }
+  });
+
+  // Profile routes
+  apiRoutes.get('/profiles', async (req, res) => {
+    try {
+      const userId = parseInt(req.query.userId as string);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const profiles = await storage.getProfilesByUserId(userId);
+      
+      // For each profile, get the social links
+      const profilesWithLinks = await Promise.all(profiles.map(async (profile) => {
+        const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
+        return { ...profile, socialLinks };
+      }));
+      
+      res.json(profilesWithLinks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get profiles" });
+    }
+  });
+
+  apiRoutes.post('/profiles', async (req, res) => {
+    try {
+      const profileData = profileFormSchema.parse(req.body);
+      const userId = parseInt(req.body.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user is allowed to use premium features
+      const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
+      if (premiumStyles.includes(profileData.qrStyle)) {
+        const user = await storage.getUser(userId);
+        if (!user?.isPremium) {
+          profileData.qrStyle = 'basic';
+        }
+      }
+      
+      // Generate a slug from the display name
+      const baseSlug = profileData.displayName.toLowerCase().replace(/\s+/g, '-');
+      const randomSuffix = crypto.randomBytes(4).toString('hex');
+      const slug = `${baseSlug}-${randomSuffix}`;
+      
+      // Create the profile
+      const { socialLinks, ...profileWithoutLinks } = profileData;
+      const profile = await storage.createProfile({
+        ...profileWithoutLinks,
+        userId,
+        slug,
+      });
+      
+      // Create the social links
+      const createdLinks = await Promise.all(
+        socialLinks.map((link) => storage.createSocialLink({
+          ...link,
+          profileId: profile.id,
+        }))
+      );
+      
+      res.status(201).json({ ...profile, socialLinks: createdLinks });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to create profile" });
+    }
+  });
+
+  apiRoutes.get('/profiles/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid profile ID" });
+      }
+      
+      const profile = await storage.getProfile(id);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
+      
+      res.json({ ...profile, socialLinks });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get profile" });
+    }
+  });
+
+  apiRoutes.put('/profiles/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid profile ID" });
+      }
+      
+      const profileData = profileFormSchema.parse(req.body);
+      
+      // Check if profile exists and get its user ID
+      const existingProfile = await storage.getProfile(id);
+      if (!existingProfile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      // Check if user is allowed to use premium features
+      const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
+      if (premiumStyles.includes(profileData.qrStyle)) {
+        const user = await storage.getUser(existingProfile.userId);
+        if (!user?.isPremium) {
+          profileData.qrStyle = 'basic';
+        }
+      }
+      
+      const { socialLinks, ...profileWithoutLinks } = profileData;
+      
+      // Update the profile
+      const profile = await storage.updateProfile(id, profileWithoutLinks);
+      
+      // Delete existing social links
+      await storage.deleteSocialLinksByProfileId(id);
+      
+      // Create new social links
+      const createdLinks = await Promise.all(
+        socialLinks.map((link) => storage.createSocialLink({
+          ...link,
+          profileId: profile.id,
+        }))
+      );
+      
+      res.json({ ...profile, socialLinks: createdLinks });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  apiRoutes.delete('/profiles/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid profile ID" });
+      }
+      
+      const deleted = await storage.deleteProfile(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete profile" });
+    }
+  });
+
+  // Public profile route for QR code scans
+  app.get('/p/:slug', (req, res) => {
+    // This will be handled by the frontend router
+    res.sendFile('index.html', { root: './dist/public' });
+  });
+
+  // API route to get profile by slug for QR code landing pages
+  apiRoutes.get('/p/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      const profile = await storage.getProfileBySlug(slug);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
+      
+      // Log the scan
+      const scanLogData = {
+        profileId: profile.id,
+        location: req.query.location as string,
+        device: req.headers['user-agent'] || '',
+        referrer: req.headers.referer || '',
+      };
+      
+      await storage.createScanLog(scanLogData);
+      
+      res.json({ ...profile, socialLinks });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get profile" });
+    }
+  });
+
+  // Analytics routes
+  apiRoutes.get('/analytics/profile/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid profile ID" });
+      }
+      
+      const profile = await storage.getProfile(id);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      const scanLogs = await storage.getScanLogsByProfileId(id);
+      
+      // Group logs by date
+      const scansByDate: Record<string, number> = {};
+      
+      scanLogs.forEach((log) => {
+        const date = log.timestamp.toISOString().split('T')[0];
+        scansByDate[date] = (scansByDate[date] || 0) + 1;
+      });
+      
+      // Get device distribution
+      const deviceCounts: Record<string, number> = {};
+      
+      scanLogs.forEach((log) => {
+        let deviceType = 'Unknown';
+        
+        if (log.device.includes('Android')) {
+          deviceType = 'Android';
+        } else if (log.device.includes('iPhone') || log.device.includes('iPad')) {
+          deviceType = 'iOS';
+        } else if (log.device.includes('Windows')) {
+          deviceType = 'Windows';
+        } else if (log.device.includes('Mac')) {
+          deviceType = 'Mac';
+        }
+        
+        deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
+      });
+      
+      res.json({
+        totalScans: profile.scanCount,
+        scansByDate,
+        deviceDistribution: deviceCounts,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get analytics" });
+    }
+  });
+
+  // User premium upgrade with Stripe
+  if (stripe) {
+    apiRoutes.post('/create-payment-intent', async (req, res) => {
+      try {
+        const { userId } = req.body;
+        
+        if (!userId) {
+          return res.status(400).json({ message: "User ID is required" });
+        }
+        
+        const user = await storage.getUser(userId);
+        
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Create a payment intent for premium upgrade
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: 1999, // $19.99
+          currency: 'usd',
+          metadata: {
+            userId: userId.toString(),
+          },
+        });
+        
+        res.json({ clientSecret: paymentIntent.client_secret });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create payment intent" });
+      }
+    });
+
+    apiRoutes.post('/confirm-premium', async (req, res) => {
+      try {
+        const { userId, paymentIntentId } = req.body;
+        
+        if (!userId || !paymentIntentId) {
+          return res.status(400).json({ message: "User ID and payment intent ID are required" });
+        }
+        
+        const user = await storage.getUser(userId);
+        
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Verify payment intent
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        
+        if (paymentIntent.status !== 'succeeded') {
+          return res.status(400).json({ message: "Payment not successful" });
+        }
+        
+        // Update user to premium
+        const updatedUser = await storage.updateUserPremiumStatus(userId, true);
+        
+        // Return user without password
+        const { password, ...userWithoutPassword } = updatedUser;
+        res.json(userWithoutPassword);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to confirm premium upgrade" });
+      }
+    });
+  }
+
+  const httpServer = createServer(app);
+  return httpServer;
+}

@@ -1,0 +1,175 @@
+import { useState, useEffect } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Button } from './button';
+import { Loader2, Download, Share2 } from 'lucide-react';
+
+type QRCodeProps = {
+  value: string;
+  size?: number;
+  bgColor?: string;
+  fgColor?: string;
+  level?: 'L' | 'M' | 'Q' | 'H';
+  renderAs?: 'svg' | 'canvas';
+  includeMargin?: boolean;
+  imageSettings?: {
+    src: string;
+    x?: number;
+    y?: number;
+    height?: number;
+    width?: number;
+    excavate?: boolean;
+  };
+  style?: React.CSSProperties;
+  className?: string;
+  profileName?: string;
+  scanCount?: number;
+  qrStyle?: 'basic' | 'bordered' | 'gradient' | 'rounded' | 'shadow' | string;
+};
+
+export function QrCodeDisplay({
+  value,
+  size = 128,
+  bgColor = '#FFFFFF',
+  fgColor = '#3B82F6',
+  level = 'L',
+  renderAs = 'svg',
+  includeMargin = true,
+  imageSettings,
+  style,
+  className,
+  profileName,
+  scanCount,
+  qrStyle = 'basic',
+}: QRCodeProps) {
+  const [isGenerating, setIsGenerating] = useState(true);
+  const [isCopied, setIsCopied] = useState(false);
+
+  useEffect(() => {
+    if (value) {
+      const timer = setTimeout(() => {
+        setIsGenerating(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [value]);
+
+  const handleDownload = () => {
+    const canvas = document.getElementById('qr-code') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const url = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `${profileName || 'qrcode'}.png`;
+    link.href = url;
+    link.click();
+  };
+
+  const handleShare = async () => {
+    // If Web Share API is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: profileName || 'My QR Code',
+          text: 'Check out my contact profile!',
+          url: value,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        copyToClipboard();
+      }
+    } else {
+      copyToClipboard();
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(value).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className={`flex flex-col items-center ${className}`} style={style}>
+      <div className="bg-neutral-50 p-4 rounded-lg flex justify-center items-center">
+        {isGenerating ? (
+          <div className="flex items-center justify-center h-32 w-32">
+            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          </div>
+        ) : (
+          <div className={`relative ${qrStyle !== 'basic' ? 'fancy-qr' : ''}`}>
+            {qrStyle === 'bordered' && (
+              <div className="absolute inset-0 rounded-lg" style={{ 
+                border: `2px solid ${fgColor}`,
+                borderRadius: '16px',
+                zIndex: -1,
+                transform: 'scale(1.15)'
+              }} />
+            )}
+            {qrStyle === 'gradient' && (
+              <div className="absolute inset-0 rounded-lg" style={{ 
+                background: `linear-gradient(135deg, ${fgColor}33, ${fgColor}11)`,
+                zIndex: -1,
+                transform: 'scale(1.15)'
+              }} />
+            )}
+            {qrStyle === 'shadow' && (
+              <div className="absolute inset-0 rounded-lg shadow-lg" style={{ 
+                zIndex: -1,
+                transform: 'scale(1.05)'
+              }} />
+            )}
+            <QRCodeSVG
+              id="qr-code"
+              value={value}
+              size={size}
+              bgColor={bgColor}
+              fgColor={fgColor}
+              level={level}
+              includeMargin={includeMargin}
+              imageSettings={imageSettings}
+              style={{
+                borderRadius: qrStyle === 'rounded' ? '8px' : '0',
+                padding: qrStyle !== 'basic' ? '8px' : '0',
+                background: bgColor,
+                boxShadow: qrStyle === 'shadow' ? `0 4px 12px ${fgColor}44` : 'none'
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {scanCount !== undefined && (
+        <div className="mt-2 text-sm text-muted-foreground flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+          </svg>
+          {scanCount} scans
+        </div>
+      )}
+
+      <div className="mt-2 flex space-x-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-primary hover:text-primary-foreground hover:bg-primary"
+          onClick={handleDownload}
+        >
+          <Download className="h-4 w-4 mr-1" />
+          {renderAs === 'canvas' ? 'Download' : 'Save'}
+        </Button>
+        
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-primary hover:text-primary-foreground hover:bg-primary"
+          onClick={handleShare}
+        >
+          <Share2 className="h-4 w-4 mr-1" />
+          {isCopied ? 'Copied!' : 'Share'}
+        </Button>
+      </div>
+    </div>
+  );
+}
