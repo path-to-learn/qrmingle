@@ -12,19 +12,19 @@ export default function Footer() {
           </div>
           <div className="flex space-x-6">
             <Link href="/privacy">
-              <a className="text-muted-foreground hover:text-primary text-sm">
+              <div className="text-muted-foreground hover:text-primary text-sm cursor-pointer">
                 Privacy Policy
-              </a>
+              </div>
             </Link>
             <Link href="/terms">
-              <a className="text-muted-foreground hover:text-primary text-sm">
+              <div className="text-muted-foreground hover:text-primary text-sm cursor-pointer">
                 Terms of Service
-              </a>
+              </div>
             </Link>
             <Link href="/help">
-              <a className="text-muted-foreground hover:text-primary text-sm">
+              <div className="text-muted-foreground hover:text-primary text-sm cursor-pointer">
                 Help Center
-              </a>
+              </div>
             </Link>
           </div>
         </div>
