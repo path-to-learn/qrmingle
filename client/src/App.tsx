@@ -59,7 +59,16 @@ function App() {
   const [user, setUser] = useState<User | null>(() => {
     try {
       const savedUser = localStorage.getItem('user');
-      return savedUser ? JSON.parse(savedUser) : null;
+      console.log("Initial loading of user from localStorage:", savedUser);
+      
+      if (!savedUser) {
+        return null;
+      }
+      
+      const parsedUser = JSON.parse(savedUser);
+      console.log("Parsed user from localStorage:", parsedUser);
+      
+      return parsedUser;
     } catch (error) {
       console.error("Error parsing saved user:", error);
       // If there's an error parsing, clear the corrupted data
@@ -114,9 +123,25 @@ function App() {
 
   const login = (user: User) => {
     console.log("Login called with user:", user);
-    // Save user to localStorage
-    localStorage.setItem('user', JSON.stringify(user));
-    setUser(user);
+    
+    // Make sure we have a properly formatted user object
+    const userData = {
+      id: user.id,
+      username: user.username,
+      isPremium: user.isPremium || false,
+    };
+    
+    console.log("Setting user state to:", userData);
+    
+    // Update state first
+    setUser(userData);
+    
+    // Then save to localStorage
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    // Double check localStorage was set correctly
+    const savedUser = localStorage.getItem('user');
+    console.log("Verification - user saved to localStorage:", savedUser);
   };
 
   const logout = () => {

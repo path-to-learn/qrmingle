@@ -68,7 +68,19 @@ export default function Register() {
       console.log("Registration successful, user data:", data);
       
       // Save to context and localStorage
-      login(data);
+      // Make sure the user object matches the expected type
+      const userData = {
+        id: data.id,
+        username: data.username,
+        isPremium: data.isPremium || false,
+      };
+      
+      // First save to localStorage, then update context
+      localStorage.setItem('user', JSON.stringify(userData));
+      console.log("User data saved to localStorage:", userData);
+      
+      // Call the login function from context
+      login(userData);
       
       toast({
         title: "Success",
