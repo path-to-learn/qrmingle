@@ -56,54 +56,57 @@ function Router() {
 
 function App() {
   // Load user from localStorage on app start
-  const [user, setUser] = useState<User | null>(() => {
+  const [user, setUser] = useState<User | null>(null);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+  // Load user data on initial app startup
+  useEffect(() => {
     try {
       const savedUser = localStorage.getItem('user');
       console.log("Initial loading of user from localStorage:", savedUser);
       
-      if (!savedUser) {
-        return null;
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        console.log("Parsed user from localStorage:", parsedUser);
+        setUser(parsedUser);
       }
-      
-      const parsedUser = JSON.parse(savedUser);
-      console.log("Parsed user from localStorage:", parsedUser);
-      
-      return parsedUser;
     } catch (error) {
       console.error("Error parsing saved user:", error);
-      // If there's an error parsing, clear the corrupted data
       localStorage.removeItem('user');
-      return null;
     }
-  });
+    
+    setInitialLoadDone(true);
+  }, []);
 
   // Verify user auth state on app initialization
   useEffect(() => {
+    // Only run this effect after initial load and if user exists
+    if (!initialLoadDone || !user) return;
+    
     const checkAuthStatus = async () => {
       try {
-        // Only perform this check if there's a user in state
-        if (user) {
-          // Make a request to validate the session with the user's ID
-          const response = await fetch(`/api/auth/validate?userId=${user.id}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          // If the request fails or returns non-200, clear the user state
-          if (!response.ok) {
-            console.log("Auth validation failed, clearing local user data");
-            localStorage.removeItem('user');
-            setUser(null);
-          } else {
-            // Update the user data with the latest from the server
-            const updatedUserData = await response.json();
-            if (JSON.stringify(updatedUserData) !== JSON.stringify(user)) {
-              console.log("Updated user data from server");
-              localStorage.setItem('user', JSON.stringify(updatedUserData));
-              setUser(updatedUserData);
-            }
+        console.log("Validating auth status for user ID:", user.id);
+        
+        // Make a request to validate the session with the user's ID
+        const response = await fetch(`/api/auth/validate?userId=${user.id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        // If the request fails or returns non-200, clear the user state
+        if (!response.ok) {
+          console.log("Auth validation failed, clearing local user data");
+          localStorage.removeItem('user');
+          setUser(null);
+        } else {
+          // Update the user data with the latest from the server
+          const updatedUserData = await response.json();
+          if (JSON.stringify(updatedUserData) !== JSON.stringify(user)) {
+            console.log("Updated user data from server");
+            localStorage.setItem('user', JSON.stringify(updatedUserData));
+            setUser(updatedUserData);
           }
         }
       } catch (error) {
@@ -111,13 +114,13 @@ function App() {
       }
     };
     
-    // Now that we have the validation endpoint, uncomment this
     checkAuthStatus();
-  }, [user]);
+  }, [initialLoadDone, user]);
 
   // Debug auth state changes
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
+    console.log("Auth state:", { user });
     console.log("Auth state check", { user, savedUser });
   }, [user]);
 
@@ -138,10 +141,6 @@ function App() {
     
     // Then save to localStorage
     localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Double check localStorage was set correctly
-    const savedUser = localStorage.getItem('user');
-    console.log("Verification - user saved to localStorage:", savedUser);
   };
 
   const logout = () => {
@@ -149,6 +148,9 @@ function App() {
     // Remove user from localStorage
     localStorage.removeItem('user');
     setUser(null);
+    
+    // Force refresh the page to reset all state
+    window.location.href = "/";
   };
 
   return (

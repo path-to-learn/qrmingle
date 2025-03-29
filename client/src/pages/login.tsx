@@ -57,37 +57,31 @@ export default function Login() {
       
       console.log("Login successful, user data:", data);
       
-      // Save to context and localStorage
-      // Make sure the user object matches the expected type
-      const userData = {
+      // Direct approach - set the user in local storage and reload the page
+      // This ensures the app reloads with the new user state from localStorage
+      localStorage.setItem('user', JSON.stringify({
         id: data.id,
         username: data.username,
         isPremium: data.isPremium || false,
-      };
-      
-      // First save to localStorage, then update context
-      localStorage.setItem('user', JSON.stringify(userData));
-      console.log("User data saved to localStorage:", userData);
-      
-      // Call the login function from context
-      login(userData);
+      }));
       
       toast({
         title: "Success",
         description: "You have been logged in",
+        duration: 2000,
       });
       
-      // Navigate to home page
+      // Force reload the page after a short delay to ensure toast is visible
       setTimeout(() => {
-        setLocation("/");
-      }, 500);
+        window.location.href = "/";
+      }, 1000);
+      
     } catch (error) {
       toast({
         title: "Login failed",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
