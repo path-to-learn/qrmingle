@@ -54,21 +54,25 @@ export default function Login() {
         throw new Error(data.message || "Login failed");
       }
       
-      // Call login from context to update app state
-      login({
+      console.log("Login successful, data:", data);
+      
+      // Save user data to localStorage first
+      const userData = {
         id: data.id,
         username: data.username,
         isPremium: data.isPremium || false,
         stripeCustomerId: data.stripeCustomerId
-      });
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
       
       toast({
         title: "Success",
-        description: "You have been logged in",
+        description: "You have been logged in. Redirecting...",
       });
       
-      // Redirect to home page
-      setLocation("/");
+      // Hard refresh to home page to ensure complete state reset
+      window.location.href = "/";
     } catch (error) {
       toast({
         title: "Login failed",

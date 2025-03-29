@@ -91,24 +91,37 @@ function App() {
       try {
         // Get user from localStorage
         const savedUser = localStorage.getItem('user');
-        if (!savedUser) return;
+        
+        if (!savedUser) {
+          console.log("No saved user found in localStorage");
+          return;
+        }
+        
+        console.log("Found saved user in localStorage:", savedUser);
         
         // Parse user data
         const userData = JSON.parse(savedUser);
         
-        // Set user state
+        // Set user state immediately for better UX
         setUser(userData);
         
+        console.log("User state set from localStorage:", userData);
+        
         // Validate with server
+        console.log("Validating user with server, userId:", userData.id);
         const response = await fetch(`/api/auth/validate?userId=${userData.id}`);
         
         if (response.ok) {
           // Get latest user data from server
           const serverUser = await response.json();
+          console.log("Server validation successful, updated user data:", serverUser);
+          
+          // Update state and localStorage with latest data from server
           setUser(serverUser);
           localStorage.setItem('user', JSON.stringify(serverUser));
         } else {
           // Invalid session, clear localStorage
+          console.log("Server validation failed, clearing user data");
           localStorage.removeItem('user');
           setUser(null);
         }
@@ -119,6 +132,7 @@ function App() {
       }
     };
     
+    // Run immediately on mount
     loadUser();
   }, []);
 
@@ -130,8 +144,14 @@ function App() {
 
   // Logout function
   const logout = () => {
+    // Clear user from state
     setUser(null);
+    
+    // Remove from localStorage
     localStorage.removeItem('user');
+    
+    // Hard refresh to reset all app state
+    window.location.href = "/";
   };
 
   return (
