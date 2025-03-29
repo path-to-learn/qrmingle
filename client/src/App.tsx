@@ -55,13 +55,21 @@ function Router() {
 }
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
+  // Load user from localStorage on app start
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   const login = (user: User) => {
+    // Save user to localStorage
+    localStorage.setItem('user', JSON.stringify(user));
     setUser(user);
   };
 
   const logout = () => {
+    // Remove user from localStorage
+    localStorage.removeItem('user');
     setUser(null);
   };
 
