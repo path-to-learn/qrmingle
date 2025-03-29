@@ -26,6 +26,8 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form
     if (!username || !password || !confirmPassword) {
       toast({
         title: "Error",
@@ -45,8 +47,8 @@ export default function Register() {
     }
 
     setIsLoading(true);
+    
     try {
-      // Use fetch API directly for better control
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -58,40 +60,34 @@ export default function Register() {
         }),
       });
 
-      // Parse the JSON response
       const data = await response.json();
       
       if (!response.ok) {
         throw new Error(data.message || "Registration failed");
       }
       
-      console.log("Registration successful, user data:", data);
-      
-      // Direct approach - set the user in local storage and reload the page
-      // This ensures the app reloads with the new user state from localStorage
-      localStorage.setItem('user', JSON.stringify({
+      // Call login from context to update app state
+      login({
         id: data.id,
         username: data.username,
         isPremium: data.isPremium || false,
-      }));
+        stripeCustomerId: data.stripeCustomerId
+      });
       
       toast({
         title: "Success",
         description: "You have been registered and logged in",
-        duration: 2000,
       });
       
-      // Force reload the page after a short delay to ensure toast is visible
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
-      
+      // Navigate to home page
+      setLocation("/");
     } catch (error) {
       toast({
         title: "Registration failed",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };

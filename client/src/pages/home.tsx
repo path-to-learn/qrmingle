@@ -27,9 +27,9 @@ export default function Home() {
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
   
-  // Added the user state to console log for debugging purposes
+  // Log user state for debugging
   useEffect(() => {
-    console.log("Home component auth state:", { user, userExists: !!user });
+    console.log("Home component auth state:", { user, isLoggedIn: !!user });
   }, [user]);
 
   // Fetch profiles
