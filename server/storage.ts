@@ -61,7 +61,7 @@ export class MemStorage implements IStorage {
     // Create a sample user
     this.createUser({
       username: "demo",
-      password: "password",
+      password: "demo",
     });
   }
 
