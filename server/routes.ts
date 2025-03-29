@@ -257,6 +257,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get profile" });
     }
   });
+  
+  // Handle contact form submissions
+  apiRoutes.post('/contact-form', async (req, res) => {
+    try {
+      const { profileId, name, email, message } = req.body;
+      
+      if (!profileId || !name || !email || !message) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Get profile to check if it exists
+      const profile = await storage.getProfile(profileId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      // In a real app, you would:
+      // 1. Store this contact in a database
+      // 2. Send an email notification to the profile owner
+      // 3. Possibly integrate with a CRM or email marketing tool
+      
+      // For now, we'll just return success
+      res.json({ success: true, message: "Contact form submitted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
 
   // Analytics routes
   apiRoutes.get('/analytics/profile/:id', async (req, res) => {

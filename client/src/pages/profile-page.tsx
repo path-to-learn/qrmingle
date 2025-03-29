@@ -1,24 +1,213 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import SocialLink from "@/components/profile/SocialLink";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Download, 
+  Smartphone, 
+  Mail, 
+  MessageSquare, 
+  Copy, 
+  Share, 
+  UserPlus,
+  X
+} from "lucide-react";
 import { Link } from "wouter";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+// Type definition for profile data
+type SocialLinkType = {
+  id: number;
+  platform: string;
+  url: string;
+  profileId: number;
+};
+
+type ProfileData = {
+  id: number;
+  name: string;
+  displayName: string;
+  title: string | null;
+  bio: string | null;
+  photoUrl: string | null;
+  qrStyle: string | null;
+  qrColor: string | null;
+  slug: string;
+  scanCount: number;
+  socialLinks: SocialLinkType[];
+};
 
 export default function ProfilePage() {
   const [_, params] = useRoute("/p/:slug");
   const slug = params?.slug;
+  const { toast } = useToast();
+  const [isCopied, setIsCopied] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactFormData, setContactFormData] = useState({
+    name: "",
+    email: "",
+    message: ""
+  });
 
   // Fetch profile data
-  const { data: profile, isLoading, error } = useQuery({
+  const { data: profile, isLoading, error } = useQuery<ProfileData>({
     queryKey: [`/api/p/${slug}`],
     enabled: !!slug,
   });
+
+  // Mutation for submitting contact form
+  const contactMutation = useMutation({
+    mutationFn: async (data: typeof contactFormData) => {
+      if (!profile) {
+        throw new Error("Profile not found");
+      }
+      
+      const response = await fetch('/api/contact-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profileId: profile.id,
+          ...data,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send message");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message Sent",
+        description: "Your message has been sent successfully!",
+      });
+      setShowContactForm(false);
+      setContactFormData({
+        name: "",
+        email: "",
+        message: ""
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send your message. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle contact form submission
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    contactMutation.mutate(contactFormData);
+  };
+
+  // Handle contact form input changes
+  const handleContactInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setContactFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Generate vCard
+  const generateVCard = () => {
+    if (!profile) return "";
+    
+    let vCard = "BEGIN:VCARD\nVERSION:3.0\n";
+    vCard += `FN:${profile.displayName}\n`;
+    if (profile.title) vCard += `TITLE:${profile.title}\n`;
+    
+    // Add email and phone if available
+    const emailLink = profile.socialLinks?.find((link: any) => link.platform.toLowerCase() === "email");
+    const phoneLink = profile.socialLinks?.find((link: any) => link.platform.toLowerCase() === "phone");
+    
+    if (emailLink) vCard += `EMAIL:${emailLink.url.replace("mailto:", "")}\n`;
+    if (phoneLink) vCard += `TEL:${phoneLink.url.replace("tel:", "")}\n`;
+    
+    // Add website if available
+    const websiteLink = profile.socialLinks?.find((link: any) => link.platform.toLowerCase() === "website");
+    if (websiteLink) {
+      const url = websiteLink.url.startsWith("http") ? websiteLink.url : `https://${websiteLink.url}`;
+      vCard += `URL:${url}\n`;
+    }
+    
+    vCard += "END:VCARD";
+    return vCard;
+  };
+
+  // Handle vCard download
+  const downloadVCard = () => {
+    if (!profile) return;
+    
+    const vCardData = generateVCard();
+    const blob = new Blob([vCardData], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${profile.displayName.replace(/\s+/g, "_")}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Contact Downloaded",
+      description: "Contact information has been saved to your device.",
+    });
+  };
+
+  // Copy profile URL to clipboard
+  const copyProfileUrl = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+    
+    toast({
+      title: "URL Copied",
+      description: "Profile link copied to clipboard!",
+    });
+  };
+
+  // Share profile
+  const shareProfile = async () => {
+    if (!profile) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${profile.displayName}'s Contact Profile`,
+          text: profile.bio || `Connect with ${profile.displayName}`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        copyProfileUrl();
+      }
+    } else {
+      copyProfileUrl();
+    }
+  };
 
   // Log the scan (would normally be done server-side)
   useEffect(() => {
@@ -92,13 +281,13 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <Card className="overflow-hidden">
+    <div className="max-w-md mx-auto mb-10">
+      <Card className="overflow-hidden shadow-lg">
         <div className={`h-32 bg-gradient-to-r ${getBgGradient(profile.name)}`} />
         
         <CardContent className="relative p-6">
           <div className="flex flex-col items-center -mt-16 mb-6">
-            <Avatar className="h-24 w-24 ring-4 ring-background">
+            <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
               {profile.photoUrl ? (
                 <AvatarImage src={profile.photoUrl} alt={profile.displayName} />
               ) : (
@@ -119,31 +308,152 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="flex justify-center mb-6">
+          {/* Quick Action Buttons */}
+          <div className="flex justify-center gap-3 mb-6">
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              onClick={downloadVCard}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Save Contact
+            </Button>
+            
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Contact Me
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Send a Message</SheetTitle>
+                  <SheetDescription>
+                    Leave your contact information and a message for {profile.displayName}.
+                  </SheetDescription>
+                </SheetHeader>
+                
+                <form onSubmit={handleContactSubmit} className="space-y-4 mt-4">
+                  <div>
+                    <label htmlFor="name" className="text-sm font-medium">Your Name</label>
+                    <Input 
+                      id="name"
+                      name="name"
+                      placeholder="Enter your name"
+                      value={contactFormData.name}
+                      onChange={handleContactInputChange}
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="email" className="text-sm font-medium">Your Email</label>
+                    <Input 
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={contactFormData.email}
+                      onChange={handleContactInputChange}
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="message" className="text-sm font-medium">Message</label>
+                    <Textarea 
+                      id="message"
+                      name="message"
+                      placeholder="Enter your message"
+                      value={contactFormData.message}
+                      onChange={handleContactInputChange}
+                      required
+                      className="mt-1 h-24"
+                    />
+                  </div>
+                  
+                  <SheetFooter>
+                    <Button 
+                      type="submit" 
+                      className="w-full"
+                      disabled={contactMutation.isPending}
+                    >
+                      {contactMutation.isPending ? (
+                        <>
+                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                          Sending...
+                        </>
+                      ) : "Send Message"}
+                    </Button>
+                  </SheetFooter>
+                </form>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* QR Code with actions */}
+          <div className="flex flex-col items-center mb-6 bg-muted/10 p-4 rounded-lg">
             <QrCodeDisplay
               value={window.location.href}
               fgColor={profile.qrColor || "#3B82F6"}
               size={150}
+              qrStyle={profile.qrStyle || "basic"}
             />
+            
+            <div className="flex justify-center gap-2 mt-3">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={copyProfileUrl}
+                className="text-xs text-muted-foreground"
+              >
+                <Copy className="h-3 w-3 mr-1" />
+                {isCopied ? "Copied!" : "Copy Link"}
+              </Button>
+              
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={shareProfile}
+                className="text-xs text-muted-foreground"
+              >
+                <Share className="h-3 w-3 mr-1" />
+                Share
+              </Button>
+            </div>
           </div>
 
+          {/* Social links section */}
           {profile.socialLinks && profile.socialLinks.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="font-semibold text-lg mb-2">Connect with me</h2>
-              {profile.socialLinks.map((link: any) => (
-                <SocialLink 
-                  key={link.id}
-                  platform={link.platform}
-                  url={link.url}
-                />
-              ))}
-            </div>
+            <Card className="border-none shadow-none">
+              <CardHeader className="px-0 pt-0 pb-2">
+                <CardTitle className="text-base font-medium">Connect with me</CardTitle>
+              </CardHeader>
+              <CardContent className="px-0 py-1 space-y-2">
+                {profile.socialLinks.map((link: any) => (
+                  <SocialLink 
+                    key={link.id}
+                    platform={link.platform}
+                    url={link.url}
+                    className="border-muted/40 hover:bg-muted/20"
+                  />
+                ))}
+              </CardContent>
+            </Card>
           )}
 
           <div className="text-center mt-8 text-xs text-muted-foreground">
             <p>Created with ContactQrConnect</p>
             <Link href="/">
-              <a className="text-primary hover:underline">Create your own QR profile</a>
+              <span className="text-primary hover:underline">Create your own QR profile</span>
             </Link>
           </div>
         </CardContent>
