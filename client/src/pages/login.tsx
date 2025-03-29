@@ -36,23 +36,39 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/auth/login", {
-        username,
-        password,
+      // Use fetch API directly for better control
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
       });
 
+      // Parse the JSON response
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || "Login failed");
       }
-
-      const userData = await response.json();
-      login(userData);
+      
+      console.log("Login successful, user data:", data);
+      
+      // Save to context and localStorage
+      login(data);
+      
       toast({
         title: "Success",
         description: "You have been logged in",
       });
-      setLocation("/");
+      
+      // Navigate to home page
+      setTimeout(() => {
+        setLocation("/");
+      }, 500);
     } catch (error) {
       toast({
         title: "Login failed",

@@ -46,23 +46,39 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/auth/register", {
-        username,
-        password,
+      // Use fetch API directly for better control
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
       });
 
+      // Parse the JSON response
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || "Registration failed");
       }
-
-      const userData = await response.json();
-      login(userData);
+      
+      console.log("Registration successful, user data:", data);
+      
+      // Save to context and localStorage
+      login(data);
+      
       toast({
         title: "Success",
         description: "You have been registered and logged in",
       });
-      setLocation("/");
+      
+      // Navigate to home page with a small delay to allow state to update
+      setTimeout(() => {
+        setLocation("/");
+      }, 500);
     } catch (error) {
       toast({
         title: "Registration failed",

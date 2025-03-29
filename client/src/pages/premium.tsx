@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Crown, Palette, BarChart2, LayoutGrid } from "lucide-react";
 
-// Initialize Stripe
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLIC_KEY || 
-  "pk_test_TYooMQauvdEDq54NiTphI7jx" // Fallback for development
-);
+// Initialize Stripe with public key
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('Missing Stripe public key. Please add VITE_STRIPE_PUBLIC_KEY to your environment variables.');
+}
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 function CheckoutForm() {
   const stripe = useStripe();
@@ -47,18 +48,31 @@ function CheckoutForm() {
         });
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         // Confirm premium status on the server
-        await apiRequest("POST", "/api/confirm-premium", {
-          userId: user?.id,
-          paymentIntentId: paymentIntent.id,
+        const confirmResponse = await fetch("/api/confirm-premium", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user?.id,
+            paymentIntentId: paymentIntent.id,
+          }),
         });
-
+        
+        if (!confirmResponse.ok) {
+          const errorData = await confirmResponse.json();
+          throw new Error(errorData.message || "Failed to confirm premium status");
+        }
+        
         toast({
           title: "Payment Successful",
           description: "Thank you for upgrading to premium!",
         });
 
         // Reload the page to update the user's premium status
-        window.location.href = "/";
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
       }
     } catch (err: any) {
       toast({
@@ -96,22 +110,35 @@ export default function Premium() {
     // Create PaymentIntent when the page loads
     const createPaymentIntent = async () => {
       try {
-        const response = await apiRequest("POST", "/api/create-payment-intent", {
-          userId: user.id,
+        const response = await fetch("/api/create-payment-intent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+          }),
         });
+        
         const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to create payment intent");
+        }
+        
         setClientSecret(data.clientSecret);
       } catch (error: any) {
+        console.error("Payment intent error:", error);
         toast({
-          title: "Error",
-          description: "Unable to initialize payment. Please try again.",
+          title: "Payment Error",
+          description: error.message || "Unable to initialize payment. Please try again.",
           variant: "destructive",
         });
       }
     };
 
     createPaymentIntent();
-  }, [user]);
+  }, [user, toast]);
 
   if (user?.isPremium) {
     return (
