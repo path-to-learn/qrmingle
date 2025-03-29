@@ -61,13 +61,28 @@ function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  // Check localStorage on every render to help debug authentication issues
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser && !user) {
+      console.log("Found user in localStorage, but not in state", { savedUser });
+      setUser(JSON.parse(savedUser));
+    } else if (!savedUser && user) {
+      console.log("Found user in state, but not in localStorage", { user });
+    } else {
+      console.log("Auth state check", { user, savedUser: savedUser ? "exists" : "null" });
+    }
+  }, [user]);
+
   const login = (user: User) => {
+    console.log("Login called with user:", user);
     // Save user to localStorage
     localStorage.setItem('user', JSON.stringify(user));
     setUser(user);
   };
 
   const logout = () => {
+    console.log("Logout called");
     // Remove user from localStorage
     localStorage.removeItem('user');
     setUser(null);

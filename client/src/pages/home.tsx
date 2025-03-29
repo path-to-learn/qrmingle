@@ -28,7 +28,7 @@ export default function Home() {
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
 
   // Fetch profiles
-  const { data: profiles, isLoading, refetch } = useQuery({
+  const { data: profiles = [], isLoading, refetch } = useQuery({
     queryKey: [`/api/profiles?userId=${user?.id}`],
     enabled: !!user,
   });
@@ -142,6 +142,9 @@ export default function Home() {
     ? profiles?.find((p: any) => p.id === editingProfileId)
     : undefined;
 
+  // Add debugging to see what's going on with the user
+  console.log("Auth state:", { user });
+
   if (!user) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 mb-6 text-center">
@@ -150,8 +153,12 @@ export default function Home() {
           Please log in or sign up to create and manage your contact profiles
         </p>
         <div className="flex justify-center gap-4">
-          <Button>Sign Up</Button>
-          <Button variant="outline">Log In</Button>
+          <a href="/register">
+            <Button>Sign Up</Button>
+          </a>
+          <a href="/login">
+            <Button variant="outline">Log In</Button>
+          </a>
         </div>
       </div>
     );
