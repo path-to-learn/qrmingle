@@ -1,9 +1,10 @@
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Link } from "wouter";
 
 type SocialLink = {
   id: number;
@@ -121,6 +122,15 @@ export default function ProfileCard({
           size={150}
           qrStyle={qrStyle}
         />
+        
+        <div className="flex justify-center mt-4">
+          <Link href={`/p/${slug}`}>
+            <Button className="w-full">
+              <Eye className="mr-2 h-4 w-4" />
+              View Profile
+            </Button>
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
