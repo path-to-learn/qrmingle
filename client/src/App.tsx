@@ -57,21 +57,59 @@ function Router() {
 function App() {
   // Load user from localStorage on app start
   const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (error) {
+      console.error("Error parsing saved user:", error);
+      // If there's an error parsing, clear the corrupted data
+      localStorage.removeItem('user');
+      return null;
+    }
   });
 
-  // Check localStorage on every render to help debug authentication issues
+  // Verify user auth state on app initialization
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        // Only perform this check if there's a user in state
+        if (user) {
+          // Make a request to validate the session with the user's ID
+          const response = await fetch(`/api/auth/validate?userId=${user.id}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          // If the request fails or returns non-200, clear the user state
+          if (!response.ok) {
+            console.log("Auth validation failed, clearing local user data");
+            localStorage.removeItem('user');
+            setUser(null);
+          } else {
+            // Update the user data with the latest from the server
+            const updatedUserData = await response.json();
+            if (JSON.stringify(updatedUserData) !== JSON.stringify(user)) {
+              console.log("Updated user data from server");
+              localStorage.setItem('user', JSON.stringify(updatedUserData));
+              setUser(updatedUserData);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking auth status:", error);
+      }
+    };
+    
+    // Now that we have the validation endpoint, uncomment this
+    checkAuthStatus();
+  }, [user]);
+
+  // Debug auth state changes
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser && !user) {
-      console.log("Found user in localStorage, but not in state", { savedUser });
-      setUser(JSON.parse(savedUser));
-    } else if (!savedUser && user) {
-      console.log("Found user in state, but not in localStorage", { user });
-    } else {
-      console.log("Auth state check", { user, savedUser: savedUser ? "exists" : "null" });
-    }
+    console.log("Auth state check", { user, savedUser });
   }, [user]);
 
   const login = (user: User) => {

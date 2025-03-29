@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,20 @@ import { useAuth } from "@/App";
 
 export default function Register() {
   const [location, setLocation] = useLocation();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      console.log("User already logged in, redirecting to home page");
+      setLocation("/");
+    }
+  }, [user, setLocation]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

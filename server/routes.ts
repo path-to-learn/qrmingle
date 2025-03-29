@@ -9,7 +9,7 @@ import Stripe from "stripe";
 
 // Initialize Stripe if secret key is available
 const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" }) 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" as any }) 
   : null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -59,6 +59,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to authenticate" });
     }
   });
+  
+  // Session validation endpoint
+  apiRoutes.get('/auth/validate', async (req, res) => {
+    try {
+      const userId = req.query.userId;
+      
+      // If we don't have a userId, return unauthorized
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      // Get the user by ID
+      const user = await storage.getUser(Number(userId));
+      
+      // If user doesn't exist, return unauthorized
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Return user without password
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Auth validation error:", error);
+      res.status(500).json({ message: "Failed to validate authentication" });
+    }
+  });
 
   // Profile routes
   apiRoutes.get('/profiles', async (req, res) => {
@@ -94,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if user is allowed to use premium features
       const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
-      if (premiumStyles.includes(profileData.qrStyle)) {
+      if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
         const user = await storage.getUser(userId);
         if (!user?.isPremium) {
           profileData.qrStyle = 'basic';
@@ -171,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if user is allowed to use premium features
       const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
-      if (premiumStyles.includes(profileData.qrStyle)) {
+      if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
         const user = await storage.getUser(existingProfile.userId);
         if (!user?.isPremium) {
           profileData.qrStyle = 'basic';

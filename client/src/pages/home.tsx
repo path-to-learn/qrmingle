@@ -26,9 +26,14 @@ export default function Home() {
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
+  
+  // Added the user state to console log for debugging purposes
+  useEffect(() => {
+    console.log("Home component auth state:", { user, userExists: !!user });
+  }, [user]);
 
   // Fetch profiles
-  const { data: profiles = [], isLoading, refetch } = useQuery({
+  const { data: profiles = [], isLoading, refetch } = useQuery<any[]>({
     queryKey: [`/api/profiles?userId=${user?.id}`],
     enabled: !!user,
   });
