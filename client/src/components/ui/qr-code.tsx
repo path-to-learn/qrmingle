@@ -54,14 +54,47 @@ export function QrCodeDisplay({
   }, [value]);
 
   const handleDownload = () => {
-    const canvas = document.getElementById('qr-code') as HTMLCanvasElement;
-    if (!canvas) return;
-
-    const url = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = `${profileName || 'qrcode'}.png`;
-    link.href = url;
-    link.click();
+    // Get the SVG element
+    const svgElement = document.getElementById('qr-code');
+    if (!svgElement) return;
+    
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Set canvas dimensions to match SVG size
+    canvas.width = size;
+    canvas.height = size;
+    
+    // Create a new Image element
+    const img = new Image();
+    
+    // Convert SVG to data URL
+    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    
+    // Handle image load
+    img.onload = () => {
+      // Draw image on canvas with background color
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to data URL and download
+      const pngUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `${profileName || 'qrcode'}.png`;
+      link.href = pngUrl;
+      link.click();
+      
+      // Clean up
+      URL.revokeObjectURL(svgUrl);
+    };
+    
+    // Set image source to SVG URL
+    img.src = svgUrl;
   };
 
   const handleShare = async () => {
@@ -157,7 +190,7 @@ export function QrCodeDisplay({
           onClick={handleDownload}
         >
           <Download className="h-4 w-4 mr-1" />
-          {renderAs === 'canvas' ? 'Download' : 'Save'}
+          Download
         </Button>
         
         <Button

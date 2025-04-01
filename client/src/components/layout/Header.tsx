@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, useRoute } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +13,16 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Header() {
   const { user, logout } = useAuth();
-  const [location] = useLocation();
+  
+  // Use useRoute to check if we're on login or register pages
+  const [isLoginPage] = useRoute("/login");
+  const [isRegisterPage] = useRoute("/register");
+  
+  // Check if we're on any auth page
+  const isAuthPage = isLoginPage || isRegisterPage;
   
   // Just log when rendered with user state
-  console.log("Header render:", { isLoggedIn: !!user, user, currentLocation: location });
-
-  // Check if we're on the login or register page
-  const isAuthPage = location === "/login" || location === "/register";
+  console.log("Header render:", { isLoggedIn: !!user, user, isAuthPage });
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-10">
