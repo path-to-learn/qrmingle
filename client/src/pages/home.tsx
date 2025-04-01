@@ -28,6 +28,7 @@ export default function Home() {
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
   
   // Log user state for debugging
+  console.log("Home component auth state:", { user, isLoggedIn: !!user });
   useEffect(() => {
     console.log("Home component auth state:", { user, isLoggedIn: !!user });
   }, [user]);
