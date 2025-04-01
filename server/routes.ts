@@ -124,10 +124,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRoutes.post('/profiles', async (req, res) => {
     try {
-      const profileData = profileFormSchema.parse(req.body);
+      console.log("Profile creation request received:", JSON.stringify(req.body, null, 2));
+      
+      // Validate the profile data
+      let profileData;
+      try {
+        profileData = profileFormSchema.parse(req.body);
+        console.log("Profile data validated successfully");
+      } catch (validationError) {
+        console.error("Profile validation failed:", validationError);
+        if (validationError instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Validation error", 
+            details: validationError.errors 
+          });
+        }
+        throw validationError;
+      }
+      
       const userId = parseInt(req.body.userId);
+      console.log("User ID:", userId);
       
       if (isNaN(userId)) {
+        console.error("Invalid user ID:", req.body.userId);
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
@@ -136,6 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
         const user = await storage.getUser(userId);
         if (!user?.isPremium) {
+          console.log("Non-premium user tried to use premium style, defaulting to basic");
           profileData.qrStyle = 'basic';
         }
       }
@@ -144,16 +164,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseSlug = profileData.displayName.toLowerCase().replace(/\s+/g, '-');
       const randomSuffix = crypto.randomBytes(4).toString('hex');
       const slug = `${baseSlug}-${randomSuffix}`;
+      console.log("Generated slug:", slug);
       
       // Create the profile
       const { socialLinks, ...profileWithoutLinks } = profileData;
+      console.log("Creating profile with data:", { ...profileWithoutLinks, userId, slug });
+      
       const profile = await storage.createProfile({
         ...profileWithoutLinks,
         userId,
         slug,
       });
       
+      console.log("Profile created successfully:", profile);
+      
       // Create the social links
+      console.log("Creating social links:", socialLinks);
+      
       const createdLinks = await Promise.all(
         socialLinks.map((link) => storage.createSocialLink({
           ...link,
@@ -161,12 +188,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       );
       
-      res.status(201).json({ ...profile, socialLinks: createdLinks });
+      console.log("Social links created successfully:", createdLinks);
+      
+      const responseData = { ...profile, socialLinks: createdLinks };
+      console.log("Sending response:", responseData);
+      
+      res.status(201).json(responseData);
     } catch (error) {
+      console.error("Profile creation error:", error);
+      
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({ 
+          message: "Validation error", 
+          details: error.errors 
+        });
       }
-      res.status(500).json({ message: "Failed to create profile" });
+      
+      res.status(500).json({ 
+        message: "Failed to create profile", 
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

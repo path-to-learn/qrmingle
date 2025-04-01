@@ -79,12 +79,23 @@ export type ScanLog = typeof scanLogs.$inferSelect;
 
 // Extended schemas for validation
 export const profileFormSchema = insertProfileSchema.extend({
+  // Ensure slug is optional in the form schema since it's generated on the server
+  slug: z.string().optional(),
+  
+  // Ensure these fields have default values if they're null or undefined
+  photoUrl: z.string().nullable().default(""),
+  title: z.string().nullable().default(""),
+  bio: z.string().nullable().default(""),
+  qrStyle: z.string().default("basic"),
+  qrColor: z.string().default("#3B82F6"),
+  
+  // Ensure social links are an array with at least one entry
   socialLinks: z.array(
     z.object({
       platform: z.string().min(1, "Platform is required"),
       url: z.string().min(1, "URL or contact info is required"),
     })
-  ),
+  ).min(1, "At least one social link is required").default([{ platform: "LinkedIn", url: "" }]),
 });
 
 export type ProfileFormData = z.infer<typeof profileFormSchema>;

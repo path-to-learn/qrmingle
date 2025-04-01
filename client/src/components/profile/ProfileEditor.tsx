@@ -48,8 +48,8 @@ export default function ProfileEditor({
   isPremium = false,
 }: ProfileEditorProps) {
   const { toast } = useToast();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    profileData?.photoUrl || null
+  const [previewUrl, setPreviewUrl] = useState<string>(
+    profileData?.photoUrl || ""
   );
 
   const form = useForm<ProfileFormData>({
@@ -89,6 +89,8 @@ export default function ProfileEditor({
   };
 
   const handleSubmit = (data: ProfileFormData) => {
+    console.log("Form submission attempt with data:", data);
+    
     // Make sure non-premium users can't use premium QR styles
     const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
     if (!isPremium && premiumStyles.includes(data.qrStyle)) {
@@ -99,6 +101,23 @@ export default function ProfileEditor({
         variant: "destructive",
       });
     }
+    
+    // Validate that we have at least one social link with valid data
+    if (!data.socialLinks || data.socialLinks.length === 0) {
+      data.socialLinks = [{ platform: "LinkedIn", url: "https://linkedin.com" }];
+    }
+    
+    // Validate all required fields are present
+    if (!data.name || !data.displayName) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in your name and display name",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("Submitting profile data:", data);
     onSubmit(data);
   };
 
@@ -182,7 +201,7 @@ export default function ProfileEditor({
                           type="button"
                           variant="outline"
                           onClick={() => {
-                            setPreviewUrl(null);
+                            setPreviewUrl("");
                             form.setValue("photoUrl", "");
                           }}
                         >

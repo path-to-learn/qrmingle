@@ -2,8 +2,22 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    try {
+      const jsonResponse = await res.json();
+      console.error("API error response:", jsonResponse);
+      const errorMessage = jsonResponse.message || res.statusText;
+      throw new Error(`${res.status}: ${errorMessage}`);
+    } catch (e) {
+      // If we can't parse as JSON, try as text
+      try {
+        const text = await res.text();
+        console.error("API error text:", text);
+        throw new Error(`${res.status}: ${text || res.statusText}`);
+      } catch (textError) {
+        // If all else fails, use status text
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+    }
   }
 }
 
@@ -12,15 +26,37 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  return res;
+  console.log(`API Request: ${method} ${url}`, data ? { data } : '');
+  
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
+    
+    console.log(`API Response status: ${res.status} ${res.statusText}`);
+    
+    if (!res.ok) {
+      await throwIfResNotOk(res);
+    }
+    
+    // Clone the response so we can log it and still return it
+    const clone = res.clone();
+    if (url !== '/api/auth/validate') { // Avoid logging validation checks
+      clone.json().then(data => {
+        console.log(`API Response data:`, data);
+      }).catch(() => {
+        console.log('Response is not JSON');
+      });
+    }
+    
+    return res;
+  } catch (error) {
+    console.error(`API Request failed: ${method} ${url}`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

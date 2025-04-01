@@ -54,13 +54,30 @@ export default function Home() {
   // Create profile mutation
   const createProfile = useMutation({
     mutationFn: async (data: ProfileFormData) => {
-      if (!user) throw new Error("User not authenticated");
-      return apiRequest("POST", "/api/profiles", {
-        ...data,
-        userId: user.id,
-      });
+      console.log("Starting create profile mutation with data:", data);
+      
+      if (!user) {
+        console.error("User not authenticated");
+        throw new Error("User not authenticated");
+      }
+      
+      try {
+        const requestData = {
+          ...data,
+          userId: user.id,
+        };
+        console.log("Sending profile create request with:", requestData);
+        
+        const response = await apiRequest("POST", "/api/profiles", requestData);
+        console.log("Profile creation API response:", response);
+        return response;
+      } catch (err) {
+        console.error("Error creating profile:", err);
+        throw err;
+      }
     },
     onSuccess: () => {
+      console.log("Profile created successfully");
       toast({
         title: "Profile created successfully",
         description: "Your new profile is ready to share!",
@@ -68,10 +85,11 @@ export default function Home() {
       refetch();
       setShowEditor(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Profile creation error:", error);
       toast({
         title: "Failed to create profile",
-        description: error.message,
+        description: error.message || "An error occurred while creating your profile.",
         variant: "destructive",
       });
     },
