@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -11,15 +11,11 @@ import { QrCodeDisplay } from "@/components/ui/qr-code";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  ArrowLeft, 
-  Download, 
-  Smartphone, 
-  Mail, 
+  ArrowLeft,
   MessageSquare, 
   Copy, 
   Share, 
-  UserPlus,
-  X
+  UserPlus
 } from "lucide-react";
 import { Link } from "wouter";
 import { downloadVCard, getVCardDataUrl } from "@/lib/vcard";
@@ -31,7 +27,6 @@ import {
 } from "@/components/ui/tooltip";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
