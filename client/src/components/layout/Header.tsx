@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { useAuth } from "@/App";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
