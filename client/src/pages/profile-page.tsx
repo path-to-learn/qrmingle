@@ -22,6 +22,13 @@ import {
   X
 } from "lucide-react";
 import { Link } from "wouter";
+import { downloadVCard, getVCardDataUrl } from "@/lib/vcard";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 import {
   Sheet,
   SheetClose,
@@ -131,51 +138,35 @@ export default function ProfilePage() {
     setContactFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Generate vCard
-  const generateVCard = () => {
+  // Get vCard data URL for direct linking
+  const getVCardUrl = () => {
     if (!profile) return "";
-    
-    let vCard = "BEGIN:VCARD\nVERSION:3.0\n";
-    vCard += `FN:${profile.displayName}\n`;
-    if (profile.title) vCard += `TITLE:${profile.title}\n`;
-    
-    // Add email and phone if available
-    const emailLink = profile.socialLinks?.find((link: any) => link.platform.toLowerCase() === "email");
-    const phoneLink = profile.socialLinks?.find((link: any) => link.platform.toLowerCase() === "phone");
-    
-    if (emailLink) vCard += `EMAIL:${emailLink.url.replace("mailto:", "")}\n`;
-    if (phoneLink) vCard += `TEL:${phoneLink.url.replace("tel:", "")}\n`;
-    
-    // Add website if available
-    const websiteLink = profile.socialLinks?.find((link: any) => link.platform.toLowerCase() === "website");
-    if (websiteLink) {
-      const url = websiteLink.url.startsWith("http") ? websiteLink.url : `https://${websiteLink.url}`;
-      vCard += `URL:${url}\n`;
-    }
-    
-    vCard += "END:VCARD";
-    return vCard;
+    return getVCardDataUrl(profile, profile.socialLinks);
   };
 
-  // Handle vCard download
-  const downloadVCard = () => {
+  // Handle vCard download/add to contacts
+  const handleDownloadVCard = () => {
     if (!profile) return;
     
-    const vCardData = generateVCard();
-    const blob = new Blob([vCardData], { type: "text/vcard" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${profile.displayName.replace(/\s+/g, "_")}.vcf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Contact Downloaded",
-      description: "Contact information has been saved to your device.",
-    });
+    // On mobile devices, try to open the vCard directly in contacts app
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      // Create the data URL and open it directly
+      const dataUrl = getVCardUrl();
+      window.location.href = dataUrl;
+      
+      toast({
+        title: "Adding Contact",
+        description: "Your contacts app should open to save this contact."
+      });
+    } else {
+      // On desktop, download the vCard file
+      downloadVCard(profile, profile.socialLinks);
+      
+      toast({
+        title: "Contact Downloaded",
+        description: "Contact information has been saved to your device.",
+      });
+    }
   };
 
   // Copy profile URL to clipboard
@@ -310,27 +301,48 @@ export default function ProfilePage() {
 
           {/* Quick Action Buttons */}
           <div className="flex justify-center gap-3 mb-6">
-            <Button
-              size="sm"
-              variant="outline"
-              className="rounded-full"
-              onClick={downloadVCard}
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Save Contact
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-md hover:shadow-lg transition-all duration-300"
+                    onClick={handleDownloadVCard}
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Save Contact
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 
+                    "Add to your device's contacts" : 
+                    "Download contact as vCard (.vcf)"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             
             <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="rounded-full"
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Contact Me
-                </Button>
-              </SheetTrigger>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SheetTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-full"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Contact Me
+                      </Button>
+                    </SheetTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Send a message to {profile.displayName}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle>Send a Message</SheetTitle>
