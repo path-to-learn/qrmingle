@@ -16,7 +16,7 @@ export default function Header() {
   const [location] = useLocation();
   
   // Just log when rendered with user state
-  console.log("Header render:", { isLoggedIn: !!user, user });
+  console.log("Header render:", { isLoggedIn: !!user, user, currentLocation: location });
 
   // Check if we're on the login or register page
   const isAuthPage = location === "/login" || location === "/register";
