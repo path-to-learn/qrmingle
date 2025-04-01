@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +13,13 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const [location] = useLocation();
   
   // Just log when rendered with user state
   console.log("Header render:", { isLoggedIn: !!user, user });
+
+  // Check if we're on the login or register page
+  const isAuthPage = location === "/login" || location === "/register";
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-10">
@@ -81,16 +85,19 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex space-x-2">
-              <Link href="/login">
-                <Button variant="outline" className="hover:text-primary hover:border-primary">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button>Sign Up</Button>
-              </Link>
-            </div>
+            // Only show login/signup buttons if not on an auth page
+            !isAuthPage && (
+              <div className="flex space-x-2">
+                <Link href="/login">
+                  <Button variant="outline" className="hover:text-primary hover:border-primary">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button>Sign Up</Button>
+                </Link>
+              </div>
+            )
           )}
         </div>
       </div>
