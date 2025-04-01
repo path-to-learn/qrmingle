@@ -1,0 +1,21 @@
+{
+  "users": [
+    [
+      1,
+      {
+        "username": "demo",
+        "password": "demo",
+        "id": 1,
+        "isPremium": false,
+        "stripeCustomerId": null
+      }
+    ]
+  ],
+  "profiles": [],
+  "socialLinks": [],
+  "scanLogs": [],
+  "userCurrentId": 2,
+  "profileCurrentId": 1,
+  "socialLinkCurrentId": 1,
+  "scanLogCurrentId": 1
+}

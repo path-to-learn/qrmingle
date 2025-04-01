@@ -49,6 +49,7 @@ export class MemStorage implements IStorage {
   private scanLogCurrentId: number;
 
   constructor() {
+    // Initialize with empty data
     this.users = new Map();
     this.profiles = new Map();
     this.socialLinks = new Map();
@@ -58,11 +59,105 @@ export class MemStorage implements IStorage {
     this.socialLinkCurrentId = 1;
     this.scanLogCurrentId = 1;
 
-    // Create a sample user
-    this.createUser({
-      username: "demo",
-      password: "demo",
-    });
+    // Try to load data from storage
+    this.initializeStorage();
+  }
+
+  // Initialize storage asynchronously
+  private async initializeStorage() {
+    try {
+      await this.loadFromStorage();
+      
+      // Create a demo user if no users exist
+      if (this.users.size === 0) {
+        console.log("Creating demo user...");
+        await this.createUser({
+          username: "demo",
+          password: "demo",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to initialize storage:", error);
+    }
+  }
+
+  // Save all data to a JSON file
+  private async saveToStorage() {
+    try {
+      const data = {
+        users: Array.from(this.users.entries()),
+        profiles: Array.from(this.profiles.entries()),
+        socialLinks: Array.from(this.socialLinks.entries()),
+        scanLogs: Array.from(this.scanLogs.entries()),
+        userCurrentId: this.userCurrentId,
+        profileCurrentId: this.profileCurrentId,
+        socialLinkCurrentId: this.socialLinkCurrentId,
+        scanLogCurrentId: this.scanLogCurrentId,
+      };
+
+      // Save to file using node fs
+      import('fs/promises').then(async fs => {
+        await fs.writeFile('./data-store.json', JSON.stringify(data, (key, value) => {
+          // Convert Date objects to ISO strings
+          if (value instanceof Date) {
+            return value.toISOString();
+          }
+          return value;
+        }, 2));
+        
+        console.log("Data saved to storage");
+      }).catch(err => {
+        console.error("Error importing fs module:", err);
+      });
+    } catch (error) {
+      console.error("Failed to save data to storage:", error);
+    }
+  }
+
+  // Load data from a JSON file
+  private async loadFromStorage() {
+    try {
+      const fs = await import('fs/promises');
+      const fsSync = await import('fs');
+      
+      if (!fsSync.existsSync('./data-store.json')) {
+        console.log("No data store found. Starting with empty data.");
+        return;
+      }
+      
+      const fileContent = await fs.readFile('./data-store.json', 'utf8');
+      const data = JSON.parse(fileContent);
+      
+      // Restore Maps from arrays
+      this.users = new Map(data.users);
+      this.profiles = new Map(data.profiles);
+      this.socialLinks = new Map(data.socialLinks);
+      this.scanLogs = new Map(data.scanLogs);
+      
+      // Restore IDs
+      this.userCurrentId = data.userCurrentId;
+      this.profileCurrentId = data.profileCurrentId;
+      this.socialLinkCurrentId = data.socialLinkCurrentId;
+      this.scanLogCurrentId = data.scanLogCurrentId;
+      
+      // Convert date strings back to Date objects
+      for (const profile of this.profiles.values()) {
+        if (profile.createdAt && typeof profile.createdAt === 'string') {
+          profile.createdAt = new Date(profile.createdAt);
+        }
+      }
+      
+      for (const scanLog of this.scanLogs.values()) {
+        if (scanLog.timestamp && typeof scanLog.timestamp === 'string') {
+          scanLog.timestamp = new Date(scanLog.timestamp);
+        }
+      }
+      
+      console.log("Data loaded from storage");
+      console.log(`Users: ${this.users.size}, Profiles: ${this.profiles.size}, SocialLinks: ${this.socialLinks.size}`);
+    } catch (error) {
+      console.error("Failed to load data from storage:", error);
+    }
   }
 
   // User methods
@@ -85,6 +180,7 @@ export class MemStorage implements IStorage {
       stripeCustomerId: null,
     };
     this.users.set(id, user);
+    this.saveToStorage();
     return user;
   }
 
@@ -96,6 +192,7 @@ export class MemStorage implements IStorage {
 
     const updatedUser = { ...user, isPremium };
     this.users.set(id, updatedUser);
+    this.saveToStorage();
     return updatedUser;
   }
 
@@ -107,6 +204,7 @@ export class MemStorage implements IStorage {
 
     const updatedUser = { ...user, stripeCustomerId };
     this.users.set(id, updatedUser);
+    this.saveToStorage();
     return updatedUser;
   }
 
@@ -139,6 +237,7 @@ export class MemStorage implements IStorage {
     };
     
     this.profiles.set(id, newProfile);
+    this.saveToStorage();
     return newProfile;
   }
 
@@ -150,6 +249,7 @@ export class MemStorage implements IStorage {
 
     const updatedProfile: Profile = { ...profile, ...profileData };
     this.profiles.set(id, updatedProfile);
+    this.saveToStorage();
     return updatedProfile;
   }
 
@@ -163,7 +263,9 @@ export class MemStorage implements IStorage {
     await this.deleteSocialLinksByProfileId(id);
     
     // Delete profile
-    return this.profiles.delete(id);
+    const result = this.profiles.delete(id);
+    this.saveToStorage();
+    return result;
   }
 
   async incrementScanCount(id: number): Promise<Profile> {
@@ -172,8 +274,10 @@ export class MemStorage implements IStorage {
       throw new Error(`Profile with id ${id} not found`);
     }
 
-    const updatedProfile = { ...profile, scanCount: profile.scanCount + 1 };
+    const scanCount = profile.scanCount || 0;
+    const updatedProfile = { ...profile, scanCount: scanCount + 1 };
     this.profiles.set(id, updatedProfile);
+    this.saveToStorage();
     return updatedProfile;
   }
 
@@ -193,6 +297,7 @@ export class MemStorage implements IStorage {
     };
     
     this.socialLinks.set(id, newSocialLink);
+    this.saveToStorage();
     return newSocialLink;
   }
 
@@ -204,11 +309,14 @@ export class MemStorage implements IStorage {
 
     const updatedSocialLink: SocialLink = { ...socialLink, ...socialLinkData };
     this.socialLinks.set(id, updatedSocialLink);
+    this.saveToStorage();
     return updatedSocialLink;
   }
 
   async deleteSocialLink(id: number): Promise<boolean> {
-    return this.socialLinks.delete(id);
+    const result = this.socialLinks.delete(id);
+    this.saveToStorage();
+    return result;
   }
 
   async deleteSocialLinksByProfileId(profileId: number): Promise<boolean> {
@@ -218,6 +326,7 @@ export class MemStorage implements IStorage {
       this.socialLinks.delete(link.id);
     });
     
+    this.saveToStorage();
     return true;
   }
 
@@ -236,6 +345,9 @@ export class MemStorage implements IStorage {
       ...scanLogData,
       id,
       timestamp: now,
+      location: scanLogData.location || null,
+      device: scanLogData.device || null,
+      referrer: scanLogData.referrer || null
     };
     
     this.scanLogs.set(id, scanLog);
@@ -243,6 +355,7 @@ export class MemStorage implements IStorage {
     // Increment scan count for the profile
     await this.incrementScanCount(scanLogData.profileId);
     
+    this.saveToStorage();
     return scanLog;
   }
 }
