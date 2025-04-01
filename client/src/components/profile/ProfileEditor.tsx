@@ -476,6 +476,7 @@ export default function ProfileEditor({
                         <Input
                           placeholder="e.g., Marketing Specialist, Travel Enthusiast"
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -494,6 +495,7 @@ export default function ProfileEditor({
                           placeholder="Short description about yourself"
                           rows={3}
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />

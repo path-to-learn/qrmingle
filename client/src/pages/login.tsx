@@ -56,7 +56,7 @@ export default function Login() {
       
       console.log("Login successful, data:", data);
       
-      // Save user data to localStorage first
+      // Create user object from response
       const userData = {
         id: data.id,
         username: data.username,
@@ -64,15 +64,16 @@ export default function Login() {
         stripeCustomerId: data.stripeCustomerId
       };
       
-      localStorage.setItem('user', JSON.stringify(userData));
+      // Use the login function from context
+      login(userData);
       
       toast({
         title: "Success",
         description: "You have been logged in. Redirecting...",
       });
       
-      // Hard refresh to home page to ensure complete state reset
-      window.location.href = "/";
+      // Use the router to navigate to home
+      setLocation("/");
     } catch (error) {
       toast({
         title: "Login failed",

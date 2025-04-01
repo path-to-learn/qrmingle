@@ -14,7 +14,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 export default function Header() {
   const { user, logout } = useAuth();
   
-  console.log("Header component auth state:", { user, isLoggedIn: !!user });
+  // Just log when rendered with user state
+  console.log("Header render:", { isLoggedIn: !!user, user });
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-10">
