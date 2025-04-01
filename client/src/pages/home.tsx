@@ -34,7 +34,20 @@ export default function Home() {
 
   // Fetch profiles
   const { data: profiles = [], isLoading, refetch } = useQuery<any[]>({
-    queryKey: [`/api/profiles?userId=${user?.id}`],
+    queryKey: ['/api/profiles', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      console.log("Fetching profiles for user ID:", user.id);
+      const response = await fetch(`/api/profiles?userId=${user.id}`);
+      
+      // Log the response for debugging
+      console.log("Profile API response status:", response.status);
+      const data = await response.json();
+      console.log("Profiles data received:", data);
+      
+      if (!response.ok) throw new Error('Failed to fetch profiles');
+      return data;
+    },
     enabled: !!user,
   });
 
