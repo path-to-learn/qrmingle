@@ -123,11 +123,19 @@ export default function ProfileCard({
           qrStyle={qrStyle}
         />
         
-        <div className="flex justify-center mt-4">
-          <Link href={`/p/${slug}`}>
+        <div className="flex justify-between mt-4 gap-2">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => onEdit(id)}
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
+          <Link href={`/p/${slug}`} className="flex-1">
             <Button className="w-full">
               <Eye className="mr-2 h-4 w-4" />
-              View Profile
+              View
             </Button>
           </Link>
         </div>

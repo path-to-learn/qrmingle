@@ -25,7 +25,7 @@
         "userId": 1,
         "slug": "jack-0b65bd79",
         "id": 1,
-        "scanCount": 1,
+        "scanCount": 2,
         "createdAt": "2025-04-01T19:51:27.535Z"
       }
     ]
@@ -61,10 +61,21 @@
         "id": 1,
         "timestamp": "2025-04-01T19:52:01.488Z"
       }
+    ],
+    [
+      2,
+      {
+        "profileId": 1,
+        "location": null,
+        "device": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:136.0) Gecko/20100101 Firefox/136.0",
+        "referrer": "https://980e66c9-1140-4b2e-a45a-b37d691c6814-00-2xbyssbyrohmd.spock.replit.dev/p/jack-0b65bd79",
+        "id": 2,
+        "timestamp": "2025-04-01T19:56:18.291Z"
+      }
     ]
   ],
   "userCurrentId": 2,
   "profileCurrentId": 2,
   "socialLinkCurrentId": 3,
-  "scanLogCurrentId": 2
+  "scanLogCurrentId": 3
 }
