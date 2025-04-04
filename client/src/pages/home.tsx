@@ -185,7 +185,7 @@ export default function Home() {
   if (!user) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 mb-6 text-center">
-        <h1 className="text-2xl font-bold mb-4">Welcome to ContactQrConnect</h1>
+        <h1 className="text-2xl font-bold mb-4">Welcome to QrMingle</h1>
         <p className="text-muted-foreground mb-6">
           Please log in or sign up to create and manage your contact profiles
         </p>
