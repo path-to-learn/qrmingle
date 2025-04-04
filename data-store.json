@@ -63,7 +63,7 @@
         "userId": 1,
         "slug": "tyson-5acda39d",
         "id": 3,
-        "scanCount": 0,
+        "scanCount": 1,
         "createdAt": "2025-04-04T06:43:44.515Z"
       }
     ]
@@ -199,10 +199,21 @@
         "id": 6,
         "timestamp": "2025-04-04T06:39:05.075Z"
       }
+    ],
+    [
+      7,
+      {
+        "profileId": 3,
+        "location": null,
+        "device": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/137.0",
+        "referrer": "https://980e66c9-1140-4b2e-a45a-b37d691c6814-00-2xbyssbyrohmd.spock.replit.dev/p/tyson-5acda39d",
+        "id": 7,
+        "timestamp": "2025-04-04T06:48:41.029Z"
+      }
     ]
   ],
   "userCurrentId": 2,
   "profileCurrentId": 4,
   "socialLinkCurrentId": 17,
-  "scanLogCurrentId": 7
+  "scanLogCurrentId": 8
 }

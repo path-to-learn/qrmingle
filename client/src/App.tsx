@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import ProfilePage from "@/pages/profile-page";
 import Premium from "@/pages/premium";
+import PremiumSuccess from "@/pages/premium-success";
 import Analytics from "@/pages/analytics";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -25,6 +26,11 @@ function AppRouter() {
           <Route path="/premium">
             <RequireAuth>
               <Premium />
+            </RequireAuth>
+          </Route>
+          <Route path="/premium/success">
+            <RequireAuth>
+              <PremiumSuccess />
             </RequireAuth>
           </Route>
           <Route path="/analytics">

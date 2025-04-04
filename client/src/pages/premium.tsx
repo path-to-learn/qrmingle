@@ -69,10 +69,8 @@ function CheckoutForm() {
           description: "Thank you for upgrading to premium!",
         });
 
-        // Reload the page to update the user's premium status
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1500);
+        // Navigate to the success page
+        window.location.href = "/premium/success";
       }
     } catch (err: any) {
       toast({

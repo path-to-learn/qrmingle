@@ -56,12 +56,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid username or password" });
       }
       
-      if (user.password !== password) {
+      // Special case for Premium Success page to refresh user data without password
+      const isRefresh = password === "" && req.headers.referer?.includes("/premium/success");
+      
+      if (!isRefresh && user.password !== password) {
         console.log("Password mismatch for user:", username);
         return res.status(401).json({ message: "Invalid username or password" });
       }
       
-      console.log("Login successful for user:", username);
+      console.log(isRefresh ? "User data refresh for:" : "Login successful for user:", username);
       
       // Return user without password
       const { password: _, ...userWithoutPassword } = user;
@@ -433,6 +436,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User premium upgrade with Stripe
   if (stripe) {
+    // Stripe webhook handler for asynchronous events
+    apiRoutes.post('/stripe-webhook', async (req, res) => {
+      try {
+        console.log('Received Stripe webhook event');
+        
+        // Extract the event data - in our case, req.body is already parsed as JSON
+        const event = req.body;
+        
+        if (!event || !event.type) {
+          console.log("Invalid webhook payload:", event);
+          return res.status(400).json({ message: "Invalid webhook payload" });
+        }
+        
+        console.log(`Processing webhook event: ${event.type}`);
+        
+        // Handle the event
+        if (event.type === 'payment_intent.succeeded') {
+          const paymentIntent = event.data.object;
+          
+          // Extract the user ID from the metadata
+          const userId = paymentIntent.metadata?.userId;
+          
+          if (userId) {
+            console.log(`Webhook: Payment succeeded for user ${userId}`);
+            
+            // Update user to premium
+            const user = await storage.getUser(parseInt(userId));
+            
+            if (user) {
+              console.log(`Webhook: Setting user ${userId} to premium status`);
+              await storage.updateUserPremiumStatus(parseInt(userId), true);
+            } else {
+              console.log(`Webhook: User ${userId} not found`);
+            }
+          } else {
+            console.log(`Webhook: Payment succeeded but no userId in metadata`);
+          }
+        }
+        
+        res.json({ received: true });
+      } catch (error) {
+        console.error("Stripe webhook error:", error);
+        res.status(500).json({ message: "Webhook error" });
+      }
+    });
     apiRoutes.post('/create-payment-intent', async (req, res) => {
       try {
         const { userId } = req.body;
