@@ -190,7 +190,7 @@ export default function ProfileCard({
         )}
 
         {socialLinks && socialLinks.length > 0 && (
-          <div className={`flex flex-wrap gap-2 ${layoutStyle === "compact" ? "mb-2" : "mb-4"}`}>
+          <div className={`flex flex-wrap gap-2 ${socialLinks.length === 1 ? "justify-center" : ""} ${layoutStyle === "compact" ? "mb-2" : "mb-4"}`}>
             {socialLinks.map((link) => (
               <Badge key={link.id} variant="secondary" className="text-xs">
                 {link.platform}
