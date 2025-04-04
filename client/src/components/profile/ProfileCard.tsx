@@ -60,13 +60,13 @@ export default function ProfileCard({
   const getBgColor = (name: string) => {
     switch (name.toLowerCase()) {
       case 'professional':
-        return 'bg-gradient-to-r from-blue-400 to-blue-600';
+        return 'bg-gradient-to-r from-blue-100 to-blue-300';
       case 'social':
-        return 'bg-gradient-to-r from-green-400 to-green-600';
+        return 'bg-gradient-to-r from-green-100 to-green-300';
       case 'personal':
-        return 'bg-gradient-to-r from-purple-400 to-purple-600';
+        return 'bg-gradient-to-r from-purple-100 to-purple-300';
       default:
-        return 'bg-gradient-to-r from-primary-light to-primary';
+        return 'bg-gradient-to-r from-sky-100 to-sky-300';
     }
   };
 
@@ -110,14 +110,14 @@ export default function ProfileCard({
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className={`p-4 text-white ${getBgColor(name)}`}>
+      <div className={`p-4 ${getBgColor(name)}`}>
         <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-lg">{name}</h3>
+          <h3 className="font-semibold text-lg text-blue-900">{name}</h3>
           <div className="flex space-x-2">
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:text-white hover:bg-white/20"
+              className="text-blue-900 hover:text-blue-900 hover:bg-white/20"
               onClick={() => onEdit(id)}
             >
               <Pencil className="h-5 w-5" />
@@ -126,7 +126,7 @@ export default function ProfileCard({
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:text-white hover:bg-white/20"
+              className="text-blue-900 hover:text-blue-900 hover:bg-white/20"
               onClick={() => onDelete(id)}
             >
               <Trash2 className="h-5 w-5" />
