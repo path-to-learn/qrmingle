@@ -88,18 +88,13 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            // Only show login/signup buttons if not on an auth page
             !isAuthPage && (
-              <div className="flex space-x-2">
-                <Link href="/login">
-                  <Button variant="outline" className="hover:text-primary hover:border-primary">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/register">
-                  <Button>Sign Up</Button>
-                </Link>
-              </div>
+              <Link href="/login">
+                <Button variant="link" className="text-muted-foreground hover:text-primary">
+                  <User className="h-4 w-4 mr-1" />
+                  Sign In
+                </Button>
+              </Link>
             )
           )}
         </div>
