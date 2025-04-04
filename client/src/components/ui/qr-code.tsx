@@ -1,7 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from './button';
-import { Loader2, Download, Share2 } from 'lucide-react';
+import { Loader2, Download, Share2, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+// Define our own QrImageSettings type to avoid conflicts with qrcode.react
+type QrImageSettings = {
+  src: string;
+  x?: number;
+  y?: number;
+  height: number;
+  width: number;
+  excavate?: boolean;
+};
 
 type QRCodeProps = {
   value: string;
@@ -11,14 +22,7 @@ type QRCodeProps = {
   level?: 'L' | 'M' | 'Q' | 'H';
   renderAs?: 'svg' | 'canvas';
   includeMargin?: boolean;
-  imageSettings?: {
-    src: string;
-    x?: number;
-    y?: number;
-    height?: number;
-    width?: number;
-    excavate?: boolean;
-  };
+  imageSettings?: QrImageSettings;
   style?: React.CSSProperties;
   className?: string;
   profileName?: string;
@@ -43,6 +47,9 @@ export function QrCodeDisplay({
 }: QRCodeProps) {
   const [isGenerating, setIsGenerating] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [sparklePosition, setSparklePosition] = useState({ x: 0, y: 0 });
+  const qrContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (value) {
@@ -52,6 +59,30 @@ export function QrCodeDisplay({
       return () => clearTimeout(timer);
     }
   }, [value]);
+  
+  // Function to randomly position sparkles within the QR code container
+  const updateSparklePosition = () => {
+    if (qrContainerRef.current) {
+      const containerRect = qrContainerRef.current.getBoundingClientRect();
+      const maxX = containerRect.width - 20; // Prevent sparkles from going outside container
+      const maxY = containerRect.height - 20;
+      
+      setSparklePosition({
+        x: Math.random() * maxX,
+        y: Math.random() * maxY
+      });
+    }
+  };
+  
+  // Set a new sparkle position every second when hovered
+  useEffect(() => {
+    if (!isHovered) return;
+    
+    updateSparklePosition();
+    const interval = setInterval(updateSparklePosition, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   const handleDownload = () => {
     // Get the SVG element
@@ -130,45 +161,167 @@ export function QrCodeDisplay({
             <Loader2 className="h-8 w-8 text-primary animate-spin" />
           </div>
         ) : (
-          <div className={`relative ${qrStyle !== 'basic' ? 'fancy-qr' : ''}`}>
+          <motion.div 
+            className={`relative ${qrStyle !== 'basic' ? 'fancy-qr' : ''}`}
+            ref={qrContainerRef}
+            onHoverStart={() => setIsHovered(true)}
+            onHoverEnd={() => setIsHovered(false)}
+            whileHover={{ 
+              scale: 1.05,
+              transition: { duration: 0.3 }
+            }}
+          >
+            {/* Animated effects for premium QR styles */}
             {qrStyle === 'bordered' && (
-              <div className="absolute inset-0 rounded-lg" style={{ 
-                border: `2px solid ${fgColor}`,
-                borderRadius: '16px',
-                zIndex: -1,
-                transform: 'scale(1.15)'
-              }} />
+              <motion.div 
+                className="absolute inset-0 rounded-lg" 
+                style={{ 
+                  border: `2px solid ${fgColor}`,
+                  borderRadius: '16px',
+                  zIndex: -1,
+                  transform: 'scale(1.15)'
+                }}
+                animate={{
+                  boxShadow: isHovered 
+                    ? [
+                        `0 0 0 ${fgColor}22`,
+                        `0 0 10px ${fgColor}44`,
+                        `0 0 5px ${fgColor}22`
+                      ]
+                    : `0 0 0 ${fgColor}00`
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: isHovered ? Infinity : 0,
+                  repeatType: "reverse"
+                }}
+              />
             )}
+            
             {qrStyle === 'gradient' && (
-              <div className="absolute inset-0 rounded-lg" style={{ 
-                background: `linear-gradient(135deg, ${fgColor}33, ${fgColor}11)`,
-                zIndex: -1,
-                transform: 'scale(1.15)'
-              }} />
+              <motion.div 
+                className="absolute inset-0 rounded-lg" 
+                style={{ 
+                  background: `linear-gradient(135deg, ${fgColor}33, ${fgColor}11)`,
+                  zIndex: -1,
+                  transform: 'scale(1.15)'
+                }}
+                animate={{
+                  background: isHovered 
+                    ? [
+                        `linear-gradient(135deg, ${fgColor}33, ${fgColor}11)`,
+                        `linear-gradient(225deg, ${fgColor}33, ${fgColor}11)`,
+                        `linear-gradient(315deg, ${fgColor}33, ${fgColor}11)`,
+                        `linear-gradient(45deg, ${fgColor}33, ${fgColor}11)`
+                      ]
+                    : `linear-gradient(135deg, ${fgColor}33, ${fgColor}11)`
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: isHovered ? Infinity : 0,
+                  repeatType: "loop"
+                }}
+              />
             )}
+            
             {qrStyle === 'shadow' && (
-              <div className="absolute inset-0 rounded-lg shadow-lg" style={{ 
-                zIndex: -1,
-                transform: 'scale(1.05)'
-              }} />
+              <motion.div 
+                className="absolute inset-0 rounded-lg shadow-lg" 
+                style={{ 
+                  zIndex: -1,
+                  transform: 'scale(1.05)'
+                }}
+                animate={{
+                  boxShadow: isHovered 
+                    ? [
+                        `0 4px 12px ${fgColor}44`,
+                        `0 8px 24px ${fgColor}66`,
+                        `0 4px 12px ${fgColor}44`
+                      ]
+                    : `0 4px 12px ${fgColor}44`
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: isHovered ? Infinity : 0,
+                  repeatType: "reverse"
+                }}
+              />
             )}
-            <QRCodeSVG
-              id="qr-code"
-              value={value}
-              size={size}
-              bgColor={bgColor}
-              fgColor={fgColor}
-              level={level}
-              includeMargin={includeMargin}
-              imageSettings={imageSettings}
-              style={{
-                borderRadius: qrStyle === 'rounded' ? '8px' : '0',
-                padding: qrStyle !== 'basic' ? '8px' : '0',
-                background: bgColor,
-                boxShadow: qrStyle === 'shadow' ? `0 4px 12px ${fgColor}44` : 'none'
+            
+            {qrStyle === 'rounded' && isHovered && (
+              <motion.div
+                className="absolute"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{
+                  top: sparklePosition.y,
+                  left: sparklePosition.x,
+                  zIndex: 10,
+                  pointerEvents: 'none'
+                }}
+              >
+                <Sparkles className="h-5 w-5 text-primary sparkle" />
+              </motion.div>
+            )}
+            
+            {/* Add extra sparkles for non-rounded premium styles */}
+            {qrStyle !== 'basic' && qrStyle !== 'rounded' && isHovered && (
+              <>
+                <motion.div
+                  className="absolute"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  style={{
+                    top: sparklePosition.y * 0.6,
+                    left: sparklePosition.x * 0.7,
+                    zIndex: 10,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  <Sparkles className="h-4 w-4 text-primary sparkle" />
+                </motion.div>
+                <motion.div
+                  className="absolute"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  style={{
+                    top: sparklePosition.y * 0.3,
+                    right: sparklePosition.x * 0.4,
+                    zIndex: 10,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  <Sparkles className="h-3 w-3 text-primary sparkle" />
+                </motion.div>
+              </>
+            )}
+            
+            <motion.div
+              whileHover={{ 
+                scale: qrStyle !== 'basic' ? 1.02 : 1,
+                transition: { duration: 0.2 }
               }}
-            />
-          </div>
+            >
+              <QRCodeSVG
+                id="qr-code"
+                value={value}
+                size={size}
+                bgColor={bgColor}
+                fgColor={fgColor}
+                level={level}
+                includeMargin={includeMargin}
+                imageSettings={imageSettings as any}
+                style={{
+                  borderRadius: qrStyle === 'rounded' ? '8px' : '0',
+                  padding: qrStyle !== 'basic' ? '8px' : '0',
+                  background: bgColor,
+                  boxShadow: qrStyle === 'shadow' ? `0 4px 12px ${fgColor}44` : 'none'
+                }}
+              />
+            </motion.div>
+          </motion.div>
         )}
       </div>
 

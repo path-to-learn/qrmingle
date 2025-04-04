@@ -16,6 +16,11 @@
 @layer components {
   .fancy-qr {
     animation: pulse 5s infinite ease-in-out;
+    transition: all 0.3s ease;
+  }
+  
+  .fancy-qr:hover {
+    filter: drop-shadow(0 0 5px theme('colors.primary.DEFAULT'));
   }
   
   @keyframes pulse {
@@ -28,5 +33,30 @@
     100% {
       transform: scale(1);
     }
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+  
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .sparkle {
+    animation: float 2s ease infinite, rotate 5s linear infinite;
   }
 }
