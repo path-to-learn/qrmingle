@@ -153,13 +153,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
       
-      // Check if user is allowed to use premium features
-      const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
-      if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
-        const user = await storage.getUser(userId);
-        if (!user?.isPremium) {
+      // Get user to check premium status
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        console.error("User not found:", userId);
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if non-premium user has reached the profile limit (2 profiles)
+      if (!user.isPremium) {
+        const userProfiles = await storage.getProfilesByUserId(userId);
+        if (userProfiles.length >= 2) {
+          console.log("Free user tried to create more than 2 profiles");
+          return res.status(403).json({ 
+            message: "Free users are limited to 2 profiles. Please upgrade to premium for unlimited profiles.",
+            type: "PROFILE_LIMIT_REACHED"
+          });
+        }
+        
+        // Check if user is allowed to use premium features
+        const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
+        if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
           console.log("Non-premium user tried to use premium style, defaulting to basic");
           profileData.qrStyle = 'basic';
+        }
+        
+        // Restrict QR code colors for free users to only black, blue, and green
+        const allowedFreeColors = ['#000000', '#0000FF', '#008000'];
+        if (profileData.qrColor && !allowedFreeColors.includes(profileData.qrColor)) {
+          // Check if it's one of the allowed colors in any format
+          const isAllowedColor = allowedFreeColors.some(color => {
+            // Convert hex to RGB for comparison flexibility
+            const hex = color.toLowerCase();
+            if (profileData.qrColor?.toLowerCase() === hex) {
+              return true;
+            }
+            return false;
+          });
+          
+          if (!isAllowedColor) {
+            console.log("Non-premium user tried to use non-standard color, defaulting to black");
+            profileData.qrColor = '#000000';
+          }
         }
       }
       
@@ -252,12 +288,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Profile not found" });
       }
       
-      // Check if user is allowed to use premium features
-      const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
-      if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
-        const user = await storage.getUser(existingProfile.userId);
-        if (!user?.isPremium) {
+      // Get user to check premium status
+      const user = await storage.getUser(existingProfile.userId);
+      
+      // Check premium features and restrictions
+      if (!user?.isPremium) {
+        // Check if user is allowed to use premium styles
+        const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
+        if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
+          console.log("Non-premium user tried to use premium style, defaulting to basic");
           profileData.qrStyle = 'basic';
+        }
+        
+        // Restrict QR code colors for free users to only black, blue, and green
+        const allowedFreeColors = ['#000000', '#0000FF', '#008000'];
+        if (profileData.qrColor && !allowedFreeColors.includes(profileData.qrColor)) {
+          // Check if it's one of the allowed colors in any format
+          const isAllowedColor = allowedFreeColors.some(color => {
+            // Convert hex to RGB for comparison flexibility
+            const hex = color.toLowerCase();
+            if (profileData.qrColor?.toLowerCase() === hex) {
+              return true;
+            }
+            return false;
+          });
+          
+          if (!isAllowedColor) {
+            console.log("Non-premium user tried to use non-standard color, defaulting to black");
+            profileData.qrColor = '#000000';
+          }
         }
       }
       
@@ -384,7 +443,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Profile not found" });
       }
       
-      const scanLogs = await storage.getScanLogsByProfileId(id);
+      // Get all scan logs
+      const allScanLogs = await storage.getScanLogsByProfileId(id);
+      
+      // Check if user is premium or not to filter logs
+      const user = await storage.getUser(profile.userId);
+      let scanLogs = allScanLogs;
+      
+      // For free users, limit analytics to last 7 days only
+      if (!user?.isPremium) {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        scanLogs = allScanLogs.filter(log => {
+          return log.timestamp && new Date(log.timestamp) >= sevenDaysAgo;
+        });
+      }
       
       // Group logs by date
       const scansByDate: Record<string, number> = {};
@@ -428,6 +502,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scansByDate,
         deviceDistribution: deviceCounts,
         locationDistribution: locationCounts,
+        isLimited: !user?.isPremium, // Flag indicating if this data is limited by free tier
+        timeRange: !user?.isPremium ? '7days' : 'all',
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get analytics" });
@@ -497,7 +573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Create a payment intent for premium upgrade
         const paymentIntent = await stripe.paymentIntents.create({
-          amount: 1999, // $19.99
+          amount: 499, // $4.99
           currency: 'usd',
           metadata: {
             userId: userId.toString(),

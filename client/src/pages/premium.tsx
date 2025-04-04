@@ -91,7 +91,7 @@ function CheckoutForm() {
         className="w-full bg-accent hover:bg-accent-dark" 
         disabled={!stripe || isProcessing}
       >
-        {isProcessing ? "Processing..." : "Upgrade Now - $19.99"}
+        {isProcessing ? "Processing..." : "Upgrade Now - $4.99"}
       </Button>
     </form>
   );
@@ -205,7 +205,7 @@ export default function Premium() {
           <CardHeader>
             <CardTitle>Complete Your Premium Upgrade</CardTitle>
             <CardDescription>
-              One-time payment of $19.99 for lifetime access
+              One-time payment of $4.99 for lifetime access
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -26,6 +26,7 @@ export default function Home() {
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   
   // Log user state for debugging
   console.log("Home component auth state:", { user, isLoggedIn: !!user });
@@ -69,9 +70,28 @@ export default function Home() {
         };
         console.log("Sending profile create request with:", requestData);
         
-        const response = await apiRequest("POST", "/api/profiles", requestData);
-        console.log("Profile creation API response:", response);
-        return response;
+        const response = await fetch("/api/profiles", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        });
+        
+        console.log("Profile creation API response status:", response.status);
+        
+        const responseData = await response.json();
+        console.log("Profile creation API response data:", responseData);
+        
+        if (!response.ok) {
+          // Check if this is a profile limit error
+          if (responseData.type === "PROFILE_LIMIT_REACHED") {
+            throw new Error(responseData.message, { cause: "PROFILE_LIMIT_REACHED" });
+          }
+          throw new Error(responseData.message || "Failed to create profile");
+        }
+        
+        return responseData;
       } catch (err) {
         console.error("Error creating profile:", err);
         throw err;
@@ -88,6 +108,14 @@ export default function Home() {
     },
     onError: (error: any) => {
       console.error("Profile creation error:", error);
+      
+      // Show upgrade dialog if profile limit is reached
+      if (error.cause === "PROFILE_LIMIT_REACHED") {
+        setShowEditor(false);
+        setShowUpgradeDialog(true);
+        return;
+      }
+      
       toast({
         title: "Failed to create profile",
         description: error.message || "An error occurred while creating your profile.",
@@ -278,6 +306,28 @@ export default function Home() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteProfile} className="bg-destructive text-destructive-foreground">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Upgrade dialog when profile limit is reached */}
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Profile Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>
+              Free accounts are limited to 2 profiles. Upgrade to premium for unlimited profiles, custom QR styles, advanced analytics, and more!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            <AlertDialogCancel>Not Now</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <a href="/premium" className="w-full sm:w-auto">
+                <Button className="w-full bg-accent hover:bg-accent-dark">
+                  Upgrade to Premium - $4.99
+                </Button>
+              </a>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
