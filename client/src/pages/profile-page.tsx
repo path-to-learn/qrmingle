@@ -18,7 +18,7 @@ import {
   UserPlus
 } from "lucide-react";
 import { Link } from "wouter";
-import { downloadVCard, getVCardDataUrl } from "@/lib/vcard";
+import { downloadVCard, getVCardDataUrl, saveToContacts, isMobileDevice } from "@/lib/vcard";
 import { 
   Tooltip, 
   TooltipContent, 
@@ -140,26 +140,31 @@ export default function ProfilePage() {
   };
 
   // Handle vCard download/add to contacts
-  const handleDownloadVCard = () => {
+  const handleDownloadVCard = async () => {
     if (!profile) return;
     
-    // On mobile devices, try to open the vCard directly in contacts app
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      // Create the data URL and open it directly
-      const dataUrl = getVCardUrl();
-      window.location.href = dataUrl;
+    try {
+      // Use our enhanced saveToContacts function that handles device differences
+      await saveToContacts(profile, profile.socialLinks);
       
+      // Show appropriate message based on device
+      if (isMobileDevice()) {
+        toast({
+          title: "Adding Contact",
+          description: "Your contacts app should open to save this contact."
+        });
+      } else {
+        toast({
+          title: "Contact Downloaded",
+          description: "Contact information has been saved to your device.",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving contact:", error);
       toast({
-        title: "Adding Contact",
-        description: "Your contacts app should open to save this contact."
-      });
-    } else {
-      // On desktop, download the vCard file
-      downloadVCard(profile, profile.socialLinks);
-      
-      toast({
-        title: "Contact Downloaded",
-        description: "Contact information has been saved to your device.",
+        title: "Error",
+        description: "There was a problem saving this contact. Please try again.",
+        variant: "destructive"
       });
     }
   };
@@ -310,7 +315,7 @@ export default function ProfilePage() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 
+                  <p>{isMobileDevice() ? 
                     "Add to your device's contacts" : 
                     "Download contact as vCard (.vcf)"}</p>
                 </TooltipContent>
@@ -415,26 +420,50 @@ export default function ProfilePage() {
               qrStyle={profile.qrStyle || "basic"}
             />
             
-            <div className="flex justify-center gap-2 mt-3">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={copyProfileUrl}
-                className="text-xs text-muted-foreground"
-              >
-                <Copy className="h-3 w-3 mr-1" />
-                {isCopied ? "Copied!" : "Copy Link"}
-              </Button>
+            <div className="flex flex-col gap-2 mt-3 w-full">
+              {/* Save Contact Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm"
+                      variant="default" 
+                      className="w-full bg-gradient-to-r from-primary to-primary/80"
+                      onClick={saveContact}
+                    >
+                      <UserPlus className="h-3 w-3 mr-1" />
+                      Save Contact
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isMobileDevice() ? 
+                      "Add to your device's contacts" : 
+                      "Download contact as vCard (.vcf)"}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={shareProfile}
-                className="text-xs text-muted-foreground"
-              >
-                <Share className="h-3 w-3 mr-1" />
-                Share
-              </Button>
+              <div className="flex justify-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={copyProfileUrl}
+                  className="text-xs text-muted-foreground"
+                >
+                  <Copy className="h-3 w-3 mr-1" />
+                  {isCopied ? "Copied!" : "Copy Link"}
+                </Button>
+                
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={shareProfile}
+                  className="text-xs text-muted-foreground"
+                >
+                  <Share className="h-3 w-3 mr-1" />
+                  Share
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -458,7 +487,7 @@ export default function ProfilePage() {
           )}
 
           <div className="text-center mt-8 text-xs text-muted-foreground">
-            <p>Created with ContactQrConnect</p>
+            <p>Created with QrMingle</p>
             <Link href="/">
               <span className="text-primary hover:underline">Create your own QR profile</span>
             </Link>

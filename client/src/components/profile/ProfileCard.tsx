@@ -1,16 +1,19 @@
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Eye } from "lucide-react";
+import { Pencil, Trash2, Eye, UserPlus, Share } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "wouter";
-
-type SocialLink = {
-  id: number;
-  platform: string;
-  url: string;
-};
+import { saveToContacts, isMobileDevice } from "@/lib/vcard";
+import { useToast } from "@/hooks/use-toast";
+import { SocialLink } from "@shared/schema";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ProfileCardProps = {
   id: number;
@@ -41,6 +44,7 @@ export default function ProfileCard({
   onEdit,
   onDelete,
 }: ProfileCardProps) {
+  const { toast } = useToast();
   const baseUrl = window.location.origin;
   const profileUrl = `${baseUrl}/p/${slug}`;
   
@@ -55,6 +59,44 @@ export default function ProfileCard({
         return 'bg-gradient-to-r from-purple-400 to-purple-600';
       default:
         return 'bg-gradient-to-r from-primary-light to-primary';
+    }
+  };
+
+  // Handle saving the contact to the device
+  const handleSaveContact = async () => {
+    try {
+      // Create a profile-like object with the necessary fields for vCard
+      const profileData = {
+        id,
+        name,
+        displayName,
+        title,
+        photoUrl,
+        slug,
+      };
+      
+      // Save the contact to the device
+      await saveToContacts(profileData, socialLinks);
+      
+      // Show appropriate toast message based on device
+      if (isMobileDevice()) {
+        toast({
+          title: "Adding Contact",
+          description: "Your contacts app should open to save this contact."
+        });
+      } else {
+        toast({
+          title: "Contact Downloaded",
+          description: "Contact information has been saved as a vCard file."
+        });
+      }
+    } catch (error) {
+      console.error("Error saving contact:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving this contact. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -123,21 +165,71 @@ export default function ProfileCard({
           qrStyle={qrStyle}
         />
         
-        <div className="flex justify-between mt-4 gap-2">
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={() => onEdit(id)}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Link href={`/p/${slug}`} className="flex-1">
-            <Button className="w-full">
-              <Eye className="mr-2 h-4 w-4" />
-              View
+        <div className="flex flex-col space-y-2 mt-4">
+          {/* Save Contact Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="default" 
+                  className="w-full bg-gradient-to-r from-primary to-primary/80"
+                  onClick={handleSaveContact}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Save Contact
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isMobileDevice() ? 
+                  "Add to your device's contacts" : 
+                  "Download contact as vCard (.vcf)"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          {/* Edit and View Buttons */}
+          <div className="flex justify-between gap-2">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => onEdit(id)}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
             </Button>
-          </Link>
+            <Link href={`/p/${slug}`} className="flex-1">
+              <Button className="w-full">
+                <Eye className="mr-2 h-4 w-4" />
+                View
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Share Button */}
+          <Button
+            variant="ghost"
+            className="w-full text-muted-foreground"
+            onClick={() => {
+              // Use Web Share API if available
+              if (navigator.share) {
+                navigator.share({
+                  title: `${displayName}'s Contact Card`,
+                  text: `Check out ${displayName}'s contact card`,
+                  url: profileUrl
+                }).catch(err => console.error("Error sharing", err));
+              } else {
+                // Copy to clipboard as fallback
+                navigator.clipboard.writeText(profileUrl);
+                toast({
+                  title: "Link Copied",
+                  description: "Profile link copied to clipboard!"
+                });
+              }
+            }}
+          >
+            <Share className="mr-2 h-4 w-4" />
+            Share
+          </Button>
         </div>
       </CardContent>
     </Card>
