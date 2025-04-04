@@ -20,6 +20,10 @@ export const profiles = pgTable("profiles", {
   photoUrl: text("photo_url"),
   qrStyle: text("qr_style").default("basic"),
   qrColor: text("qr_color").default("#3B82F6"),
+  qrSize: integer("qr_size").default(150),
+  qrPosition: text("qr_position").default("bottom"), // top, bottom, left, right
+  photoPosition: text("photo_position").default("top"), // top, left, right, hidden
+  layoutStyle: text("layout_style").default("standard"), // standard, compact, centered, minimal
   slug: text("slug").notNull().unique(),
   scanCount: integer("scan_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -88,6 +92,10 @@ export const profileFormSchema = insertProfileSchema.extend({
   bio: z.string().nullable().default(""),
   qrStyle: z.string().default("basic"),
   qrColor: z.string().default("#3B82F6"),
+  qrSize: z.number().default(150),
+  qrPosition: z.enum(["top", "bottom", "left", "right"]).default("bottom"),
+  photoPosition: z.enum(["top", "left", "right", "hidden"]).default("top"),
+  layoutStyle: z.enum(["standard", "compact", "centered", "minimal"]).default("standard"),
   
   // Ensure social links are an array with at least one entry
   socialLinks: z.array(

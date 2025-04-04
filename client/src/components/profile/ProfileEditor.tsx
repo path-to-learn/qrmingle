@@ -62,6 +62,10 @@ export default function ProfileEditor({
       photoUrl: profileData?.photoUrl || "",
       qrStyle: profileData?.qrStyle || "basic",
       qrColor: profileData?.qrColor || "#3B82F6",
+      qrSize: profileData?.qrSize || 150,
+      qrPosition: profileData?.qrPosition || "bottom",
+      photoPosition: profileData?.photoPosition || "top",
+      layoutStyle: profileData?.layoutStyle || "standard",
       socialLinks: profileData?.socialLinks?.length
         ? profileData.socialLinks
         : [{ platform: "LinkedIn", url: "" }],
@@ -428,6 +432,118 @@ export default function ProfileEditor({
                     </FormItem>
                   )}
                 />
+                
+                <div className="mb-6">
+                  <FormLabel className="block mb-2">Layout Configuration</FormLabel>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="qrPosition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>QR Code Position</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select position" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="top">Top</SelectItem>
+                              <SelectItem value="bottom">Bottom</SelectItem>
+                              <SelectItem value="left">Left</SelectItem>
+                              <SelectItem value="right">Right</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="photoPosition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Photo Position</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select position" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="top">Top</SelectItem>
+                              <SelectItem value="left">Left</SelectItem>
+                              <SelectItem value="right">Right</SelectItem>
+                              <SelectItem value="hidden">Hidden</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="layoutStyle"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Layout Style</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select layout style" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="standard">Standard</SelectItem>
+                              <SelectItem value="compact">Compact</SelectItem>
+                              <SelectItem value="centered">Centered</SelectItem>
+                              <SelectItem value="minimal">Minimal</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="qrSize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>QR Code Size</FormLabel>
+                          <FormControl>
+                            <div className="flex items-center gap-4">
+                              <Input
+                                type="range"
+                                min="100"
+                                max="250"
+                                step="10"
+                                className="w-full h-8"
+                                {...field}
+                                value={field.value.toString()}
+                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              />
+                              <div className="text-sm font-medium w-12">{field.value}px</div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="w-full md:w-2/3">

@@ -23,6 +23,10 @@ type ProfileCardProps = {
   photoUrl?: string;
   qrStyle?: string;
   qrColor?: string;
+  qrSize?: number;
+  qrPosition?: string;
+  photoPosition?: string;
+  layoutStyle?: string;
   slug: string;
   scanCount: number;
   socialLinks: SocialLink[];
@@ -38,6 +42,10 @@ export default function ProfileCard({
   photoUrl,
   qrStyle,
   qrColor,
+  qrSize = 150,
+  qrPosition = "bottom",
+  photoPosition = "top",
+  layoutStyle = "standard",
   slug,
   scanCount,
   socialLinks,
@@ -128,25 +136,61 @@ export default function ProfileCard({
         </div>
       </div>
 
-      <CardContent className="p-4">
-        <div className="flex items-center mb-4">
-          <Avatar className="h-16 w-16 mr-4">
-            {photoUrl ? (
-              <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
+      <CardContent className={`p-4 ${layoutStyle === "compact" ? "space-y-2" : "space-y-4"}`}>
+        {/* Layout with conditional rendering based on photoPosition */}
+        {photoPosition !== "hidden" && (
+          <div className={`
+            ${photoPosition === "top" ? "flex flex-col items-center text-center" : 
+              photoPosition === "left" ? "flex items-center" : 
+              photoPosition === "right" ? "flex flex-row-reverse items-center" : "hidden"}
+            ${layoutStyle === "compact" ? "mb-2" : "mb-4"}
+          `}>
+            {(photoPosition === "left" || photoPosition === "right") ? (
+              <>
+                <Avatar className={`h-16 w-16 ${photoPosition === "left" ? "mr-4" : "ml-4"}`}>
+                  {photoUrl ? (
+                    <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
+                  ) : (
+                    <AvatarFallback className="bg-muted text-muted-foreground">
+                      {displayName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div className={photoPosition === "right" ? "text-right" : ""}>
+                  <h3 className="font-semibold">{displayName}</h3>
+                  {title && <p className="text-sm text-muted-foreground">{title}</p>}
+                </div>
+              </>
             ) : (
-              <AvatarFallback className="bg-muted text-muted-foreground">
-                {displayName.charAt(0).toUpperCase()}
-              </AvatarFallback>
+              <>
+                <Avatar className="h-20 w-20 mb-3">
+                  {photoUrl ? (
+                    <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
+                  ) : (
+                    <AvatarFallback className="bg-muted text-muted-foreground">
+                      {displayName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold">{displayName}</h3>
+                  {title && <p className="text-sm text-muted-foreground">{title}</p>}
+                </div>
+              </>
             )}
-          </Avatar>
-          <div>
-            <h3 className="font-semibold">{displayName}</h3>
+          </div>
+        )}
+
+        {/* Display photo info even if photo is hidden */}
+        {photoPosition === "hidden" && (
+          <div className={`text-center ${layoutStyle === "compact" ? "mb-2" : "mb-4"}`}>
+            <h3 className="font-semibold text-lg">{displayName}</h3>
             {title && <p className="text-sm text-muted-foreground">{title}</p>}
           </div>
-        </div>
+        )}
 
         {socialLinks && socialLinks.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className={`flex flex-wrap gap-2 ${layoutStyle === "compact" ? "mb-2" : "mb-4"}`}>
             {socialLinks.map((link) => (
               <Badge key={link.id} variant="secondary" className="text-xs">
                 {link.platform}
@@ -155,15 +199,45 @@ export default function ProfileCard({
           </div>
         )}
 
-        <QrCodeDisplay 
-          value={profileUrl}
-          fgColor={qrColor || "#3B82F6"}
-          className="mb-4"
-          profileName={name}
-          scanCount={scanCount}
-          size={150}
-          qrStyle={qrStyle}
-        />
+        {/* QR Code display based on position */}
+        {qrPosition === "top" && (
+          <div className="flex justify-center mb-4">
+            <QrCodeDisplay 
+              value={profileUrl}
+              fgColor={qrColor || "#3B82F6"}
+              profileName={name}
+              scanCount={scanCount}
+              size={qrSize || 150}
+              qrStyle={qrStyle}
+            />
+          </div>
+        )}
+
+        {(qrPosition === "left" || qrPosition === "right") && (
+          <div className={`flex ${qrPosition === "right" ? "justify-end" : "justify-start"} mb-4`}>
+            <QrCodeDisplay 
+              value={profileUrl}
+              fgColor={qrColor || "#3B82F6"}
+              profileName={name}
+              scanCount={scanCount}
+              size={qrSize || 150}
+              qrStyle={qrStyle}
+            />
+          </div>
+        )}
+        
+        {qrPosition === "bottom" && (
+          <div className="flex justify-center mb-4">
+            <QrCodeDisplay 
+              value={profileUrl}
+              fgColor={qrColor || "#3B82F6"}
+              profileName={name}
+              scanCount={scanCount}
+              size={qrSize || 150}
+              qrStyle={qrStyle}
+            />
+          </div>
+        )}
         
         <div className="flex flex-col space-y-2 mt-4">
           {/* Save Contact Button */}
