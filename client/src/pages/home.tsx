@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, isEffectivelyPremium } = useAuth();
   const { toast } = useToast();
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
@@ -289,7 +289,7 @@ export default function Home() {
           onSubmit={handleProfileSubmit}
           onCancel={cancelEditor}
           isEditing={!!editingProfileId}
-          isPremium={user.isPremium}
+          isPremium={isEffectivelyPremium()}
         />
       )}
 

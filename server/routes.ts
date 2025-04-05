@@ -161,8 +161,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      // Check if user is a premium user or has an active trial
+      const isUserPremium = user.isPremium || storage.isUserInActiveTrial(user);
+      
       // Check if non-premium user has reached the profile limit (2 profiles)
-      if (!user.isPremium) {
+      if (!isUserPremium) {
         const userProfiles = await storage.getProfilesByUserId(userId);
         if (userProfiles.length >= 2) {
           console.log("Free user tried to create more than 2 profiles");
@@ -291,8 +294,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user to check premium status
       const user = await storage.getUser(existingProfile.userId);
       
+      // Check if user is a premium user or has an active trial
+      const isUserPremium = user?.isPremium || (user && storage.isUserInActiveTrial(user));
+      
       // Check premium features and restrictions
-      if (!user?.isPremium) {
+      if (!isUserPremium) {
         // Check if user is allowed to use premium styles
         const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
         if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
@@ -450,8 +456,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(profile.userId);
       let scanLogs = allScanLogs;
       
+      // Check if user is a premium user or has an active trial
+      const isUserPremium = user?.isPremium || (user && storage.isUserInActiveTrial(user));
+      
       // For free users, limit analytics to last 7 days only
-      if (!user?.isPremium) {
+      if (!isUserPremium) {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         
@@ -502,14 +511,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scansByDate,
         deviceDistribution: deviceCounts,
         locationDistribution: locationCounts,
-        isLimited: !user?.isPremium, // Flag indicating if this data is limited by free tier
-        timeRange: !user?.isPremium ? '7days' : 'all',
+        isLimited: !isUserPremium, // Flag indicating if this data is limited by free tier
+        timeRange: !isUserPremium ? '7days' : 'all',
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get analytics" });
     }
   });
 
+  // Premium trials endpoint
+  apiRoutes.post('/start-premium-trial', async (req, res) => {
+    try {
+      const { userId, durationDays = 7 } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if user is already premium
+      if (user.isPremium) {
+        return res.status(400).json({ 
+          message: "User is already a premium user and doesn't need a trial" 
+        });
+      }
+      
+      // Check if user already has an active trial
+      if (storage.isUserInActiveTrial(user)) {
+        let expiryDate = 'unknown date';
+        if (user.trialExpiresAt) {
+          expiryDate = user.trialExpiresAt instanceof Date 
+            ? user.trialExpiresAt.toISOString().split('T')[0] 
+            : new Date(user.trialExpiresAt).toISOString().split('T')[0];
+        }
+          
+        return res.status(400).json({ 
+          message: `User already has an active trial expiring on ${expiryDate}` 
+        });
+      }
+      
+      // Start the premium trial
+      const updatedUser = await storage.startPremiumTrial(userId, durationDays);
+      
+      // Format the trial expiration date for the response
+      let trialExpiresAt = 'unknown date';
+      if (updatedUser.trialExpiresAt) {
+        trialExpiresAt = updatedUser.trialExpiresAt instanceof Date 
+          ? updatedUser.trialExpiresAt.toISOString().split('T')[0] 
+          : new Date(updatedUser.trialExpiresAt).toISOString().split('T')[0];
+      }
+      
+      res.json({ 
+        message: `Premium trial activated. Expires on ${trialExpiresAt}`,
+        user: {
+          ...updatedUser,
+          trialExpiresAt: updatedUser.trialExpiresAt 
+            ? (updatedUser.trialExpiresAt instanceof Date 
+                ? updatedUser.trialExpiresAt.toISOString() 
+                : updatedUser.trialExpiresAt)
+            : null
+        }
+      });
+    } catch (error) {
+      console.error("Failed to start premium trial:", error);
+      res.status(500).json({ message: "Failed to start premium trial" });
+    }
+  });
+  
   // User premium upgrade with Stripe
   if (stripe) {
     // Stripe webhook handler for asynchronous events

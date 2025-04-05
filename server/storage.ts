@@ -16,6 +16,8 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User>;
   updateUserStripeCustomerId(id: number, stripeCustomerId: string): Promise<User>;
+  startPremiumTrial(id: number, durationDays: number): Promise<User>;
+  isUserInActiveTrial(user: User): boolean;
 
   // Profile methods
   getProfile(id: number): Promise<Profile | undefined>;
@@ -177,6 +179,7 @@ export class MemStorage implements IStorage {
       ...insertUser,
       id,
       isPremium: false,
+      trialExpiresAt: null,
       stripeCustomerId: null,
     };
     this.users.set(id, user);
@@ -206,6 +209,35 @@ export class MemStorage implements IStorage {
     this.users.set(id, updatedUser);
     this.saveToStorage();
     return updatedUser;
+  }
+
+  async startPremiumTrial(id: number, durationDays: number): Promise<User> {
+    const user = await this.getUser(id);
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+
+    // Calculate trial expiry date
+    const trialExpiresAt = new Date();
+    trialExpiresAt.setDate(trialExpiresAt.getDate() + durationDays);
+
+    const updatedUser = { ...user, trialExpiresAt };
+    this.users.set(id, updatedUser);
+    this.saveToStorage();
+    return updatedUser;
+  }
+
+  isUserInActiveTrial(user: User): boolean {
+    if (!user || !user.trialExpiresAt) {
+      return false;
+    }
+
+    const now = new Date();
+    const trialExpiresAt = typeof user.trialExpiresAt === 'string' 
+      ? new Date(user.trialExpiresAt) 
+      : user.trialExpiresAt;
+    
+    return now < trialExpiresAt;
   }
 
   // Profile methods

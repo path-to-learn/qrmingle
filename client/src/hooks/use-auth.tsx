@@ -13,6 +13,7 @@ export type User = {
   username: string;
   isPremium: boolean;
   stripeCustomerId?: string | null;
+  trialExpiresAt?: string | null;
 };
 
 type LoginData = {
@@ -187,7 +188,27 @@ export function useAuth() {
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context;
+  
+  // Add a helper function to check if user is effectively premium (paid or trial)
+  const isEffectivelyPremium = () => {
+    if (!context.user) return false;
+    
+    // Check if user is a paid premium user
+    if (context.user.isPremium) return true;
+    
+    // Check if user has an active trial
+    if (context.user.trialExpiresAt) {
+      const trialExpiry = new Date(context.user.trialExpiresAt);
+      return trialExpiry > new Date();
+    }
+    
+    return false;
+  };
+  
+  return {
+    ...context,
+    isEffectivelyPremium,
+  };
 }
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
