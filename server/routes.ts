@@ -6,6 +6,7 @@ import { insertProfileSchema, insertScanLogSchema, insertUserSchema, profileForm
 import { z } from "zod";
 import crypto from "crypto";
 import Stripe from "stripe";
+import { setupAuth } from "./auth";
 
 // Initialize Stripe if secret key is available
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -13,94 +14,20 @@ const stripe = process.env.STRIPE_SECRET_KEY
   : null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication (must happen before routes)
+  setupAuth(app);
+
   // API routes prefix
   const apiRoutes = express.Router();
   app.use('/api', apiRoutes);
 
-  // User authentication routes
-  apiRoutes.post('/auth/register', async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        return res.status(409).json({ message: "Username already exists" });
-      }
-      
-      // Create the user
-      const user = await storage.createUser(userData);
-      
-      // Return user without password
-      const { password, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.message });
-      }
-      res.status(500).json({ message: "Failed to create user" });
+  // Authentication middleware for API routes
+  const requireAuth = (req: Request, res: Response, next: Function) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
-  });
-
-  apiRoutes.post('/auth/login', async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      
-      console.log("Login attempt for user:", username);
-      
-      // Find user by username
-      const user = await storage.getUserByUsername(username);
-      
-      if (!user) {
-        console.log("User not found:", username);
-        return res.status(401).json({ message: "Invalid username or password" });
-      }
-      
-      // Special case for Premium Success page to refresh user data without password
-      const isRefresh = password === "" && req.headers.referer?.includes("/premium/success");
-      
-      if (!isRefresh && user.password !== password) {
-        console.log("Password mismatch for user:", username);
-        return res.status(401).json({ message: "Invalid username or password" });
-      }
-      
-      console.log(isRefresh ? "User data refresh for:" : "Login successful for user:", username);
-      
-      // Return user without password
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error("Authentication error:", error);
-      res.status(500).json({ message: "Failed to authenticate" });
-    }
-  });
-  
-  // Session validation endpoint
-  apiRoutes.get('/auth/validate', async (req, res) => {
-    try {
-      const userId = req.query.userId;
-      
-      // If we don't have a userId, return unauthorized
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-      
-      // Get the user by ID
-      const user = await storage.getUser(Number(userId));
-      
-      // If user doesn't exist, return unauthorized
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      
-      // Return user without password
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error("Auth validation error:", error);
-      res.status(500).json({ message: "Failed to validate authentication" });
-    }
-  });
+    next();
+  };
 
   // Profile routes
   apiRoutes.get('/profiles', async (req, res) => {

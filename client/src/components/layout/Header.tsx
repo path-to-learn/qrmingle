@@ -13,7 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 export default function Header() {
-  const { user, logout, isEffectivelyPremium } = useAuth();
+  const { user, logoutMutation, isEffectivelyPremium } = useAuth();
   
   // Use useRoute to check if we're on login or register pages
   const [isLoginPage] = useRoute("/login");
@@ -124,7 +124,7 @@ export default function Header() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}>
+                <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Logout</span>
                 </DropdownMenuItem>

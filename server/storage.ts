@@ -8,6 +8,8 @@ import {
   ScanLog,
   InsertScanLog,
 } from "@shared/schema";
+import connectPgSimple from "connect-pg-simple";
+import session from "express-session";
 
 export interface IStorage {
   // User methods
@@ -38,40 +40,39 @@ export interface IStorage {
   // Scan log methods
   getScanLogsByProfileId(profileId: number): Promise<ScanLog[]>;
   createScanLog(scanLog: InsertScanLog): Promise<ScanLog>;
+  
+  // Session store
+  sessionStore: session.Store;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private profiles: Map<number, Profile>;
-  private socialLinks: Map<number, SocialLink>;
-  private scanLogs: Map<number, ScanLog>;
-  private userCurrentId: number;
-  private profileCurrentId: number;
-  private socialLinkCurrentId: number;
-  private scanLogCurrentId: number;
+export class DatabaseStorage implements IStorage {
+  public sessionStore: session.Store;
 
   constructor() {
-    // Initialize with empty data
-    this.users = new Map();
-    this.profiles = new Map();
-    this.socialLinks = new Map();
-    this.scanLogs = new Map();
-    this.userCurrentId = 1;
-    this.profileCurrentId = 1;
-    this.socialLinkCurrentId = 1;
-    this.scanLogCurrentId = 1;
-
-    // Try to load data from storage
+    const PostgresStore = connectPgSimple(session);
+    this.sessionStore = new PostgresStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+    });
+    
+    // Check for demo user and create if not exists
     this.initializeStorage();
   }
 
-  // Initialize storage asynchronously
   private async initializeStorage() {
     try {
-      await this.loadFromStorage();
+      // Push the schema to the database (creates tables if they don't exist)
+      const { migrate } = await import('drizzle-orm/postgres-js/migrator');
+      const { db } = await import('./db');
       
-      // Create a demo user if no users exist
-      if (this.users.size === 0) {
+      // Run migration to sync schema with database
+      console.log("Running database migrations...");
+      await this.pushSchema();
+      console.log("Database migrations complete.");
+      
+      // Check if demo user exists, create if not
+      const demoUser = await this.getUserByUsername("demo");
+      if (!demoUser) {
         console.log("Creating demo user...");
         await this.createUser({
           username: "demo",
@@ -79,151 +80,100 @@ export class MemStorage implements IStorage {
         });
       }
     } catch (error) {
-      console.error("Failed to initialize storage:", error);
+      console.error("Failed to initialize database storage:", error);
     }
   }
-
-  // Save all data to a JSON file
-  private async saveToStorage() {
+  
+  private async pushSchema() {
     try {
-      const data = {
-        users: Array.from(this.users.entries()),
-        profiles: Array.from(this.profiles.entries()),
-        socialLinks: Array.from(this.socialLinks.entries()),
-        scanLogs: Array.from(this.scanLogs.entries()),
-        userCurrentId: this.userCurrentId,
-        profileCurrentId: this.profileCurrentId,
-        socialLinkCurrentId: this.socialLinkCurrentId,
-        scanLogCurrentId: this.scanLogCurrentId,
-      };
-
-      // Save to file using node fs
-      import('fs/promises').then(async fs => {
-        await fs.writeFile('./data-store.json', JSON.stringify(data, (key, value) => {
-          // Convert Date objects to ISO strings
-          if (value instanceof Date) {
-            return value.toISOString();
-          }
-          return value;
-        }, 2));
-        
-        console.log("Data saved to storage");
-      }).catch(err => {
-        console.error("Error importing fs module:", err);
-      });
+      // Run the database push command programmatically
+      const { execSync } = await import('child_process');
+      execSync('npm run db:push', { stdio: 'inherit' });
     } catch (error) {
-      console.error("Failed to save data to storage:", error);
-    }
-  }
-
-  // Load data from a JSON file
-  private async loadFromStorage() {
-    try {
-      const fs = await import('fs/promises');
-      const fsSync = await import('fs');
-      
-      if (!fsSync.existsSync('./data-store.json')) {
-        console.log("No data store found. Starting with empty data.");
-        return;
-      }
-      
-      const fileContent = await fs.readFile('./data-store.json', 'utf8');
-      const data = JSON.parse(fileContent);
-      
-      // Restore Maps from arrays
-      this.users = new Map(data.users);
-      this.profiles = new Map(data.profiles);
-      this.socialLinks = new Map(data.socialLinks);
-      this.scanLogs = new Map(data.scanLogs);
-      
-      // Restore IDs
-      this.userCurrentId = data.userCurrentId;
-      this.profileCurrentId = data.profileCurrentId;
-      this.socialLinkCurrentId = data.socialLinkCurrentId;
-      this.scanLogCurrentId = data.scanLogCurrentId;
-      
-      // Convert date strings back to Date objects
-      for (const profile of this.profiles.values()) {
-        if (profile.createdAt && typeof profile.createdAt === 'string') {
-          profile.createdAt = new Date(profile.createdAt);
-        }
-      }
-      
-      for (const scanLog of this.scanLogs.values()) {
-        if (scanLog.timestamp && typeof scanLog.timestamp === 'string') {
-          scanLog.timestamp = new Date(scanLog.timestamp);
-        }
-      }
-      
-      console.log("Data loaded from storage");
-      console.log(`Users: ${this.users.size}, Profiles: ${this.profiles.size}, SocialLinks: ${this.socialLinks.size}`);
-    } catch (error) {
-      console.error("Failed to load data from storage:", error);
+      console.error("Error pushing schema to database:", error);
     }
   }
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+    
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+    
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userCurrentId++;
-    const user: User = {
+    const { db } = await import('./db');
+    const { users } = await import('@shared/schema');
+    
+    const [user] = await db.insert(users).values({
       ...insertUser,
-      id,
       isPremium: false,
       trialExpiresAt: null,
       stripeCustomerId: null,
-    };
-    this.users.set(id, user);
-    this.saveToStorage();
+    }).returning();
+    
     return user;
   }
 
   async updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User> {
-    const user = await this.getUser(id);
-    if (!user) {
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+    
+    const [updatedUser] = await db.update(users)
+      .set({ isPremium })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!updatedUser) {
       throw new Error(`User with id ${id} not found`);
     }
-
-    const updatedUser = { ...user, isPremium };
-    this.users.set(id, updatedUser);
-    this.saveToStorage();
+    
     return updatedUser;
   }
 
   async updateUserStripeCustomerId(id: number, stripeCustomerId: string): Promise<User> {
-    const user = await this.getUser(id);
-    if (!user) {
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+    
+    const [updatedUser] = await db.update(users)
+      .set({ stripeCustomerId })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!updatedUser) {
       throw new Error(`User with id ${id} not found`);
     }
-
-    const updatedUser = { ...user, stripeCustomerId };
-    this.users.set(id, updatedUser);
-    this.saveToStorage();
+    
     return updatedUser;
   }
 
   async startPremiumTrial(id: number, durationDays: number): Promise<User> {
-    const user = await this.getUser(id);
-    if (!user) {
-      throw new Error(`User with id ${id} not found`);
-    }
-
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+    
     // Calculate trial expiry date
     const trialExpiresAt = new Date();
     trialExpiresAt.setDate(trialExpiresAt.getDate() + durationDays);
-
-    const updatedUser = { ...user, trialExpiresAt };
-    this.users.set(id, updatedUser);
-    this.saveToStorage();
+    
+    const [updatedUser] = await db.update(users)
+      .set({ trialExpiresAt })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!updatedUser) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    
     return updatedUser;
   }
 
@@ -242,154 +192,175 @@ export class MemStorage implements IStorage {
 
   // Profile methods
   async getProfile(id: number): Promise<Profile | undefined> {
-    return this.profiles.get(id);
+    const { db, eq } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
+    const [profile] = await db.select().from(profiles).where(eq(profiles.id, id));
+    return profile;
   }
 
   async getProfileBySlug(slug: string): Promise<Profile | undefined> {
-    return Array.from(this.profiles.values()).find(
-      (profile) => profile.slug === slug,
-    );
+    const { db, eq } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
+    const [profile] = await db.select().from(profiles).where(eq(profiles.slug, slug));
+    return profile;
   }
 
   async getProfilesByUserId(userId: number): Promise<Profile[]> {
-    return Array.from(this.profiles.values()).filter(
-      (profile) => profile.userId === userId,
-    );
+    const { db, eq } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
+    return await db.select().from(profiles).where(eq(profiles.userId, userId));
   }
 
   async createProfile(profile: InsertProfile & { userId: number }): Promise<Profile> {
-    const id = this.profileCurrentId++;
+    const { db } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
     const now = new Date();
     
-    const newProfile: Profile = {
+    const [newProfile] = await db.insert(profiles).values({
       ...profile,
-      id,
       scanCount: 0,
       createdAt: now,
-    };
+    }).returning();
     
-    this.profiles.set(id, newProfile);
-    this.saveToStorage();
     return newProfile;
   }
 
   async updateProfile(id: number, profileData: Partial<InsertProfile>): Promise<Profile> {
-    const profile = await this.getProfile(id);
-    if (!profile) {
+    const { db, eq } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
+    const [updatedProfile] = await db.update(profiles)
+      .set(profileData)
+      .where(eq(profiles.id, id))
+      .returning();
+    
+    if (!updatedProfile) {
       throw new Error(`Profile with id ${id} not found`);
     }
-
-    const updatedProfile: Profile = { ...profile, ...profileData };
-    this.profiles.set(id, updatedProfile);
-    this.saveToStorage();
+    
     return updatedProfile;
   }
 
   async deleteProfile(id: number): Promise<boolean> {
-    const profile = await this.getProfile(id);
-    if (!profile) {
-      return false;
-    }
-
+    const { db, eq } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
     // Delete related social links
     await this.deleteSocialLinksByProfileId(id);
     
     // Delete profile
-    const result = this.profiles.delete(id);
-    this.saveToStorage();
-    return result;
+    const result = await db.delete(profiles).where(eq(profiles.id, id)).returning();
+    return result.length > 0;
   }
 
   async incrementScanCount(id: number): Promise<Profile> {
-    const profile = await this.getProfile(id);
-    if (!profile) {
+    const { db, eq, sql } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
+    const [updatedProfile] = await db.update(profiles)
+      .set({ 
+        scanCount: sql`${profiles.scanCount} + 1` 
+      })
+      .where(eq(profiles.id, id))
+      .returning();
+    
+    if (!updatedProfile) {
       throw new Error(`Profile with id ${id} not found`);
     }
-
-    const scanCount = profile.scanCount || 0;
-    const updatedProfile = { ...profile, scanCount: scanCount + 1 };
-    this.profiles.set(id, updatedProfile);
-    this.saveToStorage();
+    
     return updatedProfile;
   }
 
   // Social link methods
   async getSocialLinksByProfileId(profileId: number): Promise<SocialLink[]> {
-    return Array.from(this.socialLinks.values()).filter(
-      (link) => link.profileId === profileId,
-    );
+    const { db, eq } = await import('./db');
+    const { socialLinks } = await import('@shared/schema');
+    
+    return await db.select()
+      .from(socialLinks)
+      .where(eq(socialLinks.profileId, profileId));
   }
 
   async createSocialLink(socialLink: InsertSocialLink): Promise<SocialLink> {
-    const id = this.socialLinkCurrentId++;
+    const { db } = await import('./db');
+    const { socialLinks } = await import('@shared/schema');
     
-    const newSocialLink: SocialLink = {
-      ...socialLink,
-      id,
-    };
+    const [newSocialLink] = await db.insert(socialLinks)
+      .values(socialLink)
+      .returning();
     
-    this.socialLinks.set(id, newSocialLink);
-    this.saveToStorage();
     return newSocialLink;
   }
 
   async updateSocialLink(id: number, socialLinkData: Partial<InsertSocialLink>): Promise<SocialLink> {
-    const socialLink = this.socialLinks.get(id);
-    if (!socialLink) {
+    const { db, eq } = await import('./db');
+    const { socialLinks } = await import('@shared/schema');
+    
+    const [updatedSocialLink] = await db.update(socialLinks)
+      .set(socialLinkData)
+      .where(eq(socialLinks.id, id))
+      .returning();
+    
+    if (!updatedSocialLink) {
       throw new Error(`Social link with id ${id} not found`);
     }
-
-    const updatedSocialLink: SocialLink = { ...socialLink, ...socialLinkData };
-    this.socialLinks.set(id, updatedSocialLink);
-    this.saveToStorage();
+    
     return updatedSocialLink;
   }
 
   async deleteSocialLink(id: number): Promise<boolean> {
-    const result = this.socialLinks.delete(id);
-    this.saveToStorage();
-    return result;
+    const { db, eq } = await import('./db');
+    const { socialLinks } = await import('@shared/schema');
+    
+    const result = await db.delete(socialLinks)
+      .where(eq(socialLinks.id, id))
+      .returning();
+    
+    return result.length > 0;
   }
 
   async deleteSocialLinksByProfileId(profileId: number): Promise<boolean> {
-    const links = await this.getSocialLinksByProfileId(profileId);
+    const { db, eq } = await import('./db');
+    const { socialLinks } = await import('@shared/schema');
     
-    links.forEach((link) => {
-      this.socialLinks.delete(link.id);
-    });
+    const result = await db.delete(socialLinks)
+      .where(eq(socialLinks.profileId, profileId))
+      .returning();
     
-    this.saveToStorage();
     return true;
   }
 
   // Scan log methods
   async getScanLogsByProfileId(profileId: number): Promise<ScanLog[]> {
-    return Array.from(this.scanLogs.values())
-      .filter((log) => log.profileId === profileId)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    const { db, eq, desc } = await import('./db');
+    const { scanLogs } = await import('@shared/schema');
+    
+    return await db.select()
+      .from(scanLogs)
+      .where(eq(scanLogs.profileId, profileId))
+      .orderBy(desc(scanLogs.timestamp));
   }
 
   async createScanLog(scanLogData: InsertScanLog): Promise<ScanLog> {
-    const id = this.scanLogCurrentId++;
+    const { db } = await import('./db');
+    const { scanLogs } = await import('@shared/schema');
+    
     const now = new Date();
     
-    const scanLog: ScanLog = {
+    const [scanLog] = await db.insert(scanLogs).values({
       ...scanLogData,
-      id,
       timestamp: now,
-      location: scanLogData.location || null,
-      device: scanLogData.device || null,
-      referrer: scanLogData.referrer || null
-    };
+    }).returning();
     
-    this.scanLogs.set(id, scanLog);
-
     // Increment scan count for the profile
     await this.incrementScanCount(scanLogData.profileId);
     
-    this.saveToStorage();
     return scanLog;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

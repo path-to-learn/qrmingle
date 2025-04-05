@@ -8,9 +8,8 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function Login() {
   const [location, setLocation] = useLocation();
-  const { user, login } = useAuth();
+  const { user, loginMutation } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   
@@ -34,55 +33,11 @@ export default function Login() {
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
-      
-      console.log("Login successful, data:", data);
-      
-      // Create user object from response
-      const userData = {
-        id: data.id,
-        username: data.username,
-        isPremium: data.isPremium || false,
-        stripeCustomerId: data.stripeCustomerId
-      };
-      
-      // Use the login function from context
-      login(userData);
-      
-      toast({
-        title: "Success",
-        description: "You have been logged in. Redirecting...",
-      });
-      
-      // Use the router to navigate to home
-      setLocation("/");
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Use the mutation from our auth context
+    loginMutation.mutate({
+      username,
+      password,
+    });
   };
 
   return (
@@ -104,7 +59,7 @@ export default function Login() {
                 placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
+                disabled={loginMutation.isPending}
               />
             </div>
             <div className="space-y-2">
@@ -117,13 +72,13 @@ export default function Login() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={loginMutation.isPending}
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
+            <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? "Logging in..." : "Login"}
             </Button>
             <p className="text-sm text-center text-muted-foreground mt-2">
               Don't have an account?{" "}

@@ -44,59 +44,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
 
-  // Initial load of user from localStorage
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        const userData: User = JSON.parse(savedUser);
-        setUser(userData);
-        console.log("Loaded user from localStorage:", userData);
-        
-        // Validate with server
-        fetch(`/api/auth/validate?userId=${userData.id}`)
-          .then(res => {
-            if (!res.ok) {
-              console.log("Server validation failed, clearing user data");
-              localStorage.removeItem('user');
-              setUser(null);
-              return null;
-            }
-            return res.json();
-          })
-          .then(serverUser => {
-            if (serverUser) {
-              console.log("Server validation successful, updated user data:", serverUser);
-              setUser(serverUser);
-              localStorage.setItem('user', JSON.stringify(serverUser));
-            }
-          })
-          .catch(err => {
-            console.error("Auth validation error:", err);
-            localStorage.removeItem('user');
-            setUser(null);
-          });
-      } catch (e) {
-        console.error("Error parsing user from localStorage:", e);
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
+  // Query current authenticated user with TanStack Query
+  const { 
+    data: userData, 
+    isLoading: isUserLoading, 
+    error: userError 
+  } = useQuery({
+    queryKey: ['/api/auth/validate'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+    refetchOnWindowFocus: true,
+  });
 
-  // Login function to update state and localStorage
+  // Update user state when query data changes
+  useEffect(() => {
+    if (userData) {
+      setUser(userData as User);
+      console.log("Auth context: User authenticated via session:", userData);
+    } else if (userData === null && !isUserLoading) {
+      setUser(null);
+      console.log("Auth context: No user session found");
+    }
+  }, [userData, isUserLoading]);
+
+  // Login function to update state when session is established
   const login = useCallback((userData: User) => {
     console.log("Login function called with:", userData);
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
     console.log("User state after login:", userData);
   }, []);
 
-  // Logout function to clear state and localStorage
+  // Logout function to clear state when session ends
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('user');
-    window.location.href = "/";
-  }, []);
+    queryClient.setQueryData(['/api/auth/validate'], null);
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/validate'] });
+    setLocation("/");
+  }, [setLocation]);
 
   // Login mutation
   const loginMutation = useMutation({
@@ -169,8 +153,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isLoading: false,
-        error: null,
+        isLoading: isUserLoading,
+        error: userError || null,
         login,
         logout,
         loginMutation,

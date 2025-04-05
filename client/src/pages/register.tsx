@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +8,8 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function Register() {
   const [location, setLocation] = useLocation();
-  const { user, login } = useAuth();
+  const { user, registerMutation } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,54 +44,8 @@ export default function Register() {
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
-      
-      console.log("Registration successful, data:", data);
-      
-      // Save user data to localStorage first
-      const userData = {
-        id: data.id,
-        username: data.username,
-        isPremium: data.isPremium || false,
-        stripeCustomerId: data.stripeCustomerId
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      toast({
-        title: "Success",
-        description: "You have been registered and logged in. Redirecting...",
-      });
-      
-      // Hard refresh to home page to ensure complete state reset
-      window.location.href = "/";
-    } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Use the mutation from context
+    registerMutation.mutate({ username, password });
   };
 
   return (
@@ -115,7 +67,7 @@ export default function Register() {
                 placeholder="Choose a username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
+                disabled={registerMutation.isPending}
               />
             </div>
             <div className="space-y-2">
@@ -128,7 +80,7 @@ export default function Register() {
                 placeholder="Choose a password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={registerMutation.isPending}
               />
             </div>
             <div className="space-y-2">
@@ -141,13 +93,13 @@ export default function Register() {
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={registerMutation.isPending}
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Sign Up"}
+            <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+              {registerMutation.isPending ? "Creating account..." : "Sign Up"}
             </Button>
             <p className="text-sm text-center text-muted-foreground mt-2">
               Already have an account?{" "}

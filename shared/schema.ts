@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -6,7 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  isPremium: boolean("is_premium").default(false),
+  isPremium: boolean("is_premium").default(false).notNull(),
   trialExpiresAt: timestamp("trial_expires_at"),
   stripeCustomerId: text("stripe_customer_id"),
 });
@@ -44,6 +44,17 @@ export const scanLogs = pgTable("scan_logs", {
   location: text("location"),
   device: text("device"),
   referrer: text("referrer"),
+});
+
+// Define the session table structure for express-session with connect-pg-simple
+export const sessions = pgTable("session", {
+  sid: text("sid").notNull(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire").notNull(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.sid] }),
+  };
 });
 
 // Insert schemas
