@@ -52,7 +52,10 @@ export class DatabaseStorage implements IStorage {
     const PostgresStore = connectPgSimple(session);
     this.sessionStore = new PostgresStore({
       conString: process.env.DATABASE_URL,
+      // Let PostgresStore create its own table format according to its requirements
       createTableIfMissing: true,
+      // Use our custom table name that matches our schema
+      tableName: 'session'
     });
     
     // Check for demo user and create if not exists
