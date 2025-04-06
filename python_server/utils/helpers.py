@@ -14,10 +14,13 @@ def create_demo_user():
         if users_count == 0:
             logger.info("No users found, creating demo user")
             
-            # Create demo user
+            # Create demo user with proper password hashing
+            hashed_password = hash_password("demo")
+            logger.info(f"Hashed password format: {hashed_password[:20]}...")
+            
             demo_user = User(
                 username="demo",
-                password=hash_password("demo"),
+                password=hashed_password,
                 is_premium=False
             )
             

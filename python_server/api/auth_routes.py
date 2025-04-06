@@ -55,7 +55,19 @@ def login():
         user = User.query.filter_by(username=user_data.username).first()
         
         # Check if user exists and password is correct
-        if not user or not verify_password(user.password, user_data.password):
+        if not user:
+            logger.error(f"Login failed: Username '{user_data.username}' not found")
+            return jsonify({'error': 'Invalid username or password'}), 401
+        
+        # Debug password verification
+        logger.info(f"Stored password hash: {user.password}")
+        logger.info(f"User provided password: {user_data.password}")
+        
+        password_correct = verify_password(user.password, user_data.password)
+        logger.info(f"Password verification for '{user_data.username}': {password_correct}")
+        
+        if not password_correct:
+            logger.error(f"Login failed: Incorrect password for '{user_data.username}'")
             return jsonify({'error': 'Invalid username or password'}), 401
         
         # Log user in

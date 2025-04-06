@@ -57,6 +57,7 @@ def create_app():
             create_demo_user()
         except Exception as e:
             logger.error(f"Error initializing database: {str(e)}")
+            logger.error("Database error details:", exc_info=True)
     
     # Serve frontend files (in production)
     @app.route('/', defaults={'path': ''})

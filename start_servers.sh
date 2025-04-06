@@ -1,24 +1,52 @@
 #!/bin/bash
 
-# Start the Node.js server in the background
-npm run dev &
-NODE_PID=$!
+# Set error handling
+set -e
 
-# Start the Python server in the background
-python run.py &
+# Clean existing log file
+echo "Cleaning logs..." > python_server.log
+
+# Kill any existing Python processes
+echo "Cleaning up any existing processes..."
+pkill -f "python run.py" || true
+sleep 2
+
+# Start the Python server with detailed logging
+echo "Starting Python server..."
+python -u run.py >> python_server.log 2>&1 &
 PYTHON_PID=$!
+echo $PYTHON_PID > python_pid.txt
+echo "Python server started with PID $PYTHON_PID"
 
-# Function to handle signals
-cleanup() {
-    echo "Stopping servers..."
-    kill $NODE_PID 2>/dev/null
-    kill $PYTHON_PID 2>/dev/null
-    exit 0
-}
+# Give it time to initialize
+echo "Waiting for server to initialize..."
+sleep 10
 
-# Register the cleanup function for signals
-trap cleanup SIGINT SIGTERM
+# Check if the process is still running
+if ! ps -p $PYTHON_PID > /dev/null; then
+    echo "ERROR: Python server crashed during startup!"
+    echo "Last 30 lines of log:"
+    tail -n 30 python_server.log
+    exit 1
+fi
 
-# Keep the script running
-echo "Both servers started. Press Ctrl+C to stop both."
-wait
+# Test that the Python server is responding
+echo "Testing Python server..."
+RESPONSE=$(curl -s -m 5 http://localhost:5001/api/ping || echo "Connection failed")
+if [[ "$RESPONSE" != *"running"* ]]; then
+    echo "ERROR: Python server not responding properly!"
+    echo "Response: $RESPONSE"
+    echo "Last 30 lines of log:"
+    tail -n 30 python_server.log
+    
+    # Try to get any error messages from the process
+    echo "Checking for errors in the Python process..."
+    echo "Process status:"
+    ps -p $PYTHON_PID -f || echo "Process no longer exists"
+    
+    exit 1
+fi
+
+echo "Servers started successfully!"
+echo "Python server is running on port 5001 with PID $PYTHON_PID"
+echo "To view logs, use: tail -f python_server.log"
