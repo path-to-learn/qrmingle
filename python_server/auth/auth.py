@@ -34,10 +34,10 @@ def get_current_user():
 
 def is_effectively_premium(user):
     """Check if user is premium or in trial period"""
-    if user.isPremium:
+    if user.is_premium:
         return True
     
-    if user.trialExpiresAt and user.trialExpiresAt > datetime.utcnow():
+    if user.trial_expires_at and user.trial_expires_at > datetime.utcnow():
         return True
     
     return False
@@ -49,11 +49,11 @@ def start_premium_trial(user_id, days=7):
         return None
     
     # Check if trial period is already set and active
-    if user.trialExpiresAt and user.trialExpiresAt > datetime.utcnow():
+    if user.trial_expires_at and user.trial_expires_at > datetime.utcnow():
         return user
     
     # Set trial period
-    user.trialExpiresAt = datetime.utcnow() + timedelta(days=days)
+    user.trial_expires_at = datetime.utcnow() + timedelta(days=days)
     db.session.commit()
     
     return user

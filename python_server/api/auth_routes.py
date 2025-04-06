@@ -27,7 +27,7 @@ def register():
         new_user = User(
             username=user_data.username,
             password=hash_password(user_data.password),
-            isPremium=False
+            is_premium=False
         )
         
         db.session.add(new_user)

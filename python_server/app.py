@@ -67,6 +67,11 @@ def create_app():
         else:
             return send_from_directory('../client/dist', 'index.html')
     
+    # Simple ping route to test server status
+    @app.route('/api/ping', methods=['GET'])
+    def ping():
+        return jsonify({"status": "ok", "message": "Python server is running"})
+    
     # Error handlers
     @app.errorhandler(404)
     def not_found(e):

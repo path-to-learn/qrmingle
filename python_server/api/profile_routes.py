@@ -16,6 +16,13 @@ logger = logging.getLogger('qrmingle.profiles')
 # Create blueprint
 profile_routes = Blueprint('profiles', __name__, url_prefix='/api/profiles')
 
+# Quick helper function to convert from snake_case to camelCase for API responses
+# This helps maintain backwards compatibility with the frontend
+def snake_to_camel(snake_str):
+    """Convert snake_case to camelCase"""
+    components = snake_str.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
 def generate_slug(name):
     """Generate a URL-friendly slug from a name"""
     # Remove special chars and replace spaces with hyphens
@@ -30,7 +37,7 @@ def get_profiles():
     """Get all profiles for the current user"""
     try:
         user = g.user
-        profiles = Profile.query.filter_by(userId=user.id).all()
+        profiles = Profile.query.filter_by(user_id=user.id).all()
         
         # Convert to response format
         response_data = [ProfileResponse.model_validate(profile).model_dump() for profile in profiles]
@@ -73,7 +80,7 @@ def get_profile_by_slug(slug):
             return jsonify({'error': 'Profile not found'}), 404
             
         # Increment scan count
-        profile.scanCount += 1
+        profile.scan_count += 1
         
         # Log scan if needed
         try:
@@ -85,7 +92,7 @@ def get_profile_by_slug(slug):
             
             # Create scan log
             scan_log = ScanLog(
-                profileId=profile.id,
+                profile_id=profile.id,
                 **scan_data
             )
             db.session.add(scan_log)

@@ -18,7 +18,7 @@ def create_demo_user():
             demo_user = User(
                 username="demo",
                 password=hash_password("demo"),
-                isPremium=False
+                is_premium=False
             )
             
             db.session.add(demo_user)
