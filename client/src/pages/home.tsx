@@ -4,10 +4,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import ProfileCard from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProfileFormData } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { VideoUploader } from "@/components/ui/video-uploader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -210,20 +211,89 @@ export default function Home() {
   // Add debugging to see what's going on with the user
   console.log("Auth state:", { user });
 
+  const [tutorialVideoUrl, setTutorialVideoUrl] = useState<string | null>(null);
+  
+  const handleVideoUploaded = (videoUrl: string) => {
+    setTutorialVideoUrl(videoUrl);
+    toast({
+      title: "Video uploaded",
+      description: "Your tutorial video has been uploaded and is now visible to users",
+    });
+  };
+  
   if (!user) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 text-center">
-        <h1 className="text-2xl font-bold mb-4">Welcome to QrMingle</h1>
-        <p className="text-muted-foreground mb-6">
-          Please log in or sign up to create and manage your contact profiles
-        </p>
-        <div className="flex justify-center gap-4">
-          <a href="/register">
-            <Button>Sign Up</Button>
-          </a>
-          <a href="/login">
-            <Button variant="outline">Log In</Button>
-          </a>
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          {/* Left column - Video tutorial */}
+          <div className="flex flex-col">
+            <h2 className="text-xl font-semibold mb-3">How QrMingle Works</h2>
+            <div className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 aspect-video mb-4">
+              {tutorialVideoUrl ? (
+                <video 
+                  controls
+                  className="w-full h-full object-cover"
+                  poster="/video-thumbnail.jpg"
+                >
+                  <source src={tutorialVideoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="absolute inset-0 bg-gray-100">
+                  <VideoUploader 
+                    onVideoUploaded={handleVideoUploaded} 
+                    className="h-full"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">1</div>
+                <p className="ml-3 text-sm">Sign up for a free account</p>
+              </div>
+              <div className="flex items-center">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">2</div>
+                <p className="ml-3 text-sm">Create your personal or professional profile</p>
+              </div>
+              <div className="flex items-center">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">3</div>
+                <p className="ml-3 text-sm">Share your custom QR code with new connections</p>
+              </div>
+              <div className="flex items-center">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">4</div>
+                <p className="ml-3 text-sm">They can instantly save your contact info with one scan</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Right column - Welcome message and buttons */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Welcome to QrMingle</h1>
+            <p className="text-muted-foreground mb-6">
+              The easiest way to share your contact information at networking events, conferences, and meetings
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+              <a href="/register" className="w-full sm:w-auto">
+                <Button className="w-full">Sign Up</Button>
+              </a>
+              <a href="/login" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full">Log In</Button>
+              </a>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 mt-4">
+              <h3 className="font-medium mb-2">Premium Features</h3>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>✓ Unlimited profiles</li>
+                <li>✓ Custom QR code styles</li>
+                <li>✓ Detailed scan analytics</li>
+                <li>✓ Priority support</li>
+              </ul>
+              <p className="text-xs text-gray-500 mt-2">
+                Premium upgrade: just $4.99 one-time payment
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );

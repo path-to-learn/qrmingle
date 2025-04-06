@@ -48,13 +48,9 @@ export const scanLogs = pgTable("scan_logs", {
 
 // Define the session table structure for express-session with connect-pg-simple
 export const sessions = pgTable("session", {
-  sid: text("sid").notNull(),
+  sid: text("sid").primaryKey(),
   sess: jsonb("sess").notNull(),
   expire: timestamp("expire").notNull(),
-}, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.sid] }),
-  };
 });
 
 // Insert schemas

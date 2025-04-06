@@ -7,11 +7,46 @@ import { z } from "zod";
 import crypto from "crypto";
 import Stripe from "stripe";
 import { setupAuth } from "./auth";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 // Initialize Stripe if secret key is available
 const stripe = process.env.STRIPE_SECRET_KEY 
   ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" as any }) 
   : null;
+
+// Set up multer for video file uploads
+const uploadsDir = path.join(process.cwd(), 'uploads');
+// Create the directory if it doesn't exist
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const videoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'tutorial-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const videoUpload = multer({ 
+  storage: videoStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB max file size
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only video files
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only video files are allowed'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication (must happen before routes)
@@ -361,6 +396,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Video upload endpoint
+  apiRoutes.post('/upload-tutorial-video', videoUpload.single('video'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No video file uploaded" });
+      }
+
+      // Ensure the file is accessible through the static file server
+      const videoUrl = `/uploads/${req.file.filename}`;
+      
+      // Return the URL of the uploaded video
+      res.json({ videoUrl });
+    } catch (error) {
+      console.error('Video upload error:', error);
+      res.status(500).json({ 
+        message: "Failed to upload video",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Analytics routes
   apiRoutes.get('/analytics/profile/:id', async (req, res) => {
     try {
@@ -618,6 +674,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   }
+
+  // Serve uploaded files from uploads directory
+  app.use('/uploads', express.static(uploadsDir));
 
   const httpServer = createServer(app);
   return httpServer;
