@@ -12,13 +12,32 @@ def hash_password(password):
 def verify_password(stored_password, provided_password):
     """Verify a stored password against one provided by user"""
     import logging
+    import traceback
+    
     logger = logging.getLogger('qrmingle.auth.password')
-    logger.debug(f"Verifying password - Stored hash: {stored_password[:10]}... Provided length: {len(provided_password)}")
-    # First parameter to check_password_hash must be the stored password hash
-    # Second parameter is the plain text password provided by user
-    result = check_password_hash(stored_password, provided_password)
-    logger.debug(f"Password verification result: {result}")
-    return result
+    logger.info(f"Password verification started")
+    
+    try:
+        if not stored_password:
+            logger.error("Stored password is empty or None")
+            return False
+            
+        if not provided_password:
+            logger.error("Provided password is empty or None")
+            return False
+            
+        logger.info(f"Verifying password - Stored hash prefix: {stored_password[:10]}..., Provided password length: {len(provided_password)}")
+        
+        # First parameter to check_password_hash must be the stored password hash
+        # Second parameter is the plain text password provided by user
+        result = check_password_hash(stored_password, provided_password)
+        
+        logger.info(f"Password verification result: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Password verification error: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 def login_required(f):
     """Decorator to require login for routes"""

@@ -22,7 +22,10 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Define the Python API backend URL
-const PYTHON_API_URL = 'http://localhost:5001';
+// When using the Node.js server instead of Python, comment out the line below
+// const PYTHON_API_URL = 'http://localhost:5001';
+// Use the current server URL for API requests
+const PYTHON_API_URL = '';
 
 export async function apiRequest(
   method: string,

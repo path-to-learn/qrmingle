@@ -48,33 +48,65 @@ def register():
 @auth_routes.route('/login', methods=['POST'])
 def login():
     try:
+        logger.info("Login attempt received")
+        
+        # Debug request
+        logger.info(f"Request headers: {dict(request.headers)}")
+        logger.info(f"Request content type: {request.content_type}")
+        
+        # Load request data
         data = request.get_json()
+        logger.info(f"Request data: {data}")
+        
+        # Validate request data
         user_data = UserLogin(**data)
+        logger.info(f"Validated user data: username={user_data.username}, password length={len(user_data.password)}")
         
         # Find user by username
         user = User.query.filter_by(username=user_data.username).first()
         
-        # Check if user exists and password is correct
+        # Check if user exists
         if not user:
             logger.error(f"Login failed: Username '{user_data.username}' not found")
             return jsonify({'error': 'Invalid username or password'}), 401
+        
+        logger.info(f"User found: id={user.id}, username={user.username}")
         
         # Debug password verification
         logger.info(f"Stored password hash: {user.password}")
         logger.info(f"User provided password: {user_data.password}")
         
-        password_correct = verify_password(user.password, user_data.password)
-        logger.info(f"Password verification for '{user_data.username}': {password_correct}")
+        # Parameters should be (stored_password, provided_password)
+        try:
+            password_correct = verify_password(user.password, user_data.password)
+            logger.info(f"Password verification for '{user_data.username}': {password_correct}")
+        except Exception as e:
+            logger.error(f"Password verification exception: {str(e)}")
+            logger.error(f"Exception details:", exc_info=True)
+            return jsonify({'error': 'Authentication error'}), 500
         
         if not password_correct:
             logger.error(f"Login failed: Incorrect password for '{user_data.username}'")
             return jsonify({'error': 'Invalid username or password'}), 401
         
         # Log user in
-        session['user_id'] = user.id
+        try:
+            session['user_id'] = user.id
+            logger.info(f"User logged in: id={user.id}, session_id={session.sid if hasattr(session, 'sid') else 'unknown'}")
+        except Exception as e:
+            logger.error(f"Session assignment error: {str(e)}")
+            logger.error(f"Session assignment exception details:", exc_info=True)
+            return jsonify({'error': 'Session error'}), 500
         
         # Return user data
-        return jsonify(UserResponse.model_validate(user).model_dump())
+        try:
+            user_response = UserResponse.model_validate(user).model_dump()
+            logger.info(f"Login successful: {user_response}")
+            return jsonify(user_response)
+        except Exception as e:
+            logger.error(f"Response serialization error: {str(e)}")
+            logger.error(f"Exception details:", exc_info=True)
+            return jsonify({'error': 'Response error'}), 500
         
     except ValidationError as e:
         return jsonify({'error': str(e)}), 400

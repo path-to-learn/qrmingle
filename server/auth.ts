@@ -56,19 +56,42 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "Invalid username or password" });
         }
         
-        // For demo user, allow simple password check
-        if (username === 'demo' && user.password === 'demo') {
+        // For demo user, use simple password verification
+        if (username === 'demo' && password === 'demo') {
           return done(null, user);
         }
         
-        // For all other users, use secure password check
-        const passwordMatch = await comparePasswords(password, user.password);
-        if (!passwordMatch) {
-          return done(null, false, { message: "Invalid username or password" });
+        // Handle different password storage formats
+        
+        // 1. Check if using scrypt with salt (our Node.js format)
+        if (user.password.includes('.') && !user.password.startsWith('pbkdf2:')) {
+          const passwordMatch = await comparePasswords(password, user.password);
+          if (!passwordMatch) {
+            return done(null, false, { message: "Invalid username or password" });
+          }
+        } 
+        // 2. Handle Python's pbkdf2 format from Flask
+        else if (user.password.startsWith('pbkdf2:')) {
+          // Since we can't verify this format directly in Node.js easily,
+          // we'll allow demo user with demo password as special case
+          if (username === 'demo' && password === 'demo') {
+            return done(null, user);
+          } else {
+            // For real implementation, we would need to port the Python verification code
+            console.log('Password stored in pbkdf2 format that requires Python verification');
+            return done(null, false, { message: "Please use JS-created users during migration" });
+          }
+        } 
+        // 3. Fallback for plain text passwords (not recommended)
+        else {
+          if (password !== user.password) {
+            return done(null, false, { message: "Invalid username or password" });
+          }
         }
         
         return done(null, user);
       } catch (error) {
+        console.error('Error in authentication:', error);
         return done(error);
       }
     })
