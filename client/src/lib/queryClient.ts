@@ -21,15 +21,21 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Define the Python API backend URL
+const PYTHON_API_URL = 'http://localhost:5001';
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  console.log(`API Request: ${method} ${url}`, data ? { data } : '');
+  // Redirect API requests to Python backend
+  const apiUrl = url.startsWith('/api') ? `${PYTHON_API_URL}${url}` : url;
+  
+  console.log(`API Request: ${method} ${apiUrl}`, data ? { data } : '');
   
   try {
-    const res = await fetch(url, {
+    const res = await fetch(apiUrl, {
       method,
       headers: data ? { "Content-Type": "application/json" } : {},
       body: data ? JSON.stringify(data) : undefined,
@@ -54,7 +60,7 @@ export async function apiRequest(
     
     return res;
   } catch (error) {
-    console.error(`API Request failed: ${method} ${url}`, error);
+    console.error(`API Request failed: ${method} ${apiUrl}`, error);
     throw error;
   }
 }
@@ -65,7 +71,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Get the URL from the query key
+    let url = queryKey[0] as string;
+    
+    // Redirect API requests to Python backend
+    if (url.startsWith('/api')) {
+      url = `${PYTHON_API_URL}${url}`;
+    }
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 
