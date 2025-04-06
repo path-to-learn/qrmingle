@@ -1,0 +1,1 @@
+# QrMingle Schemas
