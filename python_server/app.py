@@ -30,8 +30,15 @@ def create_app():
     
     # Configure session
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')  # Fallback for development
+    
+    # Create session directory if it doesn't exist
+    session_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../session'))
+    if not os.path.exists(session_dir):
+        os.makedirs(session_dir, exist_ok=True)
+        logger.info(f"Created session directory at {session_dir}")
+    
     app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem instead of sqlalchemy to avoid table conflicts
-    app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../session')
+    app.config['SESSION_FILE_DIR'] = session_dir
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SESSION_PERMANENT'] = True
     
@@ -63,10 +70,22 @@ def create_app():
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_frontend(path):
-        if path != "" and os.path.exists(os.path.join('../client/dist', path)):
-            return send_from_directory('../client/dist', path)
-        else:
-            return send_from_directory('../client/dist', 'index.html')
+        frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../client/dist'))
+        try:
+            if path != "" and os.path.exists(os.path.join(frontend_dir, path)):
+                return send_from_directory(frontend_dir, path)
+            else:
+                if os.path.exists(os.path.join(frontend_dir, 'index.html')):
+                    return send_from_directory(frontend_dir, 'index.html')
+                else:
+                    # Return a simple response if client/dist doesn't exist (development mode)
+                    return jsonify({
+                        "status": "ok",
+                        "message": "Python server is running, but client/dist directory not found. Use the Node.js server for frontend in development."
+                    })
+        except Exception as e:
+            logger.error(f"Error serving frontend: {str(e)}")
+            return jsonify({"error": "Error serving frontend"}), 500
     
     # Simple ping route to test server status
     @app.route('/api/ping', methods=['GET'])

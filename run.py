@@ -4,7 +4,12 @@ import logging
 import traceback
 import socket
 import time
+import signal
+import faulthandler
 from dotenv import load_dotenv
+
+# Enable faulthandler to get better crash information
+faulthandler.enable()
 
 # Configure detailed logging
 logging.basicConfig(
@@ -29,6 +34,14 @@ logger.info(f"Python version: {sys.version}")
 logger.info(f"Working directory: {os.getcwd()}")
 logger.info(f"Environment variables: DATABASE_URL exists: {'DATABASE_URL' in os.environ}")
 logger.info(f"Environment variables: SECRET_KEY exists: {'SECRET_KEY' in os.environ}")
+
+# Setup signal handlers to help diagnose crashes
+def signal_handler(sig, frame):
+    logger.critical(f"Received signal {sig}, exiting gracefully")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 # Check for other Python processes that might cause port conflicts
 try:
@@ -55,47 +68,75 @@ try:
 except Exception as e:
     logger.error(f"Error checking port availability: {str(e)}")
 
+# Track the startup process with detailed steps
 try:
     # Import create_app after environment variables are loaded
-    logger.info("Importing create_app...")
+    logger.info("Step 1: Importing create_app...")
     from python_server.app import create_app
     
-    logger.info("Creating Flask app...")
+    logger.info("Step 2: Creating Flask app...")
     app = create_app()
-    logger.info("Flask app created successfully")
+    logger.info("Step 3: Flask app created successfully")
     
     if __name__ == "__main__":
+        # Create a file to indicate we're running
+        with open("python_server_running.txt", "w") as f:
+            f.write("Running")
+            
         host = os.environ.get('HOST', '0.0.0.0')
         port = int(os.environ.get('PORT', 5001))  # Use port 5001 instead of 5000
         debug = True  # Enable debug mode for development
         
-        logger.info(f"Starting QrMingle server on {host}:{port}")
+        logger.info(f"Step 4: Starting QrMingle server on {host}:{port}")
         
         try:
             # Create a heartbeat mechanism to detect and report problems
             def heartbeat_thread():
+                count = 0
                 while True:
-                    time.sleep(10)
-                    logger.info("Server heartbeat check")
                     try:
+                        time.sleep(10)
+                        count += 1
+                        logger.info(f"Server heartbeat check #{count}")
+                        
                         # Try to connect to our own server to verify it's working
                         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         s.settimeout(2)
                         s.connect((host, port))
                         s.close()
-                        logger.info("Server is responsive")
+                        logger.info(f"Server is responsive (heartbeat #{count})")
+                        
+                        # Write to a file that can be checked externally
+                        with open("python_server_heartbeat.txt", "w") as f:
+                            f.write(f"{time.time()}")
                     except Exception as e:
-                        logger.error(f"Server heartbeat check failed: {str(e)}")
+                        logger.error(f"Server heartbeat check #{count} failed: {str(e)}")
             
-            import threading
-            threading.Thread(target=heartbeat_thread, daemon=True).start()
+            try:
+                import threading
+                heartbeat = threading.Thread(target=heartbeat_thread, daemon=True)
+                heartbeat.start()
+                logger.info("Step 5: Heartbeat thread started")
+            except Exception as e:
+                logger.error(f"Failed to start heartbeat thread: {str(e)}")
+                # Continue running even if heartbeat fails
             
-            # Use threaded=True for better handling of concurrent requests
-            logger.info("Starting Flask app.run()...")
-            app.run(host=host, port=port, debug=debug, use_reloader=False, threaded=True)
+            # Use the most reliable production-like settings 
+            logger.info("Step 6: Starting Flask app.run() in production mode...")
+            app.run(host=host, port=port, debug=False, use_reloader=False, threaded=True)
         except Exception as e:
-            logger.error(f"Error running server: {str(e)}")
-            logger.error(traceback.format_exc())
+            logger.critical(f"Error running server: {str(e)}")
+            logger.critical(traceback.format_exc())
+            # Make sure the error is visible
+            with open("python_server_crash.txt", "w") as f:
+                f.write(f"Server crashed: {str(e)}\n")
+                f.write(traceback.format_exc())
+            sys.exit(1)
 except Exception as e:
-    logger.error(f"Error during server setup: {str(e)}")
-    logger.error(traceback.format_exc())
+    logger.critical(f"Error during server setup: {str(e)}")
+    logger.critical(traceback.format_exc())
+    # Make sure the error is visible
+    with open("python_server_crash.txt", "w") as f:
+        f.write(f"Setup crashed: {str(e)}\n")
+        f.write(traceback.format_exc())
+    sys.exit(1)
