@@ -160,30 +160,18 @@ export default function Analytics() {
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-bold mb-6">QR Code Analytics</h2>
       
-      {!user.isPremium && (
-        <div className="bg-amber-50 border border-amber-200 p-4 mb-6 rounded-md flex items-start sm:items-center">
-          <div className="text-amber-600 mr-3 flex-shrink-0 mt-0.5 sm:mt-0">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm text-amber-700 mb-1">
-              <span className="font-medium">Free account limitation:</span> Analytics are limited to the last 7 days only.
-            </p>
-            <p className="text-sm text-amber-700">
-              <Link to="/premium">
-                <span className="inline-flex items-center font-medium text-amber-700 hover:text-amber-800 cursor-pointer">
-                  <span>Upgrade to Premium</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </span>
-              </Link> for full analytics history, location data, and advanced insights.
-            </p>
-          </div>
+      <div className="bg-blue-50 border border-blue-200 p-4 mb-6 rounded-md flex items-start sm:items-center">
+        <div className="text-blue-600 mr-3 flex-shrink-0 mt-0.5 sm:mt-0">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
-      )}
+        <div>
+          <p className="text-sm text-blue-700">
+            Full analytics are available to all users. View insights on scan frequency, device types, and locations for your QR profiles.
+          </p>
+        </div>
+      </div>
 
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -212,7 +200,7 @@ export default function Analytics() {
               <Select
                 value={timeRange}
                 onValueChange={setTimeRange}
-                disabled={!user.isPremium || analytics?.isLimited}
+                disabled={analytics?.isLimited}
               >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Time Range" />
@@ -224,25 +212,6 @@ export default function Analytics() {
                   <SelectItem value="year">Last year</SelectItem>
                 </SelectContent>
               </Select>
-              {!user.isPremium && (
-                <div className="absolute -top-1 -right-1">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
-                            <path d="M18 6 7 17l-5-5"></path>
-                            <path d="m22 10-7.5 7.5L13 16"></path>
-                          </svg>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">Upgrade to Premium to access full analytics history</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              )}
             </div>
           )}
         </div>

@@ -173,20 +173,9 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   
-  // Add a helper function to check if user is effectively premium (paid or trial)
+  // All users effectively have premium features now
   const isEffectivelyPremium = () => {
-    if (!context.user) return false;
-    
-    // Check if user is a paid premium user
-    if (context.user.isPremium) return true;
-    
-    // Check if user has an active trial
-    if (context.user.trialExpiresAt) {
-      const trialExpiry = new Date(context.user.trialExpiresAt);
-      return trialExpiry > new Date();
-    }
-    
-    return false;
+    return !!context.user; // Return true for any logged-in user
   };
   
   return {
