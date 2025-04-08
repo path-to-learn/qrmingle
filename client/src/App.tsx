@@ -10,6 +10,9 @@ import PremiumSuccess from "@/pages/premium-success";
 import Analytics from "@/pages/analytics";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
+import Help from "@/pages/help";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
@@ -40,6 +43,9 @@ function AppRouter() {
           </Route>
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/help" component={Help} />
           <Route component={NotFound} />
         </Switch>
       </main>
