@@ -126,43 +126,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user is a premium user or has an active trial
       const isUserPremium = user.isPremium || storage.isUserInActiveTrial(user);
       
-      // Check if non-premium user has reached the profile limit (2 profiles)
-      if (!isUserPremium) {
-        const userProfiles = await storage.getProfilesByUserId(userId);
-        if (userProfiles.length >= 2) {
-          console.log("Free user tried to create more than 2 profiles");
-          return res.status(403).json({ 
-            message: "Free users are limited to 2 profiles. Please upgrade to premium for unlimited profiles.",
-            type: "PROFILE_LIMIT_REACHED"
-          });
-        }
-        
-        // Check if user is allowed to use premium features
-        const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
-        if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
-          console.log("Non-premium user tried to use premium style, defaulting to basic");
-          profileData.qrStyle = 'basic';
-        }
-        
-        // Restrict QR code colors for free users to only black, blue, and green
-        const allowedFreeColors = ['#000000', '#0000FF', '#008000'];
-        if (profileData.qrColor && !allowedFreeColors.includes(profileData.qrColor)) {
-          // Check if it's one of the allowed colors in any format
-          const isAllowedColor = allowedFreeColors.some(color => {
-            // Convert hex to RGB for comparison flexibility
-            const hex = color.toLowerCase();
-            if (profileData.qrColor?.toLowerCase() === hex) {
-              return true;
-            }
-            return false;
-          });
-          
-          if (!isAllowedColor) {
-            console.log("Non-premium user tried to use non-standard color, defaulting to black");
-            profileData.qrColor = '#000000';
-          }
-        }
+      // Check if user has reached the profile limit (3 profiles for all users)
+      const userProfiles = await storage.getProfilesByUserId(userId);
+      if (userProfiles.length >= 3) {
+        console.log("User tried to create more than 3 profiles");
+        return res.status(403).json({ 
+          message: "You can create up to 3 profiles. Premium features coming soon!",
+          type: "PROFILE_LIMIT_REACHED"
+        });
       }
+      
+      // All QR styles and colors are now available to all users
+      console.log("All features are enabled for free users");
       
       // Generate a slug from the display name
       const baseSlug = profileData.displayName.toLowerCase().replace(/\s+/g, '-');
@@ -259,34 +234,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user is a premium user or has an active trial
       const isUserPremium = user?.isPremium || (user && storage.isUserInActiveTrial(user));
       
-      // Check premium features and restrictions
-      if (!isUserPremium) {
-        // Check if user is allowed to use premium styles
-        const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
-        if (profileData.qrStyle && premiumStyles.includes(profileData.qrStyle)) {
-          console.log("Non-premium user tried to use premium style, defaulting to basic");
-          profileData.qrStyle = 'basic';
-        }
-        
-        // Restrict QR code colors for free users to only black, blue, and green
-        const allowedFreeColors = ['#000000', '#0000FF', '#008000'];
-        if (profileData.qrColor && !allowedFreeColors.includes(profileData.qrColor)) {
-          // Check if it's one of the allowed colors in any format
-          const isAllowedColor = allowedFreeColors.some(color => {
-            // Convert hex to RGB for comparison flexibility
-            const hex = color.toLowerCase();
-            if (profileData.qrColor?.toLowerCase() === hex) {
-              return true;
-            }
-            return false;
-          });
-          
-          if (!isAllowedColor) {
-            console.log("Non-premium user tried to use non-standard color, defaulting to black");
-            profileData.qrColor = '#000000';
-          }
-        }
-      }
+      // All QR styles and colors are now available to all users
+      console.log("All features are enabled for free users");
       
       const { socialLinks, ...profileWithoutLinks } = profileData;
       
@@ -442,15 +391,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user is a premium user or has an active trial
       const isUserPremium = user?.isPremium || (user && storage.isUserInActiveTrial(user));
       
-      // For free users, limit analytics to last 7 days only
-      if (!isUserPremium) {
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        
-        scanLogs = allScanLogs.filter(log => {
-          return log.timestamp && new Date(log.timestamp) >= sevenDaysAgo;
-        });
-      }
+      // All analytics features are now available to all users
+      scanLogs = allScanLogs;
+      console.log("Full analytics available to all users");
       
       // Group logs by date
       const scansByDate: Record<string, number> = {};
@@ -494,8 +437,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scansByDate,
         deviceDistribution: deviceCounts,
         locationDistribution: locationCounts,
-        isLimited: !isUserPremium, // Flag indicating if this data is limited by free tier
-        timeRange: !isUserPremium ? '7days' : 'all',
+        isLimited: false, // All features available to all users
+        timeRange: 'all',
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get analytics" });
