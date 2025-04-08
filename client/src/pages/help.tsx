@@ -27,16 +27,16 @@ export default function Help() {
               How do I customize my QR code?
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground">
-              You can customize your QR code by editing your profile and scrolling to the QR code customization section. Free users can change basic colors, while premium users have access to advanced design options including gradients, logos, and custom shapes.
+              You can customize your QR code by editing your profile and scrolling to the QR code customization section. All users have access to various design options including different styles, colors, and size adjustments to make your QR code stand out.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="item-3">
             <AccordionTrigger className="text-lg font-medium">
-              What's the difference between free and premium accounts?
+              What features are available in QrMingle?
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground">
-              Free accounts can create up to 3 profiles with basic QR code customization. Premium accounts have unlimited profiles, advanced QR styling options, detailed analytics, and priority support. Premium features also include custom domains and advanced branding options.
+              Currently, all users can create up to 3 profiles with full QR code customization options, detailed analytics, and vCard generation. Premium plans with additional features like unlimited profiles, custom domains, and advanced branding options will be available in the future as our user base grows.
             </AccordionContent>
           </AccordionItem>
           
@@ -60,10 +60,10 @@ export default function Help() {
           
           <AccordionItem value="item-6">
             <AccordionTrigger className="text-lg font-medium">
-              How do I upgrade to premium?
+              Will premium features be available in the future?
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground">
-              To upgrade to premium, click on the "Upgrade" button in your dashboard or visit the Premium page. Select your preferred billing cycle (monthly or annual) and follow the payment instructions. Your account will be upgraded immediately after successful payment.
+              Yes! As our user base grows, we plan to introduce premium plans with advanced features such as unlimited profiles, custom domains, and additional design options. For now, all users can enjoy the full range of QR customization options and analytics at no cost.
             </AccordionContent>
           </AccordionItem>
           
