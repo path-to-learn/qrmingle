@@ -282,15 +282,15 @@ export default function Home() {
               </a>
             </div>
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
-              <h3 className="font-medium mb-2">Premium Features</h3>
+              <h3 className="font-medium mb-2">Available Features</h3>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>✓ Unlimited profiles</li>
+                <li>✓ Up to 3 profiles</li>
                 <li>✓ Custom QR code styles</li>
                 <li>✓ Detailed scan analytics</li>
-                <li>✓ Priority support</li>
+                <li>✓ VCard generation</li>
               </ul>
               <p className="text-xs text-gray-500 mt-2">
-                Premium upgrade: just $4.99 one-time payment
+                Premium plans with additional features coming soon!
               </p>
             </div>
           </div>
@@ -381,24 +381,17 @@ export default function Home() {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Upgrade dialog when profile limit is reached */}
+      {/* Profile limit reached dialog */}
       <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Profile Limit Reached</AlertDialogTitle>
             <AlertDialogDescription>
-              Free accounts are limited to 2 profiles. Upgrade to premium for unlimited profiles, custom QR styles, advanced analytics, and more!
+              You have reached the current limit of 3 profiles. To create more space, try deleting profiles you no longer need. Additional profiles will be available in future premium plans.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
-            <AlertDialogCancel>Not Now</AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <a href="/premium" className="w-full sm:w-auto">
-                <Button className="w-full bg-accent hover:bg-accent-dark">
-                  Upgrade to Premium - $4.99
-                </Button>
-              </a>
-            </AlertDialogAction>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Got It</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
