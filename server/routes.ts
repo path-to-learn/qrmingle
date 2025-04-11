@@ -345,18 +345,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Video upload endpoint
-  apiRoutes.post('/upload-tutorial-video', videoUpload.single('video'), (req, res) => {
+  // Video upload endpoint - admin only
+  apiRoutes.post('/upload-tutorial-video', requireAuth, async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No video file uploaded" });
+      // Check if user is admin
+      if (!req.user || req.user.username !== 'admin') {
+        return res.status(403).json({ message: "Only admin users can upload tutorial videos" });
       }
-
-      // Ensure the file is accessible through the static file server
-      const videoUrl = `/uploads/${req.file.filename}`;
       
-      // Return the URL of the uploaded video
-      res.json({ videoUrl });
+      // Process upload
+      videoUpload.single('video')(req, res, async (err) => {
+        if (err) {
+          return res.status(400).json({ message: "Error uploading file", error: err.message });
+        }
+        
+        if (!req.file) {
+          return res.status(400).json({ message: "No video file uploaded" });
+        }
+
+        // Ensure the file is accessible through the static file server
+        const videoUrl = `/uploads/${req.file.filename}`;
+        
+        // Return the URL of the uploaded video
+        res.json({ videoUrl });
+      });
     } catch (error) {
       console.error('Video upload error:', error);
       res.status(500).json({ 
@@ -617,6 +629,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   }
+
+  // Get tutorial video endpoint (accessible to all users)
+  apiRoutes.get('/tutorial-video', (req, res) => {
+    try {
+      // Check if any tutorial videos exist in the uploads directory
+      const files = fs.readdirSync(uploadsDir);
+      const tutorialVideos = files.filter(file => file.startsWith('tutorial-'));
+      
+      if (tutorialVideos.length === 0) {
+        return res.status(404).json({ message: "No tutorial video found" });
+      }
+      
+      // Get the most recent tutorial video (based on timestamp in filename)
+      const latestVideo = tutorialVideos.sort().reverse()[0];
+      const videoUrl = `/uploads/${latestVideo}`;
+      
+      res.json({ videoUrl });
+    } catch (error) {
+      console.error('Error fetching tutorial video:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch tutorial video",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // Serve uploaded files from uploads directory
   app.use('/uploads', express.static(uploadsDir));

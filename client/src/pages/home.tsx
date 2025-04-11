@@ -4,11 +4,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import ProfileCard from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
-import { PlusIcon, Play } from "lucide-react";
+import { PlusIcon, Play, Upload, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProfileFormData } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { VideoUploader } from "@/components/ui/video-uploader";
+import { isAdmin, getTutorialVideo } from "@/lib/video";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Home() {
   const { user, isEffectivelyPremium } = useAuth();
@@ -212,12 +219,31 @@ export default function Home() {
   console.log("Auth state:", { user });
 
   const [tutorialVideoUrl, setTutorialVideoUrl] = useState<string | null>(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const userIsAdmin = isAdmin(user);
+  
+  // Fetch the current tutorial video on component mount
+  useEffect(() => {
+    const fetchTutorialVideo = async () => {
+      setIsVideoLoading(true);
+      try {
+        const videoUrl = await getTutorialVideo();
+        setTutorialVideoUrl(videoUrl);
+      } catch (error) {
+        console.error("Error fetching tutorial video:", error);
+      } finally {
+        setIsVideoLoading(false);
+      }
+    };
+    
+    fetchTutorialVideo();
+  }, []);
   
   const handleVideoUploaded = (videoUrl: string) => {
     setTutorialVideoUrl(videoUrl);
     toast({
       title: "Video uploaded",
-      description: "Your tutorial video has been uploaded and is now visible to users",
+      description: "Your tutorial video has been uploaded and is now visible to all users",
     });
   };
   
@@ -229,7 +255,13 @@ export default function Home() {
           <div className="flex flex-col">
             <h2 className="text-xl font-semibold mb-3">How QrMingle Works</h2>
             <div className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 aspect-video mb-4">
-              {tutorialVideoUrl ? (
+              {isVideoLoading ? (
+                // Loading state
+                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                  <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : tutorialVideoUrl ? (
+                // Video player
                 <video 
                   controls
                   className="w-full h-full object-cover"
@@ -239,11 +271,13 @@ export default function Home() {
                   Your browser does not support the video tag.
                 </video>
               ) : (
-                <div className="absolute inset-0 bg-gray-100">
-                  <VideoUploader 
-                    onVideoUploaded={handleVideoUploaded} 
-                    className="h-full"
-                  />
+                // Message when no video exists
+                <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-6 text-center">
+                  <Info className="h-12 w-12 text-muted-foreground mb-3" />
+                  <h3 className="font-medium text-gray-600 mb-1">Tutorial video coming soon</h3>
+                  <p className="text-sm text-gray-500">
+                    Our team is working on creating a helpful tutorial video.
+                  </p>
                 </div>
               )}
             </div>
@@ -303,11 +337,34 @@ export default function Home() {
     <>
       {/* Video tutorial section for logged-in users */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-xl font-bold mb-4">How QrMingle Works</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">How QrMingle Works</h2>
+          {userIsAdmin && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center gap-1">
+                    <Upload className="h-3 w-3" />
+                    Admin
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">You have admin privileges to upload tutorial videos</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Video player/uploader */}
           <div className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 aspect-video">
-            {tutorialVideoUrl ? (
+            {isVideoLoading ? (
+              // Loading state
+              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : tutorialVideoUrl ? (
+              // Video player
               <video 
                 controls
                 className="w-full h-full object-cover"
@@ -316,12 +373,22 @@ export default function Home() {
                 <source src={tutorialVideoUrl} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
-            ) : (
+            ) : userIsAdmin ? (
+              // Admin-only uploader
               <div className="absolute inset-0 bg-gray-100">
                 <VideoUploader 
                   onVideoUploaded={handleVideoUploaded} 
                   className="h-full"
                 />
+              </div>
+            ) : (
+              // Non-admin message when no video exists
+              <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-6 text-center">
+                <Info className="h-12 w-12 text-muted-foreground mb-3" />
+                <h3 className="font-medium text-gray-600 mb-1">Tutorial video coming soon</h3>
+                <p className="text-sm text-gray-500">
+                  Our team is working on creating a helpful tutorial video for you.
+                </p>
               </div>
             )}
           </div>
