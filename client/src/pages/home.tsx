@@ -303,9 +303,6 @@ export default function Home() {
           
           {/* Right column - Welcome message and buttons */}
           <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <img src="/qrmingle-logo-bright.svg" alt="QrMingle Logo" className="h-16 w-16" />
-            </div>
             <h1 className="text-3xl font-bold mb-4">Welcome to QrMingle</h1>
             <p className="text-muted-foreground mb-6">
               The easiest way to share your contact information at networking events, conferences, and meetings
@@ -425,7 +422,6 @@ export default function Home() {
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">My QR Profiles</h1>
-          <img src="/qrmingle-logo-bright.svg" alt="QrMingle Logo" className="h-10 w-10" />
         </div>
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
           <p className="text-muted-foreground">
