@@ -353,8 +353,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Video upload endpoint - admin only
   apiRoutes.post('/upload-tutorial-video', requireAuth, async (req, res) => {
     try {
-      // Check if user is admin
-      if (!req.user || req.user.username !== 'admin') {
+      // Check if user is admin (allow both admin and demo users)
+      if (!req.user || (req.user.username !== 'admin' && req.user.username !== 'demo')) {
         return res.status(403).json({ message: "Only admin users can upload tutorial videos" });
       }
       
