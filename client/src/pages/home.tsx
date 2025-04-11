@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import ProfileCard from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { PlusIcon, Play, Upload, Info } from "lucide-react";
@@ -31,11 +32,13 @@ import {
 export default function Home() {
   const { user, isEffectivelyPremium } = useAuth();
   const { toast } = useToast();
+  const [location] = useLocation();
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [location] = useState(window.location.pathname);
+  
+  // Only show tutorial sections on the exact home page path
   const isHomePage = location === "/";
   
   // Log user state for debugging
