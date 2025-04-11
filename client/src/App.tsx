@@ -5,6 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import ProfilePage from "@/pages/profile-page";
+import ProfilesDashboard from "@/pages/profiles-dashboard";
 import Premium from "@/pages/premium";
 import PremiumSuccess from "@/pages/premium-success";
 import Analytics from "@/pages/analytics";
@@ -24,7 +25,16 @@ function AppRouter() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-6">
         <Switch>
+          {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />
+          
+          {/* Profiles dashboard will be the main area for managing profiles */}
+          <Route path="/profiles">
+            <RequireAuth>
+              <ProfilesDashboard />
+            </RequireAuth>
+          </Route>
+          
           <Route path="/p/:slug" component={ProfilePage} />
           <Route path="/premium">
             <RequireAuth>
