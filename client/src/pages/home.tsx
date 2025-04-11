@@ -35,6 +35,8 @@ export default function Home() {
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [location] = useState(window.location.pathname);
+  const isHomePage = location === "/";
   
   // Log user state for debugging
   console.log("Home component auth state:", { user, isLoggedIn: !!user });
@@ -335,88 +337,90 @@ export default function Home() {
 
   return (
     <>
-      {/* Video tutorial section for logged-in users */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">How QrMingle Works</h2>
-          {userIsAdmin && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center gap-1">
-                    <Upload className="h-3 w-3" />
-                    Admin
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">You have admin privileges to upload tutorial videos</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Video player/uploader */}
-          <div className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 aspect-video">
-            {isVideoLoading ? (
-              // Loading state
-              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
-              </div>
-            ) : tutorialVideoUrl ? (
-              // Video player
-              <video 
-                controls
-                className="w-full h-full object-cover"
-                poster="/video-thumbnail.jpg"
-              >
-                <source src={tutorialVideoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            ) : userIsAdmin ? (
-              // Admin-only uploader
-              <div className="absolute inset-0 bg-gray-100">
-                <VideoUploader 
-                  onVideoUploaded={handleVideoUploaded} 
-                  className="h-full"
-                />
-              </div>
-            ) : (
-              // Non-admin message when no video exists
-              <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-6 text-center">
-                <Info className="h-12 w-12 text-muted-foreground mb-3" />
-                <h3 className="font-medium text-gray-600 mb-1">Tutorial video coming soon</h3>
-                <p className="text-sm text-gray-500">
-                  Our team is working on creating a helpful tutorial video for you.
-                </p>
-              </div>
+      {/* Video tutorial section for logged-in users - only on home page */}
+      {isHomePage && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">How QrMingle Works</h2>
+            {userIsAdmin && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center gap-1">
+                      <Upload className="h-3 w-3" />
+                      Admin
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">You have admin privileges to upload tutorial videos</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
-          
-          {/* Instructions */}
-          <div>
-            <h3 className="font-medium text-lg mb-3">Quick Guide</h3>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">1</div>
-                <p className="ml-3 text-sm">Create a profile with your contact information and social links</p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">2</div>
-                <p className="ml-3 text-sm">Customize your QR code style, colors, and size to match your brand</p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">3</div>
-                <p className="ml-3 text-sm">Share your QR code at networking events, conferences, or on your business cards</p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">4</div>
-                <p className="ml-3 text-sm">Track who scans your code with detailed analytics on devices, locations and times</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Video player/uploader */}
+            <div className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 aspect-video">
+              {isVideoLoading ? (
+                // Loading state
+                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                  <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : tutorialVideoUrl ? (
+                // Video player
+                <video 
+                  controls
+                  className="w-full h-full object-cover"
+                  poster="/video-thumbnail.jpg"
+                >
+                  <source src={tutorialVideoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : userIsAdmin ? (
+                // Admin-only uploader
+                <div className="absolute inset-0 bg-gray-100">
+                  <VideoUploader 
+                    onVideoUploaded={handleVideoUploaded} 
+                    className="h-full"
+                  />
+                </div>
+              ) : (
+                // Non-admin message when no video exists
+                <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-6 text-center">
+                  <Info className="h-12 w-12 text-muted-foreground mb-3" />
+                  <h3 className="font-medium text-gray-600 mb-1">Tutorial video coming soon</h3>
+                  <p className="text-sm text-gray-500">
+                    Our team is working on creating a helpful tutorial video for you.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {/* Instructions */}
+            <div>
+              <h3 className="font-medium text-lg mb-3">Quick Guide</h3>
+              <div className="space-y-3">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">1</div>
+                  <p className="ml-3 text-sm">Create a profile with your contact information and social links</p>
+                </div>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">2</div>
+                  <p className="ml-3 text-sm">Customize your QR code style, colors, and size to match your brand</p>
+                </div>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">3</div>
+                  <p className="ml-3 text-sm">Share your QR code at networking events, conferences, or on your business cards</p>
+                </div>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">4</div>
+                  <p className="ml-3 text-sm">Track who scans your code with detailed analytics on devices, locations and times</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* My QR Profiles section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
