@@ -8,7 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, LogOut, User, BarChart2, Crown, Clock } from "lucide-react";
+import { ChevronDown, LogOut, User, BarChart2, Crown, Clock, Shield } from "lucide-react";
+import { isAdmin } from "@/lib/video";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
@@ -103,6 +104,16 @@ export default function Header() {
                     </div>
                   </Link>
                 </DropdownMenuItem>
+                {isAdmin(user) && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin">
+                      <div className="flex items-center cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 {!user.isPremium && (
                   <DropdownMenuItem asChild>
                     <Link href="/premium">

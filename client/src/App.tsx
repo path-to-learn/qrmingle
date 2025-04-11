@@ -37,6 +37,11 @@ function AppRouter() {
           </Route>
           
           <Route path="/p/:slug" component={ProfilePage} />
+          <Route path="/admin">
+            <RequireAuth>
+              <AdminPage />
+            </RequireAuth>
+          </Route>
           <Route path="/premium">
             <RequireAuth>
               <Premium />
