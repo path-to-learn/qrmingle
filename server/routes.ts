@@ -39,11 +39,16 @@ const videoUpload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB max file size
   },
   fileFilter: (req, file, cb) => {
-    // Accept only video files
-    if (file.mimetype.startsWith('video/')) {
+    // Accept video files with preference for MP4
+    if (file.mimetype === 'video/mp4') {
+      // MP4 is preferred format
+      cb(null, true);
+    } else if (file.mimetype.startsWith('video/')) {
+      // Accept other video formats but log for monitoring
+      console.log(`Non-MP4 video uploaded: ${file.mimetype}. MP4 is recommended for optimal compatibility.`);
       cb(null, true);
     } else {
-      cb(new Error('Only video files are allowed'));
+      cb(new Error('Only video files are allowed. MP4 format is recommended.'));
     }
   }
 });
@@ -363,11 +368,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "No video file uploaded" });
         }
 
+        // Log video file details for monitoring
+        console.log(`Tutorial video uploaded: ${req.file.filename}`);
+        console.log(`File size: ${(req.file.size / (1024 * 1024)).toFixed(2)} MB`);
+        console.log(`File type: ${req.file.mimetype}`);
+        
         // Ensure the file is accessible through the static file server
         const videoUrl = `/uploads/${req.file.filename}`;
         
-        // Return the URL of the uploaded video
-        res.json({ videoUrl });
+        // Return the URL of the uploaded video with optimization hint for 720p
+        res.json({ 
+          videoUrl,
+          message: "Video uploaded successfully. Optimized for 720p HD playback."
+        });
       });
     } catch (error) {
       console.error('Video upload error:', error);

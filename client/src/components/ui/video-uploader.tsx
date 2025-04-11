@@ -113,6 +113,9 @@ export function VideoUploader({ onVideoUploaded, className = "" }: VideoUploader
           <p className="text-sm text-gray-500 mb-2">
             Drag and drop your tutorial video here, or click to browse
           </p>
+          <p className="text-xs text-gray-400 mb-2">
+            Recommended: MP4 format, 720p (1280x720) resolution, max 50MB
+          </p>
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
