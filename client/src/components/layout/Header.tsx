@@ -65,9 +65,7 @@ export default function Header() {
         <div className="flex items-center space-x-2">
           <Link href="/">
             <div className="flex items-center space-x-2 cursor-pointer">
-              <svg className="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3.75 4.5C3.75 3.12 4.87 2 6.25 2h11.5c1.38 0 2.5 1.12 2.5 2.5v15c0 1.38-1.12 2.5-2.5 2.5H6.25C4.87 20 3.75 18.88 3.75 17.5v-15zM6.25 4c-.28 0-.5.22-.5.5v15c0 .28.22.5.5.5h11.5c.28 0 .5-.22.5-.5v-15c0-.28-.22-.5-.5-.5H6.25zM7.5 12.25h9M11.75 18a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-              </svg>
+              <img src="/qrmingle-logo-bright.svg" alt="QrMingle Logo" className="h-8 w-8" />
               <span className="font-bold text-xl text-primary">QrMingle</span>
             </div>
           </Link>
