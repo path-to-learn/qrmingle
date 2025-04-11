@@ -304,7 +304,7 @@ export default function Home() {
           {/* Right column - Welcome message and buttons */}
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <img src="/qrmingle-logo-bright.svg" alt="QrMingle Logo" className="h-24 w-24" />
+              <img src="/qrmingle-logo-bright.svg" alt="QrMingle Logo" className="h-16 w-16" />
             </div>
             <h1 className="text-3xl font-bold mb-4">Welcome to QrMingle</h1>
             <p className="text-muted-foreground mb-6">
