@@ -87,7 +87,7 @@ export default function AdminPage() {
                 <video 
                   controls
                   className="w-full h-full object-cover"
-                  poster="/video-thumbnail.jpg"
+                  poster="/video-thumbnail.svg"
                 >
                   <source src={tutorialVideoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
