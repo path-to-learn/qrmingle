@@ -301,6 +301,57 @@ export default function Home() {
 
   return (
     <>
+      {/* Video tutorial section for logged-in users */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 className="text-xl font-bold mb-4">How QrMingle Works</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Video player/uploader */}
+          <div className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 aspect-video">
+            {tutorialVideoUrl ? (
+              <video 
+                controls
+                className="w-full h-full object-cover"
+                poster="/video-thumbnail.jpg"
+              >
+                <source src={tutorialVideoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <div className="absolute inset-0 bg-gray-100">
+                <VideoUploader 
+                  onVideoUploaded={handleVideoUploaded} 
+                  className="h-full"
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Instructions */}
+          <div>
+            <h3 className="font-medium text-lg mb-3">Quick Guide</h3>
+            <div className="space-y-3">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">1</div>
+                <p className="ml-3 text-sm">Create a profile with your contact information and social links</p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">2</div>
+                <p className="ml-3 text-sm">Customize your QR code style, colors, and size to match your brand</p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">3</div>
+                <p className="ml-3 text-sm">Share your QR code at networking events, conferences, or on your business cards</p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs mt-0.5">4</div>
+                <p className="ml-3 text-sm">Track who scans your code with detailed analytics on devices, locations and times</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* My QR Profiles section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <h1 className="text-2xl font-bold mb-4">My QR Profiles</h1>
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
