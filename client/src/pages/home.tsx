@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
+import { Info, Play, Pause } from "lucide-react";
 import { VideoUploader } from "@/components/ui/video-uploader";
 import { isAdmin, getTutorialVideo } from "@/lib/video";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,8 @@ export default function Home() {
 
   const [tutorialVideoUrl, setTutorialVideoUrl] = useState<string | null>(null);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   // Fetch the current tutorial video on component mount
   useEffect(() => {
@@ -38,6 +40,19 @@ export default function Home() {
     
     fetchTutorialVideo();
   }, []);
+  
+  // Toggle video play/pause
+  const togglePlayPause = () => {
+    if (!videoRef.current) return;
+    
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    
+    setIsPlaying(!isPlaying);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -52,15 +67,36 @@ export default function Home() {
                 <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
               </div>
             ) : tutorialVideoUrl ? (
-              // Video player
-              <video 
-                controls
-                className="w-full h-full object-cover"
-                poster="/video-thumbnail.svg"
-              >
-                <source src={tutorialVideoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              // Video player with limited controls - autoplay, muted, and no fullscreen
+              <div className="relative w-full h-full">
+                <video 
+                  ref={videoRef}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  controlsList="nodownload nofullscreen noremoteplayback"
+                  disablePictureInPicture
+                  className="w-full h-full object-cover"
+                  poster="/video-thumbnail.svg"
+                >
+                  <source src={tutorialVideoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                
+                {/* Custom play/pause control */}
+                <button 
+                  onClick={togglePlayPause}
+                  className="absolute left-4 bottom-4 bg-primary/75 hover:bg-primary p-2 rounded-full text-white transition-colors"
+                  aria-label={isPlaying ? "Pause video" : "Play video"}
+                >
+                  {isPlaying ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             ) : (
               // Message when no video exists
               <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-6 text-center">

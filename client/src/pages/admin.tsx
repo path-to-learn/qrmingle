@@ -86,6 +86,8 @@ export default function AdminPage() {
               <div className="relative rounded-lg overflow-hidden bg-gray-100 aspect-video">
                 <video 
                   controls
+                  controlsList="nodownload nofullscreen noremoteplayback"
+                  disablePictureInPicture
                   className="w-full h-full object-cover"
                   poster="/video-thumbnail.svg"
                 >
