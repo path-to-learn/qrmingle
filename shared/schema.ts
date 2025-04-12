@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   isPremium: boolean("is_premium").default(false).notNull(),
+  isAdmin: boolean("is_admin").default(false).notNull(),
   trialExpiresAt: timestamp("trial_expires_at"),
   stripeCustomerId: text("stripe_customer_id"),
 });
@@ -57,6 +58,7 @@ export const sessions = pgTable("session", {
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   isPremium: true,
+  isAdmin: true,
   stripeCustomerId: true,
 });
 
