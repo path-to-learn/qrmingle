@@ -7,8 +7,8 @@
  * @returns boolean indicating if user is admin
  */
 export function isAdmin(user: any): boolean {
-  // Allow both 'admin' and 'demo' users to have admin privileges for testing
-  return !!user && (user.username === 'admin' || user.username === 'demo');
+  // Only the dedicated admin user has admin privileges
+  return !!user && user.username === 'dathwal@qrmingle#2025';
 }
 
 /**

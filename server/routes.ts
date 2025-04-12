@@ -60,6 +60,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API routes prefix
   const apiRoutes = express.Router();
   app.use('/api', apiRoutes);
+  
+  // Forgot password route
+  apiRoutes.post('/forgot-password', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      // Find user by email (using username field as email)
+      const user = await storage.getUserByUsername(email);
+      
+      if (!user) {
+        // For security reasons, we still return success even if the user doesn't exist
+        return res.json({ 
+          success: true, 
+          message: "If your email is registered, you will receive instructions to reset your password." 
+        });
+      }
+      
+      // In a production environment, we would:
+      // 1. Generate a reset token and store it in the database
+      // 2. Send an email with a link to reset the password 
+      // 3. Create a route to handle the password reset
+      
+      // For this demo, we'll just return the username (email) to simulate the email sending
+      return res.json({ 
+        success: true, 
+        message: "If your email is registered, you will receive instructions to reset your password.",
+        debug: { username: user.username } // This would NOT be in production, just for testing
+      });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ 
+        message: "Failed to process forgot password request", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // Authentication middleware for API routes
   const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -353,8 +393,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Video upload endpoint - admin only
   apiRoutes.post('/upload-tutorial-video', requireAuth, async (req, res) => {
     try {
-      // Check if user is admin (allow both admin and demo users)
-      if (!req.user || (req.user.username !== 'admin' && req.user.username !== 'demo')) {
+      // Check if user is the dedicated admin
+      if (!req.user || req.user.username !== 'dathwal@qrmingle#2025') {
         return res.status(403).json({ message: "Only admin users can upload tutorial videos" });
       }
       
