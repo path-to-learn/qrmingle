@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Info, Play, Pause } from "lucide-react";
+import { Info, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { VideoUploader } from "@/components/ui/video-uploader";
 import { isAdmin, getTutorialVideo } from "@/lib/video";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ export default function Home() {
   const [tutorialVideoUrl, setTutorialVideoUrl] = useState<string | null>(null);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   // Fetch the current tutorial video on component mount
@@ -53,6 +54,14 @@ export default function Home() {
     
     setIsPlaying(!isPlaying);
   };
+  
+  // Toggle mute/unmute
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    
+    videoRef.current.muted = !videoRef.current.muted;
+    setIsMuted(videoRef.current.muted);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -72,7 +81,6 @@ export default function Home() {
                 <video 
                   ref={videoRef}
                   autoPlay
-                  muted
                   loop
                   playsInline
                   controlsList="nodownload nofullscreen noremoteplayback"
