@@ -54,7 +54,7 @@ export async function sendPasswordResetEmail(
   username: string, 
   resetLink: string
 ): Promise<boolean> {
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@qrmingle.com';
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL ? process.env.SENDGRID_FROM_EMAIL : 'noreply@qrmingle.com';
   
   return sendEmail({
     to: email,

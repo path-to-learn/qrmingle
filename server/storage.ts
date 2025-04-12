@@ -122,6 +122,7 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.insert(users).values({
       ...insertUser,
       isPremium: false,
+      isAdmin: false, // Default to non-admin
       trialExpiresAt: null,
       stripeCustomerId: null,
     }).returning();

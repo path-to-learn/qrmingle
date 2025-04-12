@@ -120,10 +120,28 @@ export function setupAuth(app: Express) {
         password = await hashPassword(password);
       }
 
+      // Check if this is the admin user (dathwal@qrmingle#2025)
+      const isAdmin = req.body.username === 'dathwal@qrmingle#2025';
+
       const user = await storage.createUser({
         ...req.body,
         password,
       });
+      
+      // If this is the admin user, update their admin status
+      if (isAdmin) {
+        await storage.updateUserAdminStatus(user.id, true);
+        // Get updated user with admin flag
+        const adminUser = await storage.getUser(user.id);
+        if (adminUser) {
+          req.login(adminUser, (err) => {
+            if (err) return next(err);
+            const { password, ...userWithoutPassword } = adminUser;
+            res.status(201).json(userWithoutPassword);
+          });
+          return;
+        }
+      }
 
       req.login(user, (err) => {
         if (err) return next(err);
