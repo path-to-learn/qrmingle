@@ -42,6 +42,13 @@ export default function Home() {
     fetchTutorialVideo();
   }, []);
   
+  // Initialize video and make sure it's unmuted on load
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [videoRef, isMuted]);
+  
   // Toggle video play/pause
   const togglePlayPause = () => {
     if (!videoRef.current) return;
@@ -83,6 +90,7 @@ export default function Home() {
                   autoPlay
                   loop
                   playsInline
+                  muted={isMuted}
                   controlsList="nodownload nofullscreen noremoteplayback"
                   disablePictureInPicture
                   className="w-full h-full object-cover"
@@ -102,6 +110,19 @@ export default function Home() {
                     <Pause className="h-5 w-5" />
                   ) : (
                     <Play className="h-5 w-5" />
+                  )}
+                </button>
+                
+                {/* Custom mute/unmute control */}
+                <button 
+                  onClick={toggleMute}
+                  className="absolute right-4 bottom-4 bg-primary/75 hover:bg-primary p-2 rounded-full text-white transition-colors"
+                  aria-label={isMuted ? "Unmute video" : "Mute video"}
+                >
+                  {isMuted ? (
+                    <VolumeX className="h-5 w-5" />
+                  ) : (
+                    <Volume2 className="h-5 w-5" />
                   )}
                 </button>
               </div>
