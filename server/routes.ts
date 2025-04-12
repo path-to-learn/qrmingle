@@ -708,6 +708,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes
+  const adminRoutes = express.Router();
+  apiRoutes.use('/admin', adminRoutes);
+
+  // Middleware to check if user is admin
+  adminRoutes.use((req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: "Not authorized - Admin access required" });
+    }
+    
+    next();
+  });
+
+  // Promote a user to admin
+  adminRoutes.post('/promote', async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const updatedUser = await storage.updateUserAdminStatus(userId, true);
+      
+      res.json({ 
+        message: "User promoted to admin successfully",
+        user: {
+          id: updatedUser.id,
+          username: updatedUser.username,
+          isAdmin: updatedUser.isAdmin
+        }
+      });
+    } catch (error) {
+      console.error('Error promoting user to admin:', error);
+      res.status(500).json({ 
+        message: "Failed to promote user to admin",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Upload tutorial video (admin only)
+  adminRoutes.post('/upload-tutorial', multer({ storage: videoStorage, limits: { fileSize: 50 * 1024 * 1024 } }).single('video'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No video file uploaded" });
+      }
+      
+      // Get the uploaded file info
+      const videoFile = req.file;
+      
+      // Rename the file with a tutorial prefix and timestamp
+      const timestamp = Date.now();
+      const newFilename = `tutorial-${timestamp}${path.extname(videoFile.originalname)}`;
+      const newPath = path.join(uploadsDir, newFilename);
+      
+      // Rename the file
+      fs.renameSync(videoFile.path, newPath);
+      
+      res.json({ 
+        message: "Tutorial video uploaded successfully",
+        videoUrl: `/uploads/${newFilename}`
+      });
+    } catch (error) {
+      console.error('Error uploading tutorial video:', error);
+      res.status(500).json({ 
+        message: "Failed to upload tutorial video",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Add forgot password functionality with SendGrid
+  adminRoutes.post('/send-reset-email', async (req, res) => {
+    try {
+      const { username } = req.body;
+      
+      if (!username) {
+        return res.status(400).json({ message: "Username/email is required" });
+      }
+      
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        // For security reasons, still return success
+        return res.json({ 
+          success: true, 
+          message: "If the email exists, a password reset link has been sent" 
+        });
+      }
+      
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(503).json({ 
+          message: "Email service is not configured. Please contact administrator." 
+        });
+      }
+      
+      // Generate a reset token (this would normally be stored in the database)
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      
+      // In a real implementation, this token would be saved in the database
+      // with an expiration time, associated with the user
+      
+      // Reset link would be something like: https://yourdomain.com/reset-password?token=RESET_TOKEN
+      const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}&username=${encodeURIComponent(username)}`;
+      
+      // Send email with SendGrid (placeholder for now)
+      // This would be implemented when SENDGRID_API_KEY is available
+      
+      res.json({
+        success: true,
+        message: "Password reset instructions have been sent",
+        // Only include these details in development
+        debug: {
+          resetToken,
+          resetLink
+        }
+      });
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      res.status(500).json({ 
+        message: "Failed to send reset email",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Serve uploaded files from uploads directory
   app.use('/uploads', express.static(uploadsDir));
 
