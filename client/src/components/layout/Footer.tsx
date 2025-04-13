@@ -29,7 +29,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="text-center text-xs text-gray-400 mt-4">
-          Made with ❤️ from Prashant
+          made with ❤️ by Prashant
         </div>
       </div>
     </footer>
