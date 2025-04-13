@@ -28,6 +28,9 @@ export default function Footer() {
             </Link>
           </div>
         </div>
+        <div className="text-center text-xs text-gray-400 mt-4">
+          Made with ❤️ from Prashant
+        </div>
       </div>
     </footer>
   );
