@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ProfileFormData, profileFormSchema } from "@shared/schema";
-import { X, Plus, Upload, X as XIcon } from "lucide-react";
+import { X, Plus, Upload, X as XIcon, QrCode as QrCodeIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -125,7 +125,8 @@ export default function ProfileEditor({
     onSubmit(data);
   };
 
-  const socialPlatforms = [
+  // All available social platforms
+  const allSocialPlatforms = [
     "LinkedIn",
     "Facebook",
     "Twitter",
@@ -139,6 +140,17 @@ export default function ProfileEditor({
     "WhatsApp",
     "Telegram",
   ];
+  
+  // Get available platforms that haven't been selected yet
+  const getAvailablePlatforms = (currentIndex: number) => {
+    const selectedPlatforms = form.watch("socialLinks").map(link => link.platform);
+    // Include the current platform in available options (so it doesn't disappear from its own dropdown)
+    const currentPlatform = form.watch(`socialLinks.${currentIndex}.platform`);
+    
+    return allSocialPlatforms.filter(platform => 
+      platform === currentPlatform || !selectedPlatforms.includes(platform)
+    );
+  };
 
   return (
     <Card className="mb-6">
@@ -625,50 +637,121 @@ export default function ProfileEditor({
                   {fields.map((field, index) => (
                     <div
                       key={field.id}
-                      className="flex items-center gap-3 mb-3"
+                      className="space-y-2 mb-5"
                     >
-                      <div className="w-1/4">
-                        <Select
-                          value={form.watch(`socialLinks.${index}.platform`)}
-                          onValueChange={(value) =>
-                            form.setValue(
-                              `socialLinks.${index}.platform`,
-                              value
-                            )
-                          }
+                      <div className="flex items-center gap-3">
+                        <div className="w-1/4">
+                          <Select
+                            value={form.watch(`socialLinks.${index}.platform`)}
+                            onValueChange={(value) =>
+                              form.setValue(
+                                `socialLinks.${index}.platform`,
+                                value
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  form.watch(`socialLinks.${index}.platform`) ||
+                                  "Select"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getAvailablePlatforms(index).map((platform) => (
+                                <SelectItem key={platform} value={platform}>
+                                  {platform}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Enter URL or contact info"
+                            {...form.register(`socialLinks.${index}.url`)}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => remove(index)}
                         >
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                form.watch(`socialLinks.${index}.platform`) ||
-                                "Select"
-                              }
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
+                      
+                      {/* QR Code upload option */}
+                      <div className="flex items-center justify-between ml-[calc(25%+0.75rem)]">
+                        <div className="flex items-center gap-2">
+                          <QrCodeIcon className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            Have a QR code for this platform?
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-primary"
+                          onClick={() => document.getElementById(`qr-upload-${index}`)?.click()}
+                        >
+                          Upload QR
+                          <Input
+                            id={`qr-upload-${index}`}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              
+                              // Read QR code image as data URL
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                const dataUrl = reader.result as string;
+                                // Store the QR code image URL in the form data
+                                // Use "qrCodeImage" as a prefix to distinguish it from regular URLs
+                                form.setValue(
+                                  `socialLinks.${index}.url`,
+                                  `qrCodeImage:${dataUrl}`
+                                );
+                                toast({
+                                  title: "QR Code uploaded",
+                                  description: `Your ${form.watch(`socialLinks.${index}.platform`)} QR code has been attached.`,
+                                });
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </Button>
+                      </div>
+                      
+                      {/* Preview if QR code is uploaded */}
+                      {form.watch(`socialLinks.${index}.url`)?.startsWith('qrCodeImage:') && (
+                        <div className="flex gap-2 items-center ml-[calc(25%+0.75rem)]">
+                          <div className="w-14 h-14 border rounded overflow-hidden flex-shrink-0">
+                            <img 
+                              src={form.watch(`socialLinks.${index}.url`).replace('qrCodeImage:', '')}
+                              alt="QR Code preview"
+                              className="w-full h-full object-contain"
                             />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {socialPlatforms.map((platform) => (
-                              <SelectItem key={platform} value={platform}>
-                                {platform}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Enter URL or contact info"
-                          {...form.register(`socialLinks.${index}.url`)}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => remove(index)}
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
+                          </div>
+                          <span className="text-xs text-muted-foreground">Custom QR code attached</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                            onClick={() => form.setValue(`socialLinks.${index}.url`, '')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
 

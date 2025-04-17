@@ -1,4 +1,4 @@
-import { Icon } from "@/components/ui/icons";
+// Removing unused import
 import {
   FaLinkedin,
   FaFacebook,
@@ -21,8 +21,13 @@ type SocialLinkProps = {
 };
 
 export default function SocialLink({ platform, url, className = "" }: SocialLinkProps) {
+  // Check if this is a custom QR code URL
+  const isCustomQrCode = url.startsWith('qrCodeImage:');
+  
   // Format the URL based on the platform
   const formatUrl = (platform: string, url: string) => {
+    // If this is a custom QR code, we'll handle it specially in the render
+    if (isCustomQrCode) return "#";
     if (!url) return "#";
 
     switch (platform.toLowerCase()) {
@@ -88,6 +93,7 @@ export default function SocialLink({ platform, url, className = "" }: SocialLink
   };
 
   const formattedUrl = formatUrl(platform, url);
+  const qrCodeImageUrl = isCustomQrCode ? url.replace('qrCodeImage:', '') : null;
 
   return (
     <a
@@ -96,10 +102,26 @@ export default function SocialLink({ platform, url, className = "" }: SocialLink
       rel="noopener noreferrer"
       className={`flex items-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors ${className}`}
     >
-      <div className="mr-3 text-primary">{getIcon(platform)}</div>
+      <div className="mr-3 text-primary">
+        {isCustomQrCode ? (
+          <div className="w-10 h-10 rounded overflow-hidden">
+            <img 
+              src={qrCodeImageUrl!}
+              alt={`${platform} QR Code`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          getIcon(platform)
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm">{platform}</p>
-        <p className="text-xs text-muted-foreground truncate">{url}</p>
+        {isCustomQrCode ? (
+          <p className="text-xs text-muted-foreground">Custom QR code</p>
+        ) : (
+          <p className="text-xs text-muted-foreground truncate">{url}</p>
+        )}
       </div>
     </a>
   );
