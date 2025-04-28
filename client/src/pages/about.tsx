@@ -116,7 +116,7 @@ export default function AboutPage() {
                 <Mail className="h-5 w-5 mr-2 text-slate-500" />
                 <div>
                   <strong>Developer Contact</strong>
-                  <p className="text-muted-foreground">For verification purposes, contact Prashant Dathwal at <span className="font-medium">dathwal@qrmingle.com</span></p>
+                  <p className="text-muted-foreground">For verification purposes, contact Prashant Dathwal at <span className="font-medium">prashant.dathwal@gmail.com</span></p>
                 </div>
               </div>
             </div>
@@ -127,19 +127,19 @@ export default function AboutPage() {
           <div className="flex flex-col items-center">
             <div className="flex space-x-4 mb-3">
               <Button variant="outline" size="sm" asChild>
-                <a href="https://github.com/prashantdathwal" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/path-to-learn" target="_blank" rel="noopener noreferrer">
                   <Github className="h-4 w-4 mr-2" />
                   GitHub
                 </a>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <a href="https://linkedin.com/in/prashantdathwal" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.linkedin.com/in/prashantd/" target="_blank" rel="noopener noreferrer">
                   <Linkedin className="h-4 w-4 mr-2" />
                   LinkedIn
                 </a>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <a href="mailto:dathwal@qrmingle.com">
+                <a href="mailto:prashant.dathwal@gmail.com">
                   <Mail className="h-4 w-4 mr-2" />
                   Contact
                 </a>
