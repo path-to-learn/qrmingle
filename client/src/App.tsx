@@ -16,6 +16,7 @@ import ForgotPassword from "@/pages/forgot-password";
 import Privacy from "@/pages/privacy";
 import Terms from "@/pages/terms";
 import Help from "@/pages/help";
+import About from "@/pages/about";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
@@ -64,6 +65,7 @@ function AppRouter() {
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route path="/help" component={Help} />
+          <Route path="/about" component={About} />
           <Route component={NotFound} />
         </Switch>
       </main>
