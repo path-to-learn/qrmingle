@@ -38,30 +38,8 @@ export default function Footer() {
         
         <div className="border-t border-gray-100 mt-4 pt-4">
           <div className="flex flex-col items-center justify-center">
-            <div className="flex items-center mb-2">
-              <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                Designed & Developed by
-                <a 
-                  href="https://www.linkedin.com/in/prashantd/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="ml-1 border-b border-blue-400 hover:border-purple-400"
-                >
-                  Prashant Dathwal
-                </a>
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-4 text-xs text-gray-500">
-              <span className="flex items-center">
-                <Code className="h-3 w-3 mr-1" /> Patent Pending
-              </span>
-              <span>DMCA Protected</span>
-              <span>v1.2.5</span>
-            </div>
-            
             <div className="text-center text-xs text-gray-400 mt-2">
-              Made with ❤️ in Seattle, WA
+              Made with ❤️ in Sunnyvale, CA
             </div>
           </div>
         </div>
