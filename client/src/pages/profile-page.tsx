@@ -276,7 +276,9 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-md mx-auto mb-10">
-      <Card className="overflow-hidden shadow-lg">
+      <Card 
+        className="overflow-hidden shadow-lg"
+        style={{ backgroundColor: profile.cardColor || "#ffffff" }}>
         {profile.backgroundUrl ? (
           <div 
             className="relative h-32 bg-cover bg-center" 
