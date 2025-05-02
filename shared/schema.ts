@@ -20,6 +20,8 @@ export const profiles = pgTable("profiles", {
   title: text("title"),
   bio: text("bio"),
   photoUrl: text("photo_url"),
+  backgroundUrl: text("background_url"), // Virtual background image URL
+  backgroundOpacity: integer("background_opacity").default(100), // Background opacity 0-100
   qrStyle: text("qr_style").default("basic"),
   qrColor: text("qr_color").default("#3B82F6"),
   qrSize: integer("qr_size").default(150),
@@ -98,6 +100,8 @@ export const profileFormSchema = insertProfileSchema.extend({
   
   // Ensure these fields have default values if they're null or undefined
   photoUrl: z.string().nullable().default(""),
+  backgroundUrl: z.string().nullable().default(""),
+  backgroundOpacity: z.number().min(0).max(100).default(100),
   title: z.string().nullable().default(""),
   bio: z.string().nullable().default(""),
   qrStyle: z.string().default("basic"),
