@@ -34,7 +34,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import ReviewsSection from "@/components/reviews/ReviewsSection";
 
 // Type definition for profile data
 type SocialLinkType = {
@@ -510,12 +509,7 @@ export default function ProfilePage() {
             </Card>
           )}
 
-          {/* User Reviews Section */}
-          <div className="mt-6">
-            <ReviewsSection 
-              style={{ backgroundColor: profile.cardColor || "#ffffff" }}
-            />
-          </div>
+
 
           <div className="text-center mt-8 text-xs text-muted-foreground">
             <p>Created with QrMingle</p>
