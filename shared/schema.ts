@@ -111,6 +111,9 @@ export type SocialLink = typeof socialLinks.$inferSelect;
 export type InsertScanLog = z.infer<typeof insertScanLogSchema>;
 export type ScanLog = typeof scanLogs.$inferSelect;
 
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Review = typeof reviews.$inferSelect;
+
 // Extended schemas for validation
 export const profileFormSchema = insertProfileSchema.extend({
   // Ensure slug is optional in the form schema since it's generated on the server

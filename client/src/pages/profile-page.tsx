@@ -34,6 +34,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import ReviewsSection from "@/components/reviews/ReviewsSection";
 
 // Type definition for profile data
 type SocialLinkType = {
@@ -510,41 +511,11 @@ export default function ProfilePage() {
           )}
 
           {/* User Reviews Section */}
-          <Card 
-            className="border-none shadow-none mt-6" 
-            style={{ backgroundColor: profile.cardColor || "#ffffff" }}
-          >
-            <CardHeader className="px-0 pt-0 pb-2">
-              <CardTitle className="text-base font-medium">What people are saying</CardTitle>
-            </CardHeader>
-            <CardContent className="px-0 py-1 space-y-4">
-              <div className="bg-background/80 rounded-lg p-4 border border-muted/40">
-                <div className="flex items-center mb-2">
-                  <Avatar className="h-8 w-8 mr-2">
-                    <AvatarFallback>JS</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">John Smith</p>
-                    <p className="text-xs text-muted-foreground">CEO at TechCorp</p>
-                  </div>
-                </div>
-                <p className="text-sm italic">"QrMingle has transformed how I network at conferences. The custom QR codes and beautiful profiles make sharing contact info effortless."</p>
-              </div>
-              
-              <div className="bg-background/80 rounded-lg p-4 border border-muted/40">
-                <div className="flex items-center mb-2">
-                  <Avatar className="h-8 w-8 mr-2">
-                    <AvatarFallback>AJ</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">Alex Johnson</p>
-                    <p className="text-xs text-muted-foreground">Marketing Expert</p>
-                  </div>
-                </div>
-                <p className="text-sm italic">"The customization options are fantastic! I love being able to match my profile to my personal brand."</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="mt-6">
+            <ReviewsSection 
+              style={{ backgroundColor: profile.cardColor || "#ffffff" }}
+            />
+          </div>
 
           <div className="text-center mt-8 text-xs text-muted-foreground">
             <p>Created with QrMingle</p>
