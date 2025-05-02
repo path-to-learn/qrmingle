@@ -50,6 +50,8 @@ type ProfileData = {
   title: string | null;
   bio: string | null;
   photoUrl: string | null;
+  backgroundUrl: string | null;
+  backgroundOpacity: number | null;
   qrStyle: string | null;
   qrColor: string | null;
   slug: string;
@@ -221,7 +223,7 @@ export default function ProfilePage() {
     return (
       <div className="max-w-md mx-auto">
         <Card className="overflow-hidden">
-          <div className="h-32 bg-gradient-to-r from-primary-light to-primary" />
+          <Skeleton className="h-32 w-full rounded-none" />
           <CardContent className="relative p-6">
             <div className="flex flex-col items-center -mt-16 mb-6">
               <Skeleton className="h-24 w-24 rounded-full" />
@@ -274,7 +276,17 @@ export default function ProfilePage() {
   return (
     <div className="max-w-md mx-auto mb-10">
       <Card className="overflow-hidden shadow-lg">
-        <div className={`h-32 bg-gradient-to-r ${getBgGradient(profile.name)}`} />
+        {profile.backgroundUrl ? (
+          <div 
+            className="relative h-32 bg-cover bg-center" 
+            style={{ 
+              backgroundImage: `url(${profile.backgroundUrl})`,
+              opacity: profile.backgroundOpacity !== null ? profile.backgroundOpacity / 100 : 1
+            }}
+          />
+        ) : (
+          <div className={`h-32 bg-gradient-to-r ${getBgGradient(profile.name)}`} />
+        )}
         
         <CardContent className="relative p-6">
           <div className="flex flex-col items-center -mt-16 mb-6">
