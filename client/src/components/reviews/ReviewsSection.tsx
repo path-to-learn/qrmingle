@@ -60,10 +60,9 @@ export default function ReviewsSection({ className = "", style }: ReviewsSection
     },
   ];
 
-  // For now, use the sample data instead of fetching from the API
-  const { data: reviews = sampleReviews } = useQuery<Review[]>({
+  // Fetch reviews from the API
+  const { data: reviews = sampleReviews, isLoading } = useQuery<Review[]>({
     queryKey: ["/api/reviews"],
-    enabled: false, // Disable this query for now
   });
 
   const paginatedReviews = reviews.slice(
@@ -79,9 +78,20 @@ export default function ReviewsSection({ className = "", style }: ReviewsSection
         <CardTitle className="text-base font-medium">What people are saying</CardTitle>
       </CardHeader>
       <CardContent className="px-0 py-1 space-y-4">
-        {paginatedReviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
-        ))}
+        {isLoading ? (
+          <>
+            <div className="h-24 bg-muted/30 animate-pulse rounded-lg"></div>
+            <div className="h-24 bg-muted/30 animate-pulse rounded-lg"></div>
+          </>
+        ) : paginatedReviews.length > 0 ? (
+          paginatedReviews.map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            No reviews available yet.
+          </p>
+        )}
         
         {totalPages > 1 && (
           <div className="flex justify-center items-center mt-4 gap-2">

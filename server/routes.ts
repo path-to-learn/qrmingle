@@ -848,6 +848,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files from uploads directory
   app.use('/uploads', express.static(uploadsDir));
 
+  // Get all reviews 
+  apiRoutes.get('/reviews', async (req, res) => {
+    try {
+      // For now, return hardcoded reviews
+      // In a real implementation, this would query the database
+      const reviews = [
+        {
+          id: 1,
+          name: "John Smith",
+          title: "CEO at TechCorp",
+          content: "QrMingle has transformed how I network at conferences. The custom QR codes and beautiful profiles make sharing contact info effortless.",
+          rating: 5,
+          avatarUrl: null,
+          isVisible: true,
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          name: "Alex Johnson",
+          title: "Marketing Expert",
+          content: "The customization options are fantastic! I love being able to match my profile to my personal brand.",
+          rating: 5,
+          avatarUrl: null,
+          isVisible: true,
+          createdAt: new Date(),
+        },
+        {
+          id: 3,
+          name: "Sarah Lee",
+          title: "Event Organizer",
+          content: "As an event organizer, QrMingle has been a game-changer for networking. Our attendees love the ease of connecting and sharing contact info.",
+          rating: 4,
+          avatarUrl: null,
+          isVisible: true,
+          createdAt: new Date(),
+        },
+        {
+          id: 4,
+          name: "Michael Chen",
+          title: "Student",
+          content: "I use QrMingle for sharing my resume and portfolio links at job fairs. So much better than paper business cards!",
+          rating: 5,
+          avatarUrl: null,
+          isVisible: true,
+          createdAt: new Date(),
+        },
+      ];
+      
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      res.status(500).json({ error: "Failed to fetch reviews" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
