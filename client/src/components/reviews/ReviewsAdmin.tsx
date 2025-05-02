@@ -86,7 +86,9 @@ export default function ReviewsAdmin() {
   };
 
   const handleDeleteReview = (id: number) => {
-    deleteReviewMutation.mutate(id);
+    if (id) {
+      deleteReviewMutation.mutate(id);
+    }
   };
 
   // Render stars for rating
@@ -184,7 +186,12 @@ export default function ReviewsAdmin() {
                         <Eye className="h-4 w-4" />
                       )}
                     </Button>
-                    <AlertDialog open={deleteId === review.id} onOpenChange={(open) => !open && setDeleteId(null)}>
+                    <AlertDialog 
+                      open={deleteId === review.id} 
+                      onOpenChange={(open: boolean) => {
+                        if (!open) setDeleteId(null);
+                      }}
+                    >
                       <AlertDialogTrigger asChild>
                         <Button
                           variant="ghost"

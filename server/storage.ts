@@ -43,9 +43,9 @@ export interface IStorage {
   createScanLog(scanLog: InsertScanLog): Promise<ScanLog>;
   
   // Review methods
-  getReviews(onlyVisible?: boolean): Promise<Review[]>;
-  createReview(review: InsertReview): Promise<Review>;
-  updateReviewVisibility(id: number, isVisible: boolean): Promise<Review>;
+  getReviews(onlyVisible?: boolean): Promise<import('@shared/schema').Review[]>;
+  createReview(review: import('@shared/schema').InsertReview): Promise<import('@shared/schema').Review>;
+  updateReviewVisibility(id: number, isVisible: boolean): Promise<import('@shared/schema').Review>;
   deleteReview(id: number): Promise<boolean>;
   
   // Session store
@@ -390,7 +390,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Review methods
-  async getReviews(onlyVisible: boolean = false): Promise<Review[]> {
+  async getReviews(onlyVisible: boolean = false): Promise<import('@shared/schema').Review[]> {
     const { db, eq, desc } = await import('./db');
     const { reviews } = await import('@shared/schema');
     
@@ -403,7 +403,7 @@ export class DatabaseStorage implements IStorage {
     return await query;
   }
   
-  async createReview(reviewData: InsertReview): Promise<Review> {
+  async createReview(reviewData: import('@shared/schema').InsertReview): Promise<import('@shared/schema').Review> {
     const { db } = await import('./db');
     const { reviews } = await import('@shared/schema');
     
@@ -419,7 +419,7 @@ export class DatabaseStorage implements IStorage {
     return review;
   }
   
-  async updateReviewVisibility(id: number, isVisible: boolean): Promise<Review> {
+  async updateReviewVisibility(id: number, isVisible: boolean): Promise<import('@shared/schema').Review> {
     const { db, eq } = await import('./db');
     const { reviews } = await import('@shared/schema');
     

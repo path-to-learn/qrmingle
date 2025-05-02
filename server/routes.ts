@@ -869,14 +869,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Name, content, and rating are required" });
       }
       
-      // Create review (will be hidden by default until approved)
+      // Create review (will be hidden by default until approved by storage layer)
       const review = await storage.createReview({
         name,
         title: title || null,
         content,
         rating,
         avatarUrl: null,
-        isVisible: false,
       });
       
       res.status(201).json({
