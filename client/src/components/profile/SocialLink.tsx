@@ -18,9 +18,10 @@ type SocialLinkProps = {
   platform: string;
   url: string;
   className?: string;
+  style?: React.CSSProperties;
 };
 
-export default function SocialLink({ platform, url, className = "" }: SocialLinkProps) {
+export default function SocialLink({ platform, url, className = "", style }: SocialLinkProps) {
   // Check if this is a custom QR code URL
   const isCustomQrCode = url.startsWith('qrCodeImage:');
   
@@ -101,6 +102,7 @@ export default function SocialLink({ platform, url, className = "" }: SocialLink
       target="_blank"
       rel="noopener noreferrer"
       className={`flex items-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors ${className}`}
+      style={style}
     >
       <div className="mr-3 text-primary">
         {isCustomQrCode ? (

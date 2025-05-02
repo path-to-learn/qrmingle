@@ -488,7 +488,10 @@ export default function ProfilePage() {
 
           {/* Social links section */}
           {profile.socialLinks && profile.socialLinks.length > 0 && (
-            <Card className="border-none shadow-none">
+            <Card 
+              className="border-none shadow-none" 
+              style={{ backgroundColor: profile.cardColor || "#ffffff" }}
+            >
               <CardHeader className="px-0 pt-0 pb-2">
                 <CardTitle className="text-base font-medium">Connect with me</CardTitle>
               </CardHeader>
@@ -499,6 +502,7 @@ export default function ProfilePage() {
                     platform={link.platform}
                     url={link.url}
                     className="border-muted/40 hover:bg-muted/20"
+                    style={{ backgroundColor: profile.cardColor || "#ffffff" }}
                   />
                 ))}
               </CardContent>
