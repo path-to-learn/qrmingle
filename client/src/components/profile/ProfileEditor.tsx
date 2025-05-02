@@ -27,8 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { ProfileFormData, profileFormSchema } from "@shared/schema";
-import { X, Plus, Upload, X as XIcon, QrCode as QrCodeIcon } from "lucide-react";
+import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -51,6 +52,9 @@ export default function ProfileEditor({
   const [previewUrl, setPreviewUrl] = useState<string>(
     profileData?.photoUrl || ""
   );
+  const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<string>(
+    profileData?.backgroundUrl || ""
+  );
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
@@ -60,6 +64,8 @@ export default function ProfileEditor({
       title: profileData?.title || "",
       bio: profileData?.bio || "",
       photoUrl: profileData?.photoUrl || "",
+      backgroundUrl: profileData?.backgroundUrl || "",
+      backgroundOpacity: profileData?.backgroundOpacity || 100,
       qrStyle: profileData?.qrStyle || "basic",
       qrColor: profileData?.qrColor || "#3B82F6",
       qrSize: profileData?.qrSize || 150,
@@ -88,6 +94,20 @@ export default function ProfileEditor({
       const dataUrl = reader.result as string;
       setPreviewUrl(dataUrl);
       form.setValue("photoUrl", dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Similar to photo upload, we'll use a data URL for now
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setBackgroundPreviewUrl(dataUrl);
+      form.setValue("backgroundUrl", dataUrl);
     };
     reader.readAsDataURL(file);
   };
@@ -225,6 +245,81 @@ export default function ProfileEditor({
                         </Button>
                       )}
                     </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <FormLabel className="block mb-2">Background Image</FormLabel>
+                  <div className="flex flex-col items-center">
+                    <div className="relative w-full h-32 mb-3 bg-muted rounded-md overflow-hidden">
+                      {backgroundPreviewUrl ? (
+                        <img
+                          src={backgroundPreviewUrl}
+                          alt="Background preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full w-full">
+                          <Image className="h-10 w-10 text-muted-foreground opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        className="flex items-center"
+                        onClick={() => document.getElementById("background-upload")?.click()}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Background
+                        <Input
+                          id="background-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleBackgroundUpload}
+                        />
+                      </Button>
+                      {backgroundPreviewUrl && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setBackgroundPreviewUrl("");
+                            form.setValue("backgroundUrl", "");
+                          }}
+                        >
+                          <XIcon className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {backgroundPreviewUrl && (
+                      <div className="w-full mt-4">
+                        <FormLabel className="text-sm block mb-2">Background Opacity</FormLabel>
+                        <FormField
+                          control={form.control}
+                          name="backgroundOpacity"
+                          render={({ field }) => (
+                            <div>
+                              <Slider
+                                value={[field.value]}
+                                min={0}
+                                max={100}
+                                step={5}
+                                onValueChange={(values) => field.onChange(values[0])}
+                                className="mb-2"
+                              />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>Transparent</span>
+                                <span>{field.value}%</span>
+                                <span>Solid</span>
+                              </div>
+                            </div>
+                          )}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
