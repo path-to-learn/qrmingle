@@ -164,13 +164,24 @@ export default function ProfileEditor({
   
   // Get available platforms that haven't been selected yet
   const getAvailablePlatforms = (currentIndex: number) => {
-    const selectedPlatforms = form.watch("socialLinks").map(link => link.platform);
+    const socialLinks = form.watch("socialLinks");
+    const selectedPlatforms = socialLinks.map(link => link.platform);
     // Include the current platform in available options (so it doesn't disappear from its own dropdown)
     const currentPlatform = form.watch(`socialLinks.${currentIndex}.platform`);
-    
-    return allSocialPlatforms.filter(platform => 
-      platform === currentPlatform || !selectedPlatforms.includes(platform)
-    );
+
+    // Filter out platforms that are already selected (except the current one)
+    return allSocialPlatforms.filter(platform => {
+      if (platform === currentPlatform) {
+        return true; // Always include the current platform
+      }
+      
+      // Check if this platform is already selected in any other row
+      const isAlreadySelected = socialLinks.some(
+        (link, idx) => idx !== currentIndex && link.platform === platform
+      );
+      
+      return !isAlreadySelected;
+    });
   };
 
   return (
