@@ -249,6 +249,31 @@ export default function ProfileEditor({
                 </div>
 
                 <div className="mb-6">
+                  <FormLabel className="block mb-2">Card Color</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="w-10 h-10 rounded-md border"
+                      style={{ backgroundColor: form.watch("cardColor") || "#ffffff" }}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cardColor"
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          type="color"
+                          className="w-24 h-10 p-1"
+                          placeholder="Select a color"
+                        />
+                      )}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Choose a background color for your profile card
+                  </p>
+                </div>
+
+                <div className="mb-6">
                   <FormLabel className="block mb-2">Background Image</FormLabel>
                   <div className="flex flex-col items-center">
                     <div className="relative w-full h-32 mb-3 bg-muted rounded-md overflow-hidden">

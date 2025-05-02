@@ -52,6 +52,7 @@ type ProfileData = {
   photoUrl: string | null;
   backgroundUrl: string | null;
   backgroundOpacity: number | null;
+  cardColor: string | null;
   qrStyle: string | null;
   qrColor: string | null;
   slug: string;
@@ -288,7 +289,11 @@ export default function ProfilePage() {
           <div className={`h-32 bg-gradient-to-r ${getBgGradient(profile.name)}`} />
         )}
         
-        <CardContent className="relative p-6">
+        <CardContent 
+          className="relative p-6" 
+          style={{ 
+            backgroundColor: profile.cardColor || "#ffffff" 
+          }}>
           <div className="flex flex-col items-center -mt-16 mb-6">
             <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
               {profile.photoUrl ? (

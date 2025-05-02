@@ -22,6 +22,7 @@ export const profiles = pgTable("profiles", {
   photoUrl: text("photo_url"),
   backgroundUrl: text("background_url"), // Virtual background image URL
   backgroundOpacity: integer("background_opacity").default(100), // Background opacity 0-100
+  cardColor: text("card_color").default("#ffffff"), // Profile card background color
   qrStyle: text("qr_style").default("basic"),
   qrColor: text("qr_color").default("#3B82F6"),
   qrSize: integer("qr_size").default(150),
@@ -102,6 +103,7 @@ export const profileFormSchema = insertProfileSchema.extend({
   photoUrl: z.string().nullable().default(""),
   backgroundUrl: z.string().nullable().default(""),
   backgroundOpacity: z.number().min(0).max(100).default(100),
+  cardColor: z.string().default("#ffffff"),
   title: z.string().nullable().default(""),
   bio: z.string().nullable().default(""),
   qrStyle: z.string().default("basic"),
