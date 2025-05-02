@@ -42,6 +42,12 @@ export interface IStorage {
   getScanLogsByProfileId(profileId: number): Promise<ScanLog[]>;
   createScanLog(scanLog: InsertScanLog): Promise<ScanLog>;
   
+  // Review methods
+  getReviews(onlyVisible?: boolean): Promise<Review[]>;
+  createReview(review: InsertReview): Promise<Review>;
+  updateReviewVisibility(id: number, isVisible: boolean): Promise<Review>;
+  deleteReview(id: number): Promise<boolean>;
+  
   // Session store
   sessionStore: session.Store;
 }
@@ -381,6 +387,63 @@ export class DatabaseStorage implements IStorage {
     await this.incrementScanCount(scanLogData.profileId);
     
     return scanLog;
+  }
+  
+  // Review methods
+  async getReviews(onlyVisible: boolean = false): Promise<Review[]> {
+    const { db, eq, desc } = await import('./db');
+    const { reviews } = await import('@shared/schema');
+    
+    let query = db.select().from(reviews).orderBy(desc(reviews.createdAt));
+    
+    if (onlyVisible) {
+      query = query.where(eq(reviews.isVisible, true));
+    }
+    
+    return await query;
+  }
+  
+  async createReview(reviewData: InsertReview): Promise<Review> {
+    const { db } = await import('./db');
+    const { reviews } = await import('@shared/schema');
+    
+    const now = new Date();
+    
+    // By default, new reviews are not visible until approved by admin
+    const [review] = await db.insert(reviews).values({
+      ...reviewData,
+      isVisible: false,
+      createdAt: now,
+    }).returning();
+    
+    return review;
+  }
+  
+  async updateReviewVisibility(id: number, isVisible: boolean): Promise<Review> {
+    const { db, eq } = await import('./db');
+    const { reviews } = await import('@shared/schema');
+    
+    const [updatedReview] = await db.update(reviews)
+      .set({ isVisible })
+      .where(eq(reviews.id, id))
+      .returning();
+    
+    if (!updatedReview) {
+      throw new Error(`Review with id ${id} not found`);
+    }
+    
+    return updatedReview;
+  }
+  
+  async deleteReview(id: number): Promise<boolean> {
+    const { db, eq } = await import('./db');
+    const { reviews } = await import('@shared/schema');
+    
+    const result = await db.delete(reviews)
+      .where(eq(reviews.id, id))
+      .returning();
+    
+    return result.length > 0;
   }
 }
 

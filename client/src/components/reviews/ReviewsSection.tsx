@@ -2,9 +2,18 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Review } from "@shared/schema";
 import ReviewCard from "./ReviewCard";
+import ReviewSubmitForm from "./ReviewSubmitForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface ReviewsSectionProps {
   className?: string;
@@ -72,10 +81,31 @@ export default function ReviewsSection({ className = "", style }: ReviewsSection
 
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
+  const [reviewFormOpen, setReviewFormOpen] = useState(false);
+
   return (
     <Card className={`border-none shadow-none ${className}`} style={style}>
-      <CardHeader className="px-0 pt-0 pb-2">
+      <CardHeader className="px-0 pt-0 pb-2 flex flex-row justify-between items-center">
         <CardTitle className="text-base font-medium">What people are saying</CardTitle>
+        <Dialog open={reviewFormOpen} onOpenChange={setReviewFormOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline" className="h-8">
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add Review
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Share Your Experience</DialogTitle>
+              <DialogDescription>
+                Tell others about your experience with QrMingle
+              </DialogDescription>
+            </DialogHeader>
+            <ReviewSubmitForm 
+              onSuccess={() => setReviewFormOpen(false)} 
+            />
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent className="px-0 py-1 space-y-4">
         {isLoading ? (
@@ -89,7 +119,7 @@ export default function ReviewsSection({ className = "", style }: ReviewsSection
           ))
         ) : (
           <p className="text-sm text-muted-foreground text-center py-4">
-            No reviews available yet.
+            No reviews available yet. Be the first to share your experience!
           </p>
         )}
         

@@ -851,55 +851,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all reviews 
   apiRoutes.get('/reviews', async (req, res) => {
     try {
-      // For now, return hardcoded reviews
-      // In a real implementation, this would query the database
-      const reviews = [
-        {
-          id: 1,
-          name: "John Smith",
-          title: "CEO at TechCorp",
-          content: "QrMingle has transformed how I network at conferences. The custom QR codes and beautiful profiles make sharing contact info effortless.",
-          rating: 5,
-          avatarUrl: null,
-          isVisible: true,
-          createdAt: new Date(),
-        },
-        {
-          id: 2,
-          name: "Alex Johnson",
-          title: "Marketing Expert",
-          content: "The customization options are fantastic! I love being able to match my profile to my personal brand.",
-          rating: 5,
-          avatarUrl: null,
-          isVisible: true,
-          createdAt: new Date(),
-        },
-        {
-          id: 3,
-          name: "Sarah Lee",
-          title: "Event Organizer",
-          content: "As an event organizer, QrMingle has been a game-changer for networking. Our attendees love the ease of connecting and sharing contact info.",
-          rating: 4,
-          avatarUrl: null,
-          isVisible: true,
-          createdAt: new Date(),
-        },
-        {
-          id: 4,
-          name: "Michael Chen",
-          title: "Student",
-          content: "I use QrMingle for sharing my resume and portfolio links at job fairs. So much better than paper business cards!",
-          rating: 5,
-          avatarUrl: null,
-          isVisible: true,
-          createdAt: new Date(),
-        },
-      ];
-      
+      // Get only visible reviews for public view
+      const reviews = await storage.getReviews(true);
       res.json(reviews);
     } catch (error) {
       console.error("Error fetching reviews:", error);
       res.status(500).json({ error: "Failed to fetch reviews" });
+    }
+  });
+  
+  // Submit a new review
+  apiRoutes.post('/reviews', async (req, res) => {
+    try {
+      const { name, title, content, rating } = req.body;
+      
+      if (!name || !content || !rating) {
+        return res.status(400).json({ message: "Name, content, and rating are required" });
+      }
+      
+      // Create review (will be hidden by default until approved)
+      const review = await storage.createReview({
+        name,
+        title: title || null,
+        content,
+        rating,
+        avatarUrl: null,
+        isVisible: false,
+      });
+      
+      res.status(201).json({
+        success: true,
+        message: "Thank you! Your review has been submitted and will be visible after approval.",
+        review
+      });
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      res.status(500).json({ error: "Failed to submit review" });
+    }
+  });
+  
+  // Admin routes for managing reviews
+  apiRoutes.get('/admin/reviews', requireAuth, async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      // Get all reviews, including hidden ones
+      const reviews = await storage.getReviews(false);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching all reviews:", error);
+      res.status(500).json({ error: "Failed to fetch reviews" });
+    }
+  });
+  
+  // Update review visibility (approve/hide)
+  apiRoutes.patch('/admin/reviews/:id', requireAuth, async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const id = parseInt(req.params.id);
+      const { isVisible } = req.body;
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid review ID" });
+      }
+      
+      if (typeof isVisible !== 'boolean') {
+        return res.status(400).json({ message: "isVisible must be a boolean" });
+      }
+      
+      const review = await storage.updateReviewVisibility(id, isVisible);
+      res.json(review);
+    } catch (error) {
+      console.error("Error updating review:", error);
+      res.status(500).json({ error: "Failed to update review" });
+    }
+  });
+  
+  // Delete a review
+  apiRoutes.delete('/admin/reviews/:id', requireAuth, async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid review ID" });
+      }
+      
+      const deleted = await storage.deleteReview(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      res.status(500).json({ error: "Failed to delete review" });
     }
   });
 
