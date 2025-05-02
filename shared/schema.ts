@@ -50,6 +50,17 @@ export const scanLogs = pgTable("scan_logs", {
   referrer: text("referrer"),
 });
 
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title"), // Job title or company
+  content: text("content").notNull(),
+  avatarUrl: text("avatar_url"),
+  rating: integer("rating").default(5), // 1-5 stars
+  isVisible: boolean("is_visible").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Define the session table structure for express-session with connect-pg-simple
 export const sessions = pgTable("session", {
   sid: text("sid").primaryKey(),
@@ -79,6 +90,12 @@ export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({
 export const insertScanLogSchema = createInsertSchema(scanLogs).omit({
   id: true,
   timestamp: true,
+});
+
+export const insertReviewSchema = createInsertSchema(reviews).omit({
+  id: true,
+  isVisible: true,
+  createdAt: true,
 });
 
 // Types
