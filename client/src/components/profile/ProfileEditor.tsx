@@ -66,6 +66,7 @@ export default function ProfileEditor({
       photoUrl: profileData?.photoUrl || "",
       backgroundUrl: profileData?.backgroundUrl || "",
       backgroundOpacity: profileData?.backgroundOpacity || 100,
+      cardColor: profileData?.cardColor || "#ffffff",
       qrStyle: profileData?.qrStyle || "basic",
       qrColor: profileData?.qrColor || "#3B82F6",
       qrSize: profileData?.qrSize || 150,
