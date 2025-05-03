@@ -8,6 +8,7 @@ import { isAdmin, getTutorialVideo } from "@/lib/video";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReviewsAdmin from "@/components/reviews/ReviewsAdmin";
+import GlobalAnalytics from "@/components/analytics/GlobalAnalytics";
 
 export default function AdminPage() {
   const { user } = useAuth();
