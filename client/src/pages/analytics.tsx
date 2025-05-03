@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import CountryVisitorsGrid from "@/components/analytics/CountryVisitorsGrid";
+import { isAdmin } from "@/lib/video";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -255,7 +256,9 @@ export default function Analytics() {
               <TabsTrigger value="activity">Scan Activity</TabsTrigger>
               <TabsTrigger value="devices">Device Types</TabsTrigger>
               <TabsTrigger value="locations">Locations</TabsTrigger>
-              <TabsTrigger value="countries">Countries</TabsTrigger>
+              {isAdmin(user) && (
+                <TabsTrigger value="countries">Countries</TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="activity" className="mt-0">
@@ -362,17 +365,19 @@ export default function Analytics() {
               </div>
             </TabsContent>
             
-            <TabsContent value="countries" className="mt-0">
-              <div className="bg-muted/10 rounded-lg">
-                {analytics?.countryData && analytics.countryData.length > 0 ? (
-                  <CountryVisitorsGrid countryData={analytics.countryData} />
-                ) : (
-                  <div className="h-64 flex items-center justify-center text-muted-foreground p-4">
-                    No country data available
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+            {isAdmin(user) && (
+              <TabsContent value="countries" className="mt-0">
+                <div className="bg-muted/10 rounded-lg">
+                  {analytics?.countryData && analytics.countryData.length > 0 ? (
+                    <CountryVisitorsGrid countryData={analytics.countryData} />
+                  ) : (
+                    <div className="h-64 flex items-center justify-center text-muted-foreground p-4">
+                      No country data available
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
         )}
       </div>
