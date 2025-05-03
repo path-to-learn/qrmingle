@@ -55,6 +55,11 @@ export interface IStorage {
   markContactMessageAsRead(id: number): Promise<import('@shared/schema').ContactMessage>;
   deleteContactMessage(id: number): Promise<boolean>;
   
+  // Admin analytics methods
+  getAllUsers(): Promise<User[]>;
+  getAllProfiles(): Promise<Profile[]>;
+  getAllScanLogs(): Promise<ScanLog[]>;
+  
   // Session store
   sessionStore: session.Store;
 }

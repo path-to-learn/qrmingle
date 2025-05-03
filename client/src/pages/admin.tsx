@@ -75,14 +75,19 @@ export default function AdminPage() {
           Welcome, {user.username}. This is the admin dashboard for managing QrMingle site content.
         </p>
         
-        <Tabs defaultValue="video" className="w-full">
-          <TabsList className="grid w-full md:w-auto grid-cols-2 md:grid-cols-3 h-auto gap-4">
+        <Tabs defaultValue="analytics" className="w-full">
+          <TabsList className="grid w-full md:w-auto grid-cols-2 md:grid-cols-4 h-auto gap-4">
+            <TabsTrigger value="analytics" className="px-4 py-2">Analytics</TabsTrigger>
             <TabsTrigger value="video" className="px-4 py-2">Tutorial Video</TabsTrigger>
             <TabsTrigger value="reviews" className="px-4 py-2">User Reviews</TabsTrigger>
             <TabsTrigger value="settings" className="px-4 py-2">Site Settings</TabsTrigger>
           </TabsList>
           
           <div className="mt-6">
+            <TabsContent value="analytics" className="mt-0">
+              <GlobalAnalytics />
+            </TabsContent>
+            
             <TabsContent value="video" className="mt-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
