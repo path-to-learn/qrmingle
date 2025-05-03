@@ -479,10 +479,7 @@ export class DatabaseStorage implements IStorage {
     const { db, eq } = await import('./db');
     const { reviews } = await import('@shared/schema');
     
-    const result = await db.delete(reviews)
-      .where(eq(reviews.id, id))
-      .returning();
-    
+    const result = await db.delete(reviews).where(eq(reviews.id, id)).returning();
     return result.length > 0;
   }
   
@@ -532,11 +529,30 @@ export class DatabaseStorage implements IStorage {
     const { db, eq } = await import('./db');
     const { contactMessages } = await import('@shared/schema');
     
-    const result = await db.delete(contactMessages)
-      .where(eq(contactMessages.id, id))
-      .returning();
-    
+    const result = await db.delete(contactMessages).where(eq(contactMessages.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Admin analytics methods
+  async getAllUsers(): Promise<User[]> {
+    const { db } = await import('./db');
+    const { users } = await import('@shared/schema');
+    
+    return await db.select().from(users);
+  }
+  
+  async getAllProfiles(): Promise<Profile[]> {
+    const { db } = await import('./db');
+    const { profiles } = await import('@shared/schema');
+    
+    return await db.select().from(profiles);
+  }
+  
+  async getAllScanLogs(): Promise<ScanLog[]> {
+    const { db } = await import('./db');
+    const { scanLogs } = await import('@shared/schema');
+    
+    return await db.select().from(scanLogs);
   }
 }
 
