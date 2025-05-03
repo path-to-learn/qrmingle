@@ -406,18 +406,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
       
-      // Log the scan
+      // Get client IP address
+      const ip = req.headers['x-forwarded-for'] || 
+                req.socket.remoteAddress || 
+                'Unknown';
+                
+      // Extract device info from user agent
+      const userAgent = req.headers['user-agent'] || '';
+      let deviceInfo = 'Unknown';
+      let browserInfo = 'Unknown';
+      let osInfo = 'Unknown';
+      
+      if (userAgent) {
+        // Device detection
+        if (userAgent.includes('iPhone')) deviceInfo = 'iPhone';
+        else if (userAgent.includes('iPad')) deviceInfo = 'iPad';
+        else if (userAgent.includes('Android')) deviceInfo = 'Android';
+        else if (userAgent.includes('Windows Phone')) deviceInfo = 'Windows Phone';
+        else if (userAgent.includes('Windows')) deviceInfo = 'Desktop';
+        else if (userAgent.includes('Mac')) deviceInfo = 'Mac';
+        else if (userAgent.includes('Linux')) deviceInfo = 'Linux';
+        
+        // Browser detection
+        if (userAgent.includes('Chrome')) browserInfo = 'Chrome';
+        else if (userAgent.includes('Firefox')) browserInfo = 'Firefox';
+        else if (userAgent.includes('Safari')) browserInfo = 'Safari';
+        else if (userAgent.includes('Edge')) browserInfo = 'Edge';
+        else if (userAgent.includes('MSIE') || userAgent.includes('Trident/')) browserInfo = 'Internet Explorer';
+        
+        // OS detection
+        if (userAgent.includes('Windows NT 10.0')) osInfo = 'Windows 10';
+        else if (userAgent.includes('Windows NT 6.3')) osInfo = 'Windows 8.1';
+        else if (userAgent.includes('Windows NT 6.2')) osInfo = 'Windows 8';
+        else if (userAgent.includes('Windows NT 6.1')) osInfo = 'Windows 7';
+        else if (userAgent.includes('Mac OS X')) osInfo = 'macOS';
+        else if (userAgent.includes('Linux')) osInfo = 'Linux';
+        else if (userAgent.includes('Android')) osInfo = 'Android';
+        else if (userAgent.includes('iOS')) osInfo = 'iOS';
+      }
+      
+      // Log the scan with enhanced information
       const scanLogData = {
         profileId: profile.id,
         location: req.query.location as string,
-        device: req.headers['user-agent'] || '',
+        country: req.query.country as string || 'Unknown',
+        countryCode: req.query.countryCode as string || '',
+        city: req.query.city as string || '',
+        device: deviceInfo,
+        browser: browserInfo,
+        os: osInfo,
         referrer: req.headers.referer || '',
+        ipAddress: typeof ip === 'string' ? ip : (Array.isArray(ip) ? ip[0] : 'Unknown')
       };
       
       await storage.createScanLog(scanLogData);
       
+      // Increment the profile scan count
+      await storage.incrementScanCount(profile.id);
+      
       res.json({ ...profile, socialLinks });
     } catch (error) {
+      console.error("Failed to get profile:", error);
       res.status(500).json({ message: "Failed to get profile" });
     }
   });
@@ -631,19 +680,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
       });
       
-      // Get location distribution
+      // Get location and country distribution
       const locationCounts: Record<string, number> = {};
+      const countryCounts: Record<string, number> = {};
+      const countryCodeMap: Record<string, string> = {}; // Maps country names to country codes
       
       scanLogs.forEach((log) => {
+        // Location distribution (city, country)
         const location = log.location || 'Unknown';
         locationCounts[location] = (locationCounts[location] || 0) + 1;
+        
+        // Country distribution
+        const country = log.country || 'Unknown';
+        countryCounts[country] = (countryCounts[country] || 0) + 1;
+        
+        // Record country code if available
+        if (log.countryCode && log.country) {
+          countryCodeMap[log.country] = log.countryCode;
+        }
       });
+      
+      // Create country data for the grid
+      const countryData = Object.entries(countryCounts).map(([country, count]) => ({
+        country,
+        countryCode: countryCodeMap[country] || '',
+        visitors: count
+      }));
       
       res.json({
         totalScans: profile.scanCount,
         scansByDate,
         deviceDistribution: deviceCounts,
         locationDistribution: locationCounts,
+        countryDistribution: countryCounts,
+        countryData,
         isLimited: false, // All features available to all users
         timeRange: 'all',
       });
