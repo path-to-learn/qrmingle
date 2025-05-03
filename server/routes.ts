@@ -61,7 +61,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const apiRoutes = express.Router();
   app.use('/api', apiRoutes);
   
-  // Forgot password route
+  // Password reset token storage - in a real app this would be in a database
+  const passwordResetTokens = new Map<string, { userId: number, expiresAt: Date }>();
+
+  // Forgot password route - generate reset token
   apiRoutes.post('/forgot-password', async (req, res) => {
     try {
       const { email } = req.body;
@@ -77,26 +80,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For security reasons, we still return success even if the user doesn't exist
         return res.json({ 
           success: true, 
-          message: "If your email is registered, you will receive instructions to reset your password." 
+          message: "If your account exists, we've created a reset token." 
         });
       }
       
-      // In a production environment, we would:
-      // 1. Generate a reset token and store it in the database
-      // 2. Send an email with a link to reset the password 
-      // 3. Create a route to handle the password reset
+      // Generate a random token
+      const resetToken = crypto.randomBytes(20).toString('hex');
       
-      // For this demo, we'll just return the username (email) to simulate the email sending
+      // Store token in our map with 1 hour expiration
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+      
+      passwordResetTokens.set(resetToken, {
+        userId: user.id,
+        expiresAt
+      });
+      
+      // Return the token directly to the client
+      // In a production app, we would email this instead of returning directly
       return res.json({ 
         success: true, 
-        message: "If your email is registered, you will receive instructions to reset your password.",
-        debug: { username: user.username } // This would NOT be in production, just for testing
+        message: "Password reset token generated successfully.",
+        resetToken: resetToken,
+        expiresAt: expiresAt.toISOString()
       });
     } catch (error) {
       console.error("Forgot password error:", error);
       res.status(500).json({ 
         message: "Failed to process forgot password request", 
         error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Reset password route - validate token and update password
+  apiRoutes.post('/reset-password', async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+      
+      // Check if token exists and is valid
+      const tokenData = passwordResetTokens.get(token);
+      
+      if (!tokenData) {
+        return res.status(400).json({ message: "Invalid or expired token" });
+      }
+      
+      // Check if token is expired
+      if (new Date() > tokenData.expiresAt) {
+        passwordResetTokens.delete(token);
+        return res.status(400).json({ message: "Reset token has expired" });
+      }
+      
+      // Get user
+      const user = await storage.getUser(tokenData.userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update password - We need to add a method to storage
+      const updatedUser = await storage.updateUserPassword(user.id, newPassword);
+      
+      // Delete the used token
+      passwordResetTokens.delete(token);
+      
+      return res.json({
+        success: true,
+        message: "Password has been reset successfully. You can now log in with your new password."
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ 
+        message: "Failed to reset password", 
+        error: error instanceof Error ? error.message : String(error) 
       });
     }
   });

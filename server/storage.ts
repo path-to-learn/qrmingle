@@ -16,6 +16,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserPassword(id: number, newPassword: string): Promise<User>;
   updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User>;
   updateUserAdminStatus(id: number, isAdmin: boolean): Promise<User>;
   updateUserStripeCustomerId(id: number, stripeCustomerId: string): Promise<User>;
@@ -134,6 +135,27 @@ export class DatabaseStorage implements IStorage {
     }).returning();
     
     return user;
+  }
+
+  async updateUserPassword(id: number, newPassword: string): Promise<User> {
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+    const { hashPassword } = await import('./auth');
+    
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+    
+    // Update the user's password
+    const [updatedUser] = await db.update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!updatedUser) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    
+    return updatedUser;
   }
 
   async updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User> {
