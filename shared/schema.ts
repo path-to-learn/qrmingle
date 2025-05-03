@@ -46,8 +46,14 @@ export const scanLogs = pgTable("scan_logs", {
   profileId: integer("profile_id").notNull(),
   timestamp: timestamp("timestamp").defaultNow(),
   location: text("location"),
+  country: text("country"),
+  countryCode: text("country_code"),
+  city: text("city"),
   device: text("device"),
+  browser: text("browser"),
+  os: text("os"),
   referrer: text("referrer"),
+  ipAddress: text("ip_address"),
 });
 
 export const reviews = pgTable("reviews", {
