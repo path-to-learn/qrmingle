@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import CountryVisitorsGrid from "@/components/analytics/CountryVisitorsGrid";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -57,11 +58,19 @@ interface LocationData {
   value: number;
 }
 
+interface CountryData {
+  country: string;
+  countryCode: string;
+  visitors: number;
+}
+
 interface AnalyticsData {
   totalScans: number;
   scansByDate: Record<string, number>;
   deviceDistribution: Record<string, number>;
   locationDistribution: Record<string, number>;
+  countryDistribution?: Record<string, number>;
+  countryData?: CountryData[];
   isLimited?: boolean;
   timeRange?: string;
 }
@@ -246,6 +255,7 @@ export default function Analytics() {
               <TabsTrigger value="activity">Scan Activity</TabsTrigger>
               <TabsTrigger value="devices">Device Types</TabsTrigger>
               <TabsTrigger value="locations">Locations</TabsTrigger>
+              <TabsTrigger value="countries">Countries</TabsTrigger>
             </TabsList>
             
             <TabsContent value="activity" className="mt-0">
@@ -347,6 +357,18 @@ export default function Analytics() {
                 ) : (
                   <div className="h-full flex items-center justify-center text-muted-foreground">
                     No location data available
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="countries" className="mt-0">
+              <div className="bg-muted/10 rounded-lg">
+                {analytics?.countryData && analytics.countryData.length > 0 ? (
+                  <CountryVisitorsGrid countryData={analytics.countryData} />
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-muted-foreground p-4">
+                    No country data available
                   </div>
                 )}
               </div>
