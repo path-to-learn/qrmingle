@@ -438,15 +438,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Profile not found" });
       }
       
-      // In a real app, you would:
-      // 1. Store this contact in a database
-      // 2. Send an email notification to the profile owner
-      // 3. Possibly integrate with a CRM or email marketing tool
+      // Store the contact message in the database
+      const contactMessage = await storage.createContactMessage({
+        profileId,
+        name,
+        email,
+        message
+      });
       
-      // For now, we'll just return success
-      res.json({ success: true, message: "Contact form submitted successfully" });
+      // Return success with the created message
+      res.json({ 
+        success: true, 
+        message: "Contact form submitted successfully",
+        contactMessage
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to submit contact form" });
+      console.error("Contact form error:", error);
+      res.status(500).json({ 
+        message: "Failed to submit contact form", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  // Get contact messages for a profile
+  apiRoutes.get('/contact-messages/:profileId', requireAuth, async (req, res) => {
+    try {
+      const profileId = parseInt(req.params.profileId);
+      
+      if (isNaN(profileId)) {
+        return res.status(400).json({ message: "Invalid profile ID" });
+      }
+      
+      // Get profile to check if it exists and if the user has permission
+      const profile = await storage.getProfile(profileId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      // Check if user owns the profile
+      if (profile.userId !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to view these messages" });
+      }
+      
+      // Get contact messages for the profile
+      const messages = await storage.getContactMessagesByProfileId(profileId);
+      
+      res.json(messages);
+    } catch (error) {
+      console.error("Get contact messages error:", error);
+      res.status(500).json({ 
+        message: "Failed to get contact messages", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  // Mark a contact message as read
+  apiRoutes.patch('/contact-messages/:id/read', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid message ID" });
+      }
+      
+      // Verify user has permission by first getting the message
+      const messages = await storage.getContactMessagesByProfileId(parseInt(req.body.profileId));
+      const message = messages.find(m => m.id === id);
+      
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      // Get profile to check if user owns it
+      const profile = await storage.getProfile(message.profileId);
+      
+      if (!profile || profile.userId !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to update this message" });
+      }
+      
+      // Mark the message as read
+      const updatedMessage = await storage.markContactMessageAsRead(id);
+      
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error("Mark message as read error:", error);
+      res.status(500).json({ 
+        message: "Failed to mark message as read", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 

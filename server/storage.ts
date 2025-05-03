@@ -49,6 +49,12 @@ export interface IStorage {
   updateReviewVisibility(id: number, isVisible: boolean): Promise<import('@shared/schema').Review>;
   deleteReview(id: number): Promise<boolean>;
   
+  // Contact message methods
+  getContactMessagesByProfileId(profileId: number): Promise<import('@shared/schema').ContactMessage[]>;
+  createContactMessage(message: import('@shared/schema').InsertContactMessage): Promise<import('@shared/schema').ContactMessage>;
+  markContactMessageAsRead(id: number): Promise<import('@shared/schema').ContactMessage>;
+  deleteContactMessage(id: number): Promise<boolean>;
+  
   // Session store
   sessionStore: session.Store;
 }
@@ -470,6 +476,59 @@ export class DatabaseStorage implements IStorage {
     
     const result = await db.delete(reviews)
       .where(eq(reviews.id, id))
+      .returning();
+    
+    return result.length > 0;
+  }
+  
+  // Contact message methods
+  async getContactMessagesByProfileId(profileId: number): Promise<import('@shared/schema').ContactMessage[]> {
+    const { db, eq, desc } = await import('./db');
+    const { contactMessages } = await import('@shared/schema');
+    
+    return await db.select()
+      .from(contactMessages)
+      .where(eq(contactMessages.profileId, profileId))
+      .orderBy(desc(contactMessages.createdAt));
+  }
+  
+  async createContactMessage(messageData: import('@shared/schema').InsertContactMessage): Promise<import('@shared/schema').ContactMessage> {
+    const { db } = await import('./db');
+    const { contactMessages } = await import('@shared/schema');
+    
+    const now = new Date();
+    
+    const [message] = await db.insert(contactMessages).values({
+      ...messageData,
+      isRead: false,
+      createdAt: now,
+    }).returning();
+    
+    return message;
+  }
+  
+  async markContactMessageAsRead(id: number): Promise<import('@shared/schema').ContactMessage> {
+    const { db, eq } = await import('./db');
+    const { contactMessages } = await import('@shared/schema');
+    
+    const [updatedMessage] = await db.update(contactMessages)
+      .set({ isRead: true })
+      .where(eq(contactMessages.id, id))
+      .returning();
+    
+    if (!updatedMessage) {
+      throw new Error(`Contact message with id ${id} not found`);
+    }
+    
+    return updatedMessage;
+  }
+  
+  async deleteContactMessage(id: number): Promise<boolean> {
+    const { db, eq } = await import('./db');
+    const { contactMessages } = await import('@shared/schema');
+    
+    const result = await db.delete(contactMessages)
+      .where(eq(contactMessages.id, id))
       .returning();
     
     return result.length > 0;
