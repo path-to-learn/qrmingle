@@ -140,10 +140,14 @@ export class DatabaseStorage implements IStorage {
   async updateUserPassword(id: number, newPassword: string): Promise<User> {
     const { db, eq } = await import('./db');
     const { users } = await import('@shared/schema');
-    const { hashPassword } = await import('./auth');
+    const { scrypt, randomBytes } = await import('crypto');
+    const { promisify } = await import('util');
     
     // Hash the new password
-    const hashedPassword = await hashPassword(newPassword);
+    const scryptAsync = promisify(scrypt);
+    const salt = randomBytes(16).toString("hex");
+    const buf = (await scryptAsync(newPassword, salt, 64)) as Buffer;
+    const hashedPassword = `${buf.toString("hex")}.${salt}`;
     
     // Update the user's password
     const [updatedUser] = await db.update(users)
@@ -416,13 +420,16 @@ export class DatabaseStorage implements IStorage {
     const { db, eq, desc } = await import('./db');
     const { reviews } = await import('@shared/schema');
     
-    let query = db.select().from(reviews).orderBy(desc(reviews.createdAt));
-    
     if (onlyVisible) {
-      query = query.where(eq(reviews.isVisible, true));
+      return await db.select()
+        .from(reviews)
+        .where(eq(reviews.isVisible, true))
+        .orderBy(desc(reviews.createdAt));
+    } else {
+      return await db.select()
+        .from(reviews)
+        .orderBy(desc(reviews.createdAt));
     }
-    
-    return await query;
   }
   
   async createReview(reviewData: import('@shared/schema').InsertReview): Promise<import('@shared/schema').Review> {
