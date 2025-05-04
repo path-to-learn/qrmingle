@@ -68,6 +68,7 @@ export default function ProfileEditor({
       title: profileData?.title || "",
       bio: profileData?.bio || "",
       photoUrl: profileData?.photoUrl || "",
+      photoSize: profileData?.photoSize || 120,
       backgroundUrl: profileData?.backgroundUrl || "",
       backgroundOpacity: profileData?.backgroundOpacity || 100,
       cardColor: profileData?.cardColor || "#ffffff",
@@ -211,7 +212,13 @@ export default function ProfileEditor({
                 <div className="mb-6">
                   <FormLabel className="block mb-2">Profile Photo</FormLabel>
                   <div className="flex flex-col items-center">
-                    <Avatar className="w-32 h-32 mb-3">
+                    <Avatar 
+                      className="mb-3" 
+                      style={{ 
+                        width: `${form.watch("photoSize")}px`, 
+                        height: `${form.watch("photoSize")}px` 
+                      }}
+                    >
                       {previewUrl ? (
                         <AvatarImage
                           src={previewUrl}
@@ -237,7 +244,8 @@ export default function ProfileEditor({
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <div className="flex gap-2">
+                    
+                    <div className="flex gap-2 mb-3">
                       <Button
                         type="button"
                         className="flex items-center"
@@ -254,18 +262,59 @@ export default function ProfileEditor({
                         />
                       </Button>
                       {previewUrl && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setPreviewUrl("");
-                            form.setValue("photoUrl", "");
-                          }}
-                        >
-                          <XIcon className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="flex items-center"
+                            onClick={() => {
+                              setImageToProcess(previewUrl);
+                              setShowCropper(true);
+                            }}
+                          >
+                            <Crop className="mr-2 h-4 w-4" />
+                            Crop
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setPreviewUrl("");
+                              form.setValue("photoUrl", "");
+                            }}
+                          >
+                            <XIcon className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
                     </div>
+                    
+                    {previewUrl && (
+                      <div className="w-full mt-2">
+                        <FormLabel className="text-sm block mb-2">Photo Size</FormLabel>
+                        <FormField
+                          control={form.control}
+                          name="photoSize"
+                          render={({ field }) => (
+                            <div>
+                              <Slider
+                                value={[field.value]}
+                                min={60}
+                                max={300}
+                                step={10}
+                                onValueChange={(values) => field.onChange(values[0])}
+                                className="mb-2"
+                              />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>Small</span>
+                                <span>{field.value}px</span>
+                                <span>Large</span>
+                              </div>
+                            </div>
+                          )}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -923,6 +972,16 @@ export default function ProfileEditor({
           </CardFooter>
         </form>
       </Form>
+      
+      {/* Image Cropper Modal */}
+      {showCropper && (
+        <ImageCropper
+          image={imageToProcess}
+          open={showCropper}
+          onClose={() => setShowCropper(false)}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </Card>
   );
 }
