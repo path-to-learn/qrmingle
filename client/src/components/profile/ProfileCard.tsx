@@ -32,6 +32,7 @@ type ProfileCardProps = {
   displayName: string;
   title?: string;
   photoUrl?: string;
+  photoSize?: number;
   qrStyle?: string;
   qrColor?: string;
   qrSize?: number;
@@ -51,6 +52,7 @@ export default function ProfileCard({
   displayName,
   title,
   photoUrl,
+  photoSize = 120,
   qrStyle,
   qrColor,
   qrSize = 150,
@@ -160,7 +162,10 @@ export default function ProfileCard({
             `}>
               {(photoPosition === "left" || photoPosition === "right") ? (
                 <>
-                  <Avatar className={`h-16 w-16 ${photoPosition === "left" ? "mr-4" : "ml-4"}`}>
+                  <Avatar 
+                    className={`${photoPosition === "left" ? "mr-4" : "ml-4"}`}
+                    style={{ width: `${photoSize}px`, height: `${photoSize}px` }}
+                  >
                     {photoUrl ? (
                       <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
                     ) : (
@@ -176,7 +181,10 @@ export default function ProfileCard({
                 </>
               ) : (
                 <>
-                  <Avatar className="h-20 w-20 mb-3">
+                  <Avatar 
+                    className="mb-3"
+                    style={{ width: `${photoSize}px`, height: `${photoSize}px` }}
+                  >
                     {photoUrl ? (
                       <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
                     ) : (
@@ -296,7 +304,10 @@ export default function ProfileCard({
                 <div className="py-4">
                   <div className="flex flex-col items-center mb-6">
                     {photoUrl && (
-                      <Avatar className="h-24 w-24 mb-4">
+                      <Avatar 
+                        className="mb-4"
+                        style={{ width: `${photoSize}px`, height: `${photoSize}px` }}
+                      >
                         <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
                         <AvatarFallback className="text-xl">
                           {displayName.charAt(0).toUpperCase()}
