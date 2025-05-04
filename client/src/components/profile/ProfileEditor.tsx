@@ -29,9 +29,10 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { ProfileFormData, profileFormSchema } from "@shared/schema";
-import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon } from "lucide-react";
+import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon, Crop } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import ImageCropper from "./ImageCropper";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -55,6 +56,9 @@ export default function ProfileEditor({
   const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<string>(
     profileData?.backgroundUrl || ""
   );
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToProcess, setImageToProcess] = useState<string>("");
+  const [tempImageData, setTempImageData] = useState<string>("");
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
@@ -93,10 +97,15 @@ export default function ProfileEditor({
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      setPreviewUrl(dataUrl);
-      form.setValue("photoUrl", dataUrl);
+      setImageToProcess(dataUrl);
+      setShowCropper(true);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedImageData: string) => {
+    setPreviewUrl(croppedImageData);
+    form.setValue("photoUrl", croppedImageData);
   };
   
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
