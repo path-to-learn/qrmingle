@@ -369,7 +369,22 @@ export default function Analytics() {
               <TabsContent value="countries" className="mt-0">
                 <div className="bg-muted/10 rounded-lg">
                   {analytics?.countryData && analytics.countryData.length > 0 ? (
-                    <CountryVisitorsGrid countryData={analytics.countryData} />
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
+                      {analytics.countryData.map((item) => (
+                        <Card key={item.country} className="overflow-hidden">
+                          <CardContent className="p-0">
+                            <div className="flex items-center p-4">
+                              <div className="flex-1">
+                                <div className="font-medium">{item.country}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {item.visitors} visitor{item.visitors !== 1 ? "s" : ""}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   ) : (
                     <div className="h-64 flex items-center justify-center text-muted-foreground p-4">
                       No country data available
