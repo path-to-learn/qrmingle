@@ -8,7 +8,7 @@ import { isAdmin, getTutorialVideo } from "@/lib/video";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReviewsAdmin from "@/components/reviews/ReviewsAdmin";
-import GlobalAnalytics from "@/components/analytics/GlobalAnalytics";
+
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -85,7 +85,9 @@ export default function AdminPage() {
           
           <div className="mt-6">
             <TabsContent value="analytics" className="mt-0">
-              <GlobalAnalytics />
+              <div className="p-6 bg-muted/30 rounded-lg text-center">
+                <p>Global analytics will be available in future updates.</p>
+              </div>
             </TabsContent>
             
             <TabsContent value="video" className="mt-0">
