@@ -154,13 +154,13 @@ export default function ProfilePage() {
       // Show appropriate message based on device
       if (isMobileDevice()) {
         toast({
-          title: "Adding Contact",
-          description: "Your contacts app should open to save this contact."
+          title: "Adding to Contacts",
+          description: "Follow the prompts to save this contact to your phone."
         });
       } else {
         toast({
           title: "Contact Downloaded",
-          description: "Contact information has been saved to your device.",
+          description: "Contact information has been saved as a vCard file you can import."
         });
       }
     } catch (error) {
