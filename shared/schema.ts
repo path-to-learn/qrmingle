@@ -20,6 +20,7 @@ export const profiles = pgTable("profiles", {
   title: text("title"),
   bio: text("bio"),
   photoUrl: text("photo_url"),
+  photoSize: integer("photo_size").default(120), // Photo size in pixels (width/height)
   backgroundUrl: text("background_url"), // Virtual background image URL
   backgroundOpacity: integer("background_opacity").default(100), // Background opacity 0-100
   cardColor: text("card_color").default("#ffffff"), // Profile card background color
@@ -146,6 +147,7 @@ export const profileFormSchema = insertProfileSchema.extend({
   
   // Ensure these fields have default values if they're null or undefined
   photoUrl: z.string().nullable().default(""),
+  photoSize: z.number().min(60).max(300).default(120),
   backgroundUrl: z.string().nullable().default(""),
   backgroundOpacity: z.number().min(0).max(100).default(100),
   cardColor: z.string().default("#ffffff"),
