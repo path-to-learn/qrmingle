@@ -50,6 +50,7 @@ type ProfileData = {
   title: string | null;
   bio: string | null;
   photoUrl: string | null;
+  photoSize: number | null;
   backgroundUrl: string | null;
   backgroundOpacity: number | null;
   cardColor: string | null;
@@ -297,7 +298,13 @@ export default function ProfilePage() {
             backgroundColor: profile.cardColor || "#ffffff" 
           }}>
           <div className="flex flex-col items-center -mt-16 mb-6">
-            <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
+            <Avatar 
+              className="ring-4 ring-background shadow-xl"
+              style={{ 
+                width: `${profile.photoSize || 120}px`, 
+                height: `${profile.photoSize || 120}px` 
+              }}
+            >
               {profile.photoUrl ? (
                 <AvatarImage src={profile.photoUrl} alt={profile.displayName} />
               ) : (
