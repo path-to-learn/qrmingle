@@ -216,16 +216,6 @@ interface ContactsManager {
 declare global {
   interface Navigator {
     contacts?: ContactsManager;
-    share?: (data: {
-      title?: string;
-      text?: string;
-      url?: string;
-      files?: File[];
-    }) => Promise<void>;
-    canShare?: (data: {
-      files?: File[];
-      [key: string]: any;
-    }) => boolean;
   }
 }
 
@@ -241,14 +231,8 @@ export function hasContactsAPI(): boolean {
  * Check if the Web Share API supports sharing files
  */
 export function hasShareWithFilesAPI(): boolean {
-  if (!navigator.share || !navigator.canShare) return false;
-  
-  try {
-    const testFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-    return navigator.canShare({ files: [testFile] });
-  } catch (e) {
-    return false;
-  }
+  // Simple feature detection without actually trying to share
+  return typeof navigator.share === 'function' && typeof navigator.canShare === 'function';
 }
 
 /**
@@ -312,13 +296,18 @@ export async function saveToContacts(profile: ProfileLike, socialLinks: SocialLi
         const blob = new Blob([vCardString], { type: 'text/vcard' });
         const file = new File([blob], fileName, { type: 'text/vcard' });
         
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: `${profile.displayName || profile.name}'s Contact Info`,
-            text: `Contact information for ${profile.displayName || profile.name}`,
-            files: [file]
-          });
-          return;
+        // Safely check and use canShare
+        const shareData = { files: [file] } as any;
+        if (typeof navigator.canShare === 'function' && navigator.canShare(shareData)) {
+          // Add title and text to the share data
+          shareData.title = `${profile.displayName || profile.name}'s Contact Info`;
+          shareData.text = `Contact information for ${profile.displayName || profile.name}`;
+          
+          // Safely use share
+          if (typeof navigator.share === 'function') {
+            await navigator.share(shareData);
+            return;
+          }
         }
       } catch (e) {
         console.error('Error using Web Share API with files, falling back:', e);

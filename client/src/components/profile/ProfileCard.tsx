@@ -103,13 +103,13 @@ export default function ProfileCard({
       // Show appropriate toast message based on device
       if (isMobileDevice()) {
         toast({
-          title: "Adding Contact",
-          description: "Your contacts app should open to save this contact."
+          title: "Adding to Contacts",
+          description: "Follow the prompts to save this contact to your phone."
         });
       } else {
         toast({
           title: "Contact Downloaded",
-          description: "Contact information has been saved as a vCard file."
+          description: "Contact information has been saved as a vCard file you can import."
         });
       }
     } catch (error) {
@@ -271,12 +271,12 @@ export default function ProfileCard({
                     onClick={handleSaveContact}
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Save Contact
+                    {isMobileDevice() ? "Add to Contacts" : "Save Contact"}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{isMobileDevice() ? 
-                    "Add to your device's contacts" : 
+                    "Save directly to your phone contacts" : 
                     "Download contact as vCard (.vcf)"}</p>
                 </TooltipContent>
               </Tooltip>
@@ -347,7 +347,7 @@ export default function ProfileCard({
                       onClick={handleSaveContact}
                     >
                       <UserPlus className="mr-2 h-4 w-4" />
-                      Save Contact
+                      {isMobileDevice() ? "Add to Contacts" : "Save Contact"}
                     </Button>
                   </div>
                 </div>
