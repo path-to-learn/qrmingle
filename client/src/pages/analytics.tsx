@@ -18,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import CountryVisitorsGrid from "@/components/analytics/CountryVisitorsGrid";
+
 import { isAdmin } from "@/lib/video";
 import {
   ResponsiveContainer,
