@@ -337,12 +337,12 @@ export default function ProfilePage() {
                     onClick={handleDownloadVCard}
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Save Contact
+                    {isMobileDevice() ? "Add to Contacts" : "Save Contact"}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{isMobileDevice() ? 
-                    "Add to your device's contacts" : 
+                    "Save directly to your phone contacts" : 
                     "Download contact as vCard (.vcf)"}</p>
                 </TooltipContent>
               </Tooltip>
@@ -458,12 +458,12 @@ export default function ProfilePage() {
                       onClick={() => saveToContacts(profile, profile.socialLinks)}
                     >
                       <UserPlus className="h-3 w-3 mr-1" />
-                      Save Contact
+                      {isMobileDevice() ? "Add to Contacts" : "Download vCard"}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{isMobileDevice() ? 
-                      "Add to your device's contacts" : 
+                      "Save directly to your phone contacts" : 
                       "Download contact as vCard (.vcf)"}</p>
                   </TooltipContent>
                 </Tooltip>
