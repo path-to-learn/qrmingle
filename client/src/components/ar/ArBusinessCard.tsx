@@ -18,18 +18,21 @@ import { useToast } from "@/hooks/use-toast";
 
 // Check if the device supports AR
 const isArSupported = async () => {
-  // In a real implementation, this would check for WebXR support
-  // For now, we'll simulate AR support based on device capabilities
   try {
-    // Check if it's a mobile device which is more likely to support AR
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // For the fallback version, we'll always return true
+    // This ensures the 3D simulation will work on all browsers
+    // In a real AR app, we would check for WebXR support here
+    return true;
     
-    // For demonstration purposes, we'll simulate AR support
-    // In a real app, we'd use the WebXR Device API
-    return isMobile;
+    // Real implementation would look like this:
+    // if ('xr' in navigator) {
+    //   return await navigator.xr.isSessionSupported('immersive-ar');
+    // }
+    // return false;
   } catch (error) {
     console.error('Error checking AR support:', error);
-    return false;
+    // Even if there's an error, return true to enable the fallback simulation view
+    return true;
   }
 };
 
@@ -217,12 +220,14 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
 
     try {
       toast({
-        title: "AR Mode",
-        description: "In a real implementation, this would launch AR view. For demo purposes, we're showing a simulated view.",
+        title: "3D Viewer Activated",
+        description: "Use the controls to rotate, zoom, and interact with the 3D business card.",
+        variant: "default",
+        duration: 5000
       });
       
-      // In a real implementation, this would actually start the AR session
-      // This is a mock implementation for demonstration purposes
+      // This is a simulated 3D view instead of a real AR implementation
+      // In a full AR app, this would start an immersive AR session
     } catch (error) {
       console.error('Error starting AR session:', error);
       toast({

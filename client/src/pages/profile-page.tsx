@@ -483,27 +483,38 @@ export default function ProfilePage() {
                 </Tooltip>
               </TooltipProvider>
               
-              {/* AR Business Card Button - Only show if hasArEnabled is true */}
-              {profile.hasArEnabled && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        size="sm"
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => setShowArView(true)}
-                      >
-                        <Box className="h-3 w-3 mr-1" />
-                        View AR Business Card
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View this profile as an interactive 3D business card</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+              {/* AR Business Card Button - Always show it with conditional messaging */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm"
+                      variant={profile.hasArEnabled ? "secondary" : "outline"}
+                      className={`w-full ${profile.hasArEnabled ? "bg-gradient-to-r from-primary/25 to-primary/40 hover:from-primary/30 hover:to-primary/50" : ""}`}
+                      onClick={() => {
+                        if (profile.hasArEnabled) {
+                          setShowArView(true);
+                        } else {
+                          toast({
+                            title: "3D View Not Available",
+                            description: "This profile doesn't have 3D Business Card enabled yet.",
+                            variant: "default"
+                          });
+                        }
+                      }}
+                    >
+                      <Box className="h-3 w-3 mr-1" />
+                      {profile.hasArEnabled ? "View 3D Business Card" : "3D View (Not Available)"}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{profile.hasArEnabled ? 
+                      "View as interactive 3D business card" : 
+                      "This profile doesn't have 3D view enabled"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               
               <div className="flex justify-center gap-2">
                 <Button
@@ -563,11 +574,17 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* AR Business Card Dialog */}
+      {/* Interactive 3D Business Card Dialog */}
       <Dialog open={showArView} onOpenChange={setShowArView}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>AR Business Card</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Box className="h-5 w-5" />
+              Interactive 3D Business Card
+            </DialogTitle>
+            <DialogDescription>
+              View and interact with a 3D representation of this business card
+            </DialogDescription>
           </DialogHeader>
           {profile && (
             <ArBusinessCard 
@@ -584,8 +601,11 @@ export default function ProfilePage() {
               isPreview={false}
             />
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowArView(false)}>Close</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <div className="text-xs text-muted-foreground">
+              Rotate, scale, and interact with the 3D card
+            </div>
+            <Button variant="default" onClick={() => setShowArView(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
