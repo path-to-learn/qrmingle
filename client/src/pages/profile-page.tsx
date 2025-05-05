@@ -469,6 +469,28 @@ export default function ProfilePage() {
                 </Tooltip>
               </TooltipProvider>
               
+              {/* AR Business Card Button - Only show if hasArEnabled is true */}
+              {profile.hasArEnabled && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        size="sm"
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => setShowArView(true)}
+                      >
+                        <Cube className="h-3 w-3 mr-1" />
+                        View AR Business Card
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View this profile as an interactive 3D business card</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              
               <div className="flex justify-center gap-2">
                 <Button
                   size="sm"

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
-  Cube, 
+  Box3D, 
   ArrowLeft, 
   Maximize, 
   Minimize, 
@@ -295,7 +295,7 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
                       onClick={startArSession}
                       className="h-8 w-8"
                     >
-                      <Cube className="h-4 w-4" />
+                      <Box3D className="h-4 w-4" />
                     </Button>
                   )}
                   
