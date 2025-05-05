@@ -16,35 +16,35 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Check if WebXR is supported
-const isWebXRSupported = () => {
-  return 'xr' in navigator && navigator.xr !== null;
-};
-
 // Check if the device supports AR
 const isArSupported = async () => {
-  if (!isWebXRSupported()) {
-    return false;
-  }
-  
+  // In a real implementation, this would check for WebXR support
+  // For now, we'll simulate AR support based on device capabilities
   try {
-    return await navigator.xr?.isSessionSupported('immersive-ar');
+    // Check if it's a mobile device which is more likely to support AR
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    // For demonstration purposes, we'll simulate AR support
+    // In a real app, we'd use the WebXR Device API
+    return isMobile;
   } catch (error) {
     console.error('Error checking AR support:', error);
     return false;
   }
 };
 
+interface ArBusinessCardProfile {
+  id: number;
+  displayName: string;
+  title?: string | null;
+  arModelUrl?: string;
+  arScale?: number;
+  arAnimationEnabled?: boolean;
+  hasArEnabled: boolean;
+}
+
 interface ArBusinessCardProps {
-  profile: {
-    id: number;
-    displayName: string;
-    title?: string;
-    arModelUrl?: string;
-    arScale?: number;
-    arAnimationEnabled?: boolean;
-    hasArEnabled: boolean;
-  };
+  profile: ArBusinessCardProfile;
   onBack?: () => void;
   isPreview?: boolean;
 }
@@ -59,6 +59,10 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [modelScale, setModelScale] = useState(profile.arScale || 100);
   const [isAnimating, setIsAnimating] = useState<boolean>(profile.arAnimationEnabled !== false);
+  
+  const toggleAnimation = () => {
+    setIsAnimating(prev => !prev);
+  };
   const [showControls, setShowControls] = useState(true);
   const { toast } = useToast();
 
@@ -214,7 +218,7 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
       });
       
       // In a real implementation, this would actually start the AR session
-      // setArSession(await navigator.xr.requestSession('immersive-ar'));
+      // This is a mock implementation for demonstration purposes
     } catch (error) {
       console.error('Error starting AR session:', error);
       toast({

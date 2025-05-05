@@ -562,6 +562,33 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* AR Business Card Dialog */}
+      <Dialog open={showArView} onOpenChange={setShowArView}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>AR Business Card</DialogTitle>
+          </DialogHeader>
+          {profile && (
+            <ArBusinessCard 
+              profile={{
+                id: profile.id,
+                displayName: profile.displayName,
+                title: profile.title,
+                arModelUrl: profile.arModelUrl,
+                arScale: profile.arScale,
+                arAnimationEnabled: profile.arAnimationEnabled,
+                hasArEnabled: true // Force to true since we only show the dialog if AR is enabled
+              }} 
+              onBack={() => setShowArView(false)}
+              isPreview={false}
+            />
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowArView(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
