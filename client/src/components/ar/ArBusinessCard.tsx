@@ -64,6 +64,10 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
     setIsAnimating(prev => !prev);
   };
   const [showControls, setShowControls] = useState(true);
+  
+  const toggleControls = () => {
+    setShowControls(prev => !prev);
+  };
   const { toast } = useToast();
 
   // Check AR support on component mount
@@ -306,7 +310,7 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
                   <Button 
                     size="icon"
                     variant="ghost"
-                    onClick={() => setIsAnimating(!isAnimating)}
+                    onClick={toggleAnimation}
                     className="h-8 w-8"
                   >
                     {isAnimating ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -341,7 +345,7 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
             <Button 
               size="icon" 
               variant="ghost" 
-              onClick={() => setShowControls(!showControls)}
+              onClick={toggleControls}
               className="absolute top-2 right-2 h-8 w-8 bg-background/80 backdrop-blur-sm"
             >
               {showControls ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}

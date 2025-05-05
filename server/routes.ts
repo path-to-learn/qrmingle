@@ -936,6 +936,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Profile not found" });
       }
       
+      // The requireAuth middleware already ensures the user is authenticated
+      // TypeScript doesn't know this, so we need to manually check
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
       // Check if this profile belongs to the current user
       if (profile.userId !== req.user.id) {
         return res.status(403).json({ message: "You don't have permission to modify this profile" });
@@ -1002,7 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Not authenticated" });
     }
     
-    if (!req.user.isAdmin) {
+    if (!req.user || !req.user.isAdmin) {
       return res.status(403).json({ message: "Not authorized - Admin access required" });
     }
     
