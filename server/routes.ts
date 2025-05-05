@@ -919,6 +919,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // AR Business Card feature routes
+  apiRoutes.post('/request-ar-access', requireAuth, async (req, res) => {
+    try {
+      const { profileId } = req.body;
+      
+      if (!profileId) {
+        return res.status(400).json({ message: "Profile ID is required" });
+      }
+      
+      // Get the profile
+      const profile = await storage.getProfile(profileId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
+      // Check if this profile belongs to the current user
+      if (profile.userId !== req.user.id) {
+        return res.status(403).json({ message: "You don't have permission to modify this profile" });
+      }
+      
+      // Special case - automatically enable AR for user "dathwal@qrmingle#2025"
+      if (req.user.username === 'dathwal@qrmingle#2025') {
+        // Auto-approve and enable AR
+        await storage.updateProfile(profileId, {
+          hasArEnabled: true,
+          arModelUrl: '/models/business-card-3d.gltf',
+          arScale: 100,
+          arAnimationEnabled: true
+        });
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: "AR Business Card enabled for your profile",
+          hasArEnabled: true
+        });
+      }
+      
+      // For all other users, check if they have at least one profile
+      const userProfiles = await storage.getProfilesByUserId(req.user.id);
+      
+      if (userProfiles.length > 0) {
+        // They qualify for AR - enable it
+        await storage.updateProfile(profileId, {
+          hasArEnabled: true,
+          arModelUrl: '/models/business-card-3d.gltf',
+          arScale: 100,
+          arAnimationEnabled: true
+        });
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: "AR Business Card enabled for your profile",
+          hasArEnabled: true
+        });
+      } else {
+        // They don't qualify yet
+        return res.status(403).json({ 
+          success: false, 
+          message: "You need to create at least one profile before enabling AR Business Cards",
+          hasArEnabled: false
+        });
+      }
+    } catch (error) {
+      console.error("AR access request error:", error);
+      res.status(500).json({ 
+        message: "Failed to process AR access request", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // Admin routes
   const adminRoutes = express.Router();
