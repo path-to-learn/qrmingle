@@ -15,7 +15,8 @@ import {
   MessageSquare, 
   Copy, 
   Share, 
-  UserPlus
+  UserPlus,
+  Box
 } from "lucide-react";
 import { Link } from "wouter";
 import { downloadVCard, getVCardDataUrl, saveToContacts, isMobileDevice } from "@/lib/vcard";
@@ -34,6 +35,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import ArBusinessCard from "@/components/ar/ArBusinessCard";
 
 // Type definition for profile data
 type SocialLinkType = {
@@ -59,6 +68,10 @@ type ProfileData = {
   slug: string;
   scanCount: number;
   socialLinks: SocialLinkType[];
+  hasArEnabled?: boolean;
+  arModelUrl?: string;
+  arScale?: number;
+  arAnimationEnabled?: boolean;
 };
 
 export default function ProfilePage() {
@@ -72,6 +85,7 @@ export default function ProfilePage() {
     email: "",
     message: ""
   });
+  const [showArView, setShowArView] = useState(false);
 
   // Fetch profile data
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
@@ -480,7 +494,7 @@ export default function ProfilePage() {
                         className="w-full"
                         onClick={() => setShowArView(true)}
                       >
-                        <Cube className="h-3 w-3 mr-1" />
+                        <Box className="h-3 w-3 mr-1" />
                         View AR Business Card
                       </Button>
                     </TooltipTrigger>

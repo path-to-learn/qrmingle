@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
-  Box3D, 
+  Box, 
   ArrowLeft, 
   Maximize, 
   Minimize, 
@@ -58,7 +58,7 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
   const [arSession, setArSession] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [modelScale, setModelScale] = useState(profile.arScale || 100);
-  const [isAnimating, setIsAnimating] = useState(profile.arAnimationEnabled || true);
+  const [isAnimating, setIsAnimating] = useState<boolean>(profile.arAnimationEnabled !== false);
   const [showControls, setShowControls] = useState(true);
   const { toast } = useToast();
 
@@ -295,7 +295,7 @@ const ArBusinessCard: React.FC<ArBusinessCardProps> = ({
                       onClick={startArSession}
                       className="h-8 w-8"
                     >
-                      <Box3D className="h-4 w-4" />
+                      <Box className="h-4 w-4" />
                     </Button>
                   )}
                   
