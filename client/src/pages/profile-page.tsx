@@ -15,8 +15,7 @@ import {
   MessageSquare, 
   Copy, 
   Share, 
-  UserPlus,
-  Box
+  UserPlus
 } from "lucide-react";
 import { Link } from "wouter";
 import { downloadVCard, getVCardDataUrl, saveToContacts, isMobileDevice } from "@/lib/vcard";
@@ -35,15 +34,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import ArBusinessCard from "@/components/ar/ArBusinessCard";
+
+
 
 // Type definition for profile data
 type SocialLinkType = {
@@ -69,10 +61,6 @@ type ProfileData = {
   slug: string;
   scanCount: number;
   socialLinks: SocialLinkType[];
-  hasArEnabled?: boolean;
-  arModelUrl?: string;
-  arScale?: number;
-  arAnimationEnabled?: boolean;
 };
 
 export default function ProfilePage() {
@@ -86,7 +74,6 @@ export default function ProfilePage() {
     email: "",
     message: ""
   });
-  const [showArView, setShowArView] = useState(false);
 
   // Fetch profile data
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
@@ -484,38 +471,7 @@ export default function ProfilePage() {
                 </Tooltip>
               </TooltipProvider>
               
-              {/* AR Business Card Button - Always show it with conditional messaging */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      size="sm"
-                      variant={profile.hasArEnabled ? "secondary" : "outline"}
-                      className={`w-full ${profile.hasArEnabled ? "bg-gradient-to-r from-primary/25 to-primary/40 hover:from-primary/30 hover:to-primary/50" : ""}`}
-                      onClick={() => {
-                        if (profile.hasArEnabled) {
-                          setShowArView(true);
-                        } else {
-                          toast({
-                            title: "3D View Not Available",
-                            description: "This profile doesn't have 3D Business Card enabled yet.",
-                            variant: "default"
-                          });
-                        }
-                      }}
-                    >
-                      <Box className="h-3 w-3 mr-1" />
-                      {profile.hasArEnabled ? "View 3D Business Card" : "3D View (Not Available)"}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{profile.hasArEnabled ? 
-                      "View as interactive 3D business card" : 
-                      "This profile doesn't have 3D view enabled"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+
               
               <div className="flex justify-center gap-2">
                 <Button
@@ -575,41 +531,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Interactive 3D Business Card Dialog */}
-      <Dialog open={showArView} onOpenChange={setShowArView}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Box className="h-5 w-5" />
-              Interactive 3D Business Card
-            </DialogTitle>
-            <DialogDescription>
-              View and interact with a 3D representation of this business card
-            </DialogDescription>
-          </DialogHeader>
-          {profile && (
-            <ArBusinessCard 
-              profile={{
-                id: profile.id,
-                displayName: profile.displayName,
-                title: profile.title,
-                arModelUrl: profile.arModelUrl,
-                arScale: profile.arScale,
-                arAnimationEnabled: profile.arAnimationEnabled,
-                hasArEnabled: true // Force to true since we only show the dialog if AR is enabled
-              }} 
-              onBack={() => setShowArView(false)}
-              isPreview={false}
-            />
-          )}
-          <DialogFooter className="gap-2 sm:gap-0">
-            <div className="text-xs text-muted-foreground">
-              Rotate, scale, and interact with the 3D card
-            </div>
-            <Button variant="default" onClick={() => setShowArView(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
