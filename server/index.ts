@@ -37,20 +37,20 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Create a server first
+  // Create HTTP server first
   const { createServer } = await import("http");
   const server = createServer(app);
-  
-  // Set up our API routes FIRST
+
+  // Set up our API routes FIRST before Vite middleware
+  // to ensure API requests are handled by our server
   await registerRoutes(app);
 
   // Set up error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    console.error("Server error:", err);
     res.status(status).json({ message });
-    console.error(err);
   });
 
   // Then set up Vite development server LAST
