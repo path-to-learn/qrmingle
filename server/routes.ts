@@ -1309,6 +1309,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
-  // No need to create a server here, we're just registering routes
-  return;
+  const httpServer = createServer(app);
+  return httpServer;
 }
