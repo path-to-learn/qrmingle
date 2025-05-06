@@ -12,6 +12,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import { log } from "./vite";
+import { addDirectRoute } from "./direct-route";
 
 // Fix for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -1309,6 +1310,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
+  // Add direct HTML route that bypasses React rendering
+  addDirectRoute(app);
+  
   const httpServer = createServer(app);
   return httpServer;
 }
