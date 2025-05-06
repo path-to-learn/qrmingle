@@ -3,44 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QrMingle - Redirecting</title>
+  <title>QrMingle - The Digital Networking Platform</title>
   <style>
+    :root {
+      --primary: #3B82F6;
+      --primary-dark: #2563EB;
+      --background: #f5f7fa;
+      --text: #333;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
+      --card-bg: white;
+      --accent: #f43f5e;
+      --success: #10b981;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      color: #333;
-      text-align: center;
-    }
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
-      width: 90%;
-    }
-    h1 {
-      color: #3B82F6;
-      margin-bottom: 1rem;
-      font-size: 2rem;
-    }
-    p {
-      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, var(--background) 0%, #c3cfe2 100%);
+      color: var(--text);
       line-height: 1.6;
+      min-height: 100vh;
     }
-    .buttons {
+    header {
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 1rem 2rem;
       display: flex;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+    }
+    .logo svg {
+      margin-right: 0.5rem;
+    }
+    nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover {
+      color: var(--primary);
+    }
+    .auth-buttons {
+      display: flex;
       gap: 1rem;
+    }
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+      margin: 4rem 0;
+    }
+    @media (max-width: 768px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+    .hero-content h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .hero-content h1 span {
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-content p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      color: var(--text-light);
+    }
+    .hero-image {
+      display: flex;
       justify-content: center;
+      align-items: center;
+    }
+    .hero-image img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .qr-placeholder {
+      width: 300px;
+      height: 300px;
+      background-color: var(--card-bg);
+      border-radius: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .qr-code {
+      width: 200px;
+      height: 200px;
+      background-color: var(--card-bg);
+      position: relative;
+    }
+    .qr-code::before, .qr-code::after {
+      content: '';
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border: 10px solid var(--primary);
+    }
+    .qr-code::before {
+      top: 0;
+      left: 0;
+      border-right: none;
+      border-bottom: none;
+    }
+    .qr-code::after {
+      bottom: 0;
+      right: 0;
+      border-left: none;
+      border-top: none;
     }
     .button {
+      display: inline-block;
       padding: 0.75rem 1.5rem;
       border-radius: 0.5rem;
       text-decoration: none;
@@ -50,46 +152,154 @@
       cursor: pointer;
     }
     .primary {
-      background: #3B82F6;
+      background: var(--primary);
       color: white;
       box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+      border: none;
     }
     .primary:hover {
-      background: #2563EB;
+      background: var(--primary-dark);
       transform: translateY(-2px);
     }
     .secondary {
-      background: #f3f4f6;
-      color: #4b5563;
-      border: 1px solid #e5e7eb;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
     .secondary:hover {
-      background: #e5e7eb;
+      background: var(--border);
       transform: translateY(-2px);
     }
-    .countdown {
-      margin-top: 1.5rem;
-      font-size: 0.875rem;
-      color: #6b7280;
+    .features {
+      margin: 4rem 0;
     }
-    .logo {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #3B82F6;
+    .section-title {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .section-title h2 {
+      font-size: 2rem;
+      color: var(--text);
       margin-bottom: 1rem;
+    }
+    .section-title p {
+      color: var(--text-light);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    .feature-card {
+      background-color: var(--card-bg);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    .feature-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: rgba(59, 130, 246, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-bottom: 1.5rem;
     }
-    .logo svg {
-      margin-right: 0.5rem;
+    .feature-icon svg {
+      color: var(--primary);
+    }
+    .feature-card h3 {
+      margin-bottom: 1rem;
+    }
+    footer {
+      background-color: white;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 4rem;
+    }
+    .login-form, .register-form {
+      display: none;
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+    }
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .form-header h2 {
+      color: var(--primary);
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+    }
+    .form-actions {
+      text-align: center;
+    }
+    .form-actions button {
+      width: 100%;
+    }
+    .form-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    .form-footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 50;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <header>
     <div class="logo">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
         <path d="M3 9v1a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"></path>
         <path d="M15 13v2"></path>
@@ -97,40 +307,217 @@
       </svg>
       QrMingle
     </div>
-    <h1>Development Environment</h1>
-    <p>You're currently in the QrMingle development environment. The production application is available at <strong>qrmingle.app</strong>.</p>
-    <p>You will be automatically redirected to the production site in <span id="countdown">5</span> seconds.</p>
-    
-    <div class="buttons">
-      <a href="https://qrmingle.app" class="button primary">Go to Production Site</a>
-      <button id="stay-here" class="button secondary">Stay in Development</button>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#howto">How It Works</a>
+      <a href="#test">Test</a>
+    </nav>
+    <div class="auth-buttons">
+      <button id="login-btn" class="button secondary">Login</button>
+      <button id="register-btn" class="button primary">Register</button>
     </div>
-    
-    <div class="countdown">Redirecting to <a href="https://qrmingle.app">qrmingle.app</a>...</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Connect Seamlessly with <span>QR Codes</span></h1>
+        <p>QrMingle simplifies networking by creating personalized QR codes that instantly share your professional profile and contact information. Stand out at events and make meaningful connections.</p>
+        <button id="get-started" class="button primary">Get Started</button>
+      </div>
+      <div class="hero-image">
+        <div class="qr-placeholder">
+          <div class="qr-code"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <div class="section-title">
+        <h2>Powerful Features</h2>
+        <p>Everything you need to create and manage your digital presence</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+              <rect width="3" height="3" x="7" y="7"></rect>
+              <rect width="3" height="3" x="14" y="7"></rect>
+              <rect width="3" height="3" x="7" y="14"></rect>
+              <rect width="3" height="3" x="14" y="14"></rect>
+            </svg>
+          </div>
+          <h3>Custom QR Codes</h3>
+          <p>Create beautiful, personalized QR codes with your brand colors and style preferences.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <h3>Multiple Profiles</h3>
+          <p>Create different profiles for various contexts - professional, social, hobby-specific, and more.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20v-6"></path>
+              <path d="M9 17h6"></path>
+              <path d="m22 7-1.41 1.41"></path>
+              <path d="M19 10h.01"></path>
+              <path d="M17.66 11.92a5.76 5.76 0 1 1-8.91-4.53 5.76 5.76 0 0 1 8.91 4.53Z"></path>
+              <path d="m15 5 .5-1.5h3L20 5l-1.5 1-2-1Z"></path>
+              <path d="m2 7 1.41 1.41"></path>
+              <path d="M5 10h-.01"></path>
+              <path d="m9 5-.5-1.5H5.5L4 5l1.5 1 2-1Z"></path>
+            </svg>
+          </div>
+          <h3>Analytics Dashboard</h3>
+          <p>Track profile views and scans with detailed analytics to measure your networking success.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2023 QrMingle. All rights reserved.</p>
+  </footer>
+
+  <div id="overlay" class="overlay"></div>
+
+  <div id="login-form" class="login-form">
+    <div class="form-header">
+      <h2>Log In</h2>
+      <button class="close-btn">&times;</button>
+    </div>
+    <form>
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" required>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" required>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button primary">Log In</button>
+      </div>
+    </form>
+    <div class="form-footer">
+      <p>Don't have an account? <a href="#" id="switch-to-register">Register</a></p>
+    </div>
+  </div>
+
+  <div id="register-form" class="register-form">
+    <div class="form-header">
+      <h2>Register</h2>
+      <button class="close-btn">&times;</button>
+    </div>
+    <form>
+      <div class="form-group">
+        <label for="register-email">Email</label>
+        <input type="email" id="register-email" required>
+      </div>
+      <div class="form-group">
+        <label for="register-password">Password</label>
+        <input type="password" id="register-password" required>
+      </div>
+      <div class="form-group">
+        <label for="register-confirm">Confirm Password</label>
+        <input type="password" id="register-confirm" required>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button primary">Register</button>
+      </div>
+    </form>
+    <div class="form-footer">
+      <p>Already have an account? <a href="#" id="switch-to-login">Login</a></p>
+    </div>
   </div>
 
   <script>
-    // Countdown logic
-    let seconds = 5;
-    const countdownElement = document.getElementById('countdown');
-    const stayButton = document.getElementById('stay-here');
+    // Modal handling
+    const overlay = document.getElementById('overlay');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const getStartedBtn = document.getElementById('get-started');
+    const closeBtns = document.querySelectorAll('.close-btn');
+    const switchToRegister = document.getElementById('switch-to-register');
+    const switchToLogin = document.getElementById('switch-to-login');
+
+    function openLoginForm() {
+      loginForm.style.display = 'block';
+      overlay.style.display = 'block';
+      registerForm.style.display = 'none';
+    }
+
+    function openRegisterForm() {
+      registerForm.style.display = 'block';
+      overlay.style.display = 'block';
+      loginForm.style.display = 'none';
+    }
+
+    function closeAllForms() {
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'none';
+      overlay.style.display = 'none';
+    }
+
+    loginBtn.addEventListener('click', openLoginForm);
+    registerBtn.addEventListener('click', openRegisterForm);
+    getStartedBtn.addEventListener('click', openRegisterForm);
+    overlay.addEventListener('click', closeAllForms);
     
-    stayButton.addEventListener('click', function() {
-      // Cancel redirect
-      clearInterval(intervalId);
-      countdownElement.textContent = "Redirect canceled";
-      document.querySelector('.countdown').textContent = "Staying in development environment";
+    closeBtns.forEach(btn => {
+      btn.addEventListener('click', closeAllForms);
     });
-    
-    const intervalId = setInterval(function() {
-      seconds--;
-      countdownElement.textContent = seconds;
+
+    switchToRegister.addEventListener('click', (e) => {
+      e.preventDefault();
+      openRegisterForm();
+    });
+
+    switchToLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      openLoginForm();
+    });
+
+    // Form submissions
+    const loginFormEl = loginForm.querySelector('form');
+    const registerFormEl = registerForm.querySelector('form');
+
+    loginFormEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
       
-      if (seconds <= 0) {
-        clearInterval(intervalId);
-        window.location.href = "https://qrmingle.app";
+      console.log('Login attempt with:', { email, password });
+      // Here you would typically make an API call to /api/login
+      alert('Login functionality is available in the production app at qrmingle.app');
+    });
+
+    registerFormEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const confirm = document.getElementById('register-confirm').value;
+      
+      if (password !== confirm) {
+        alert('Passwords do not match!');
+        return;
       }
-    }, 1000);
+      
+      console.log('Registration attempt with:', { email, password });
+      // Here you would typically make an API call to /api/register
+      alert('Registration functionality is available in the production app at qrmingle.app');
+    });
   </script>
 </body>
 </html>

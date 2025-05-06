@@ -73,6 +73,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Root path requested, serving index.html");
     res.sendFile(path.join(process.cwd(), 'client', 'public', 'index.html'));
   });
+  
+  // Test profile route
+  app.get('/test', (req, res) => {
+    console.log("Test profile requested");
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'test.html'));
+  });
   // Add direct-profile route for viewing profiles without React
   app.get('/direct-profile/:slug', async (req, res) => {
     const slug = req.params.slug;
