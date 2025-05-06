@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { addStaticRoute } from "./static-route";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -38,7 +39,7 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
-
+  
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -46,6 +47,10 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
+
+  // Add our static test route - this must come before Vite setup
+  // so it doesn't get intercepted by Vite's catch-all handler
+  addStaticRoute(app);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
