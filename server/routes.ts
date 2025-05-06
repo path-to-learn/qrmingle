@@ -61,6 +61,13 @@ const videoUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  console.log('Registering routes...');
+  
+  // Debug middleware to log all incoming requests
+  app.use((req, res, next) => {
+    console.log(`REQUEST: ${req.method} ${req.path}`);
+    next();
+  });
   // Setup authentication (must happen before routes)
   setupAuth(app);
 
@@ -1290,26 +1297,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
-  // Add direct HTML route that bypasses React rendering
-  addDirectRoute(app);
-  
-  // Add a simpler direct HTML route as a fallback
-  app.get('/direct-test', (req, res) => {
-    console.log('DIRECT-TEST ROUTE HANDLER CALLED');
+  // Add static routes first
+  app.get('/test.html', (req, res) => {
+    console.log('STATIC HTML TEST ROUTE CALLED');
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Direct Test Page</title>
+          <title>Static Test Page</title>
         </head>
-        <body>
-          <h1>Direct Test Page</h1>
-          <p>This is a simple direct HTML test page that bypasses React rendering.</p>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+          <h1>Static Test Page</h1>
+          <p>This is a simple static HTML test page that bypasses React rendering.</p>
+          <p>Current time: ${new Date().toLocaleString()}</p>
         </body>
       </html>
     `;
     res.setHeader('Content-Type', 'text/html');
     res.send(htmlContent);
+  });
+  
+  // Direct access to profiles using static HTML (no React)
+  app.get('/direct-profile/:slug', async (req, res) => {
+    console.log(`DIRECT PROFILE ROUTE CALLED FOR SLUG: ${req.params.slug}`);
+    
+    try {
+      // Get profile data
+      const profile = await storage.getProfileBySlug(req.params.slug);
+      
+      if (!profile) {
+        res.status(404).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Profile Not Found</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
+              <h1>Profile Not Found</h1>
+              <p>The profile you're looking for does not exist.</p>
+              <p><a href="/">Return to Home</a></p>
+            </body>
+          </html>
+        `);
+        return;
+      }
+      
+      // Increment scan count
+      await storage.incrementScanCount(profile.id);
+      
+      // Log the scan
+      await storage.createScanLog({
+        profileId: profile.id,
+        location: req.query.location as string || null,
+        device: req.headers['user-agent'] || null,
+        referrer: req.headers['referer'] || null,
+      });
+      
+      // Get social links
+      const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
+      
+      // Redirect to the static profile HTML with query parameters
+      res.redirect(`/profile.html?slug=${profile.slug}&name=${encodeURIComponent(profile.displayName)}&title=${encodeURIComponent(profile.title || '')}&load=true`);
+    } catch (error) {
+      console.error(`Error in direct profile route: ${error}`);
+      res.status(500).send('Server error loading profile');
+    }
   });
 
   // Add a catch-all route to ensure all routes not explicitly handled above

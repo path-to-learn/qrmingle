@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QrMingle</title>
+  <title>QrMingle Direct HTML Page</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -82,15 +82,24 @@
       <div class="feature-item">Easily share contact information</div>
     </div>
     
-    <button class="button" onclick="alert('This is a static page for demonstration purposes')">Get Started</button>
+    <button class="button" onclick="window.location.href='/'">Get Started</button>
+    
+    <div style="margin-top: 1.5rem;">
+      <p style="margin-bottom: 1rem;">Test Static Profile Pages:</p>
+      <a href="/direct-profile/ravin-e3125a6e" class="button" style="margin-right: 0.5rem;">Profile 1</a>
+      <a href="/direct-profile/mridul-sharma-68c5a39e" class="button">Profile 2</a>
+    </div>
     
     <p style="margin-top: 2rem; font-size: 0.875rem; color: #6b7280;">
       This is a direct HTML page that bypasses React rendering.
+      <br>
+      Timestamp: <span id="timestamp"></span>
     </p>
   </div>
 
   <script>
     console.log('Direct HTML page loaded');
+    document.getElementById('timestamp').innerText = new Date().toLocaleString();
   </script>
 </body>
 </html>
