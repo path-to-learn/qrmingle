@@ -186,7 +186,10 @@ export default function ProfilePage() {
 
   // Copy profile URL to clipboard
   const copyProfileUrl = () => {
-    navigator.clipboard.writeText(window.location.href);
+    if (!profile) return;
+    
+    const profileUrl = `${window.location.origin}/p/${profile.slug}`;
+    navigator.clipboard.writeText(profileUrl);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
     
@@ -202,10 +205,11 @@ export default function ProfilePage() {
     
     if (navigator.share) {
       try {
+        const profileUrl = `${window.location.origin}/p/${profile.slug}`;
         navigator.share({
           title: `${profile.displayName}'s Contact Profile`,
           text: profile.bio || `Connect with ${profile.displayName}`,
-          url: window.location.href,
+          url: profileUrl,
         });
       } catch (err) {
         copyProfileUrl();
@@ -451,7 +455,7 @@ export default function ProfilePage() {
           {/* QR Code with actions */}
           <div className="flex flex-col items-center mb-6 bg-muted/10 p-4 rounded-lg">
             <QrCodeDisplay
-              value={window.location.href}
+              value={`${window.location.origin}/p/${profile.slug}`}
               fgColor={profile.qrColor || "#3B82F6"}
               size={150}
               qrStyle={profile.qrStyle || "basic"}
