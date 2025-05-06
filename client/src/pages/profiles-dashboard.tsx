@@ -95,7 +95,7 @@ export default function ProfilesDashboard() {
       
       // Trigger confetti on successful profile creation!
       import('@/lib/confetti-utils').then(({ triggerUserConfetti }) => {
-        triggerFireworks();
+        triggerUserConfetti();
       });
       
       toast({

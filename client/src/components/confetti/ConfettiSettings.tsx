@@ -40,6 +40,11 @@ export default function ConfettiSettings({ onChange, initialSettings }: Confetti
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     onChange?.(newSettings);
+    
+    // If preview mode is enabled, show the confetti effect immediately
+    if (previewMode) {
+      triggerConfetti(newSettings);
+    }
   };
 
   const handleColorAdd = () => {
@@ -78,7 +83,7 @@ export default function ConfettiSettings({ onChange, initialSettings }: Confetti
                   value={settings.style || 'basic'} 
                   onValueChange={(value) => handleChange('style', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select a confetti style" />
                   </SelectTrigger>
                   <SelectContent>
@@ -89,6 +94,21 @@ export default function ConfettiSettings({ onChange, initialSettings }: Confetti
                     <SelectItem value="school">School Pride</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choose from different celebration styles
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="preview-mode"
+                  checked={previewMode}
+                  onCheckedChange={setPreviewMode}
+                />
+                <Label htmlFor="preview-mode">Live Preview Mode</Label>
+                <span className="text-xs text-muted-foreground ml-2">
+                  (Changes will show immediately)
+                </span>
               </div>
             </div>
           </TabsContent>
@@ -230,18 +250,9 @@ export default function ConfettiSettings({ onChange, initialSettings }: Confetti
           </TabsContent>
         </Tabs>
         
-        <div className="flex items-center justify-between mt-6">
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="preview-mode"
-              checked={previewMode}
-              onCheckedChange={setPreviewMode}
-            />
-            <Label htmlFor="preview-mode">Celebration Preview</Label>
-          </div>
-          
-          <Button onClick={previewConfetti}>
-            Test Confetti
+        <div className="flex justify-end mt-6">
+          <Button onClick={previewConfetti} className="ml-auto">
+            Test Confetti Effect
           </Button>
         </div>
       </CardContent>

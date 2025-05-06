@@ -167,8 +167,8 @@ export default function ProfilePage() {
       }
       
       // Trigger a small confetti celebration on successful contact save
-      import('@/lib/confetti').then(({ triggerConfetti }) => {
-        triggerConfetti({
+      import('@/lib/confetti-utils').then(({ triggerUserConfetti }) => {
+        triggerUserConfetti({
           particleCount: 50,
           spread: 60,
           origin: { y: 0.8, x: 0.5 }
@@ -469,8 +469,8 @@ export default function ProfilePage() {
                       onClick={async () => {
                         await saveToContacts(profile, profile.socialLinks);
                         // Trigger a small confetti celebration
-                        import('@/lib/confetti').then(({ triggerConfetti }) => {
-                          triggerConfetti({
+                        import('@/lib/confetti-utils').then(({ triggerUserConfetti }) => {
+                          triggerUserConfetti({
                             particleCount: 30,
                             spread: 50,
                             origin: { y: 0.7, x: 0.5 }
