@@ -6,17 +6,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function addDirectRoute(app: express.Express) {
-  // Add route for the homepage that bypasses React rendering
+  // Add route for the homepage that bypasses React rendering - use the react-fallback.html
   app.get('/', (req, res, next) => {
     console.log('ROOT ROUTE HANDLER CALLED');
-    console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'direct.html'));
+    console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'react-fallback.html'));
     // Use explicit error handling
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'direct.html'), (err) => {
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'react-fallback.html'), (err) => {
       if (err) {
-        console.error('ERROR SENDING DIRECT HTML:', err);
+        console.error('ERROR SENDING FALLBACK HTML:', err);
         next(err);
       } else {
-        console.log('DIRECT HTML SENT SUCCESSFULLY');
+        console.log('FALLBACK HTML SENT SUCCESSFULLY');
       }
     });
   });
