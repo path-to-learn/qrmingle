@@ -62,4 +62,17 @@ export function addDirectRoute(app: express.Express) {
       }
     });
   });
+  
+  // Test route for React basic testing
+  app.get('/test', (req, res) => {
+    console.log('TEST ROUTE HANDLER CALLED');
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'test.html'), (err) => {
+      if (err) {
+        console.error('ERROR SENDING TEST HTML:', err);
+        res.status(500).send('Error loading test page');
+      } else {
+        console.log('TEST HTML SENT SUCCESSFULLY');
+      }
+    });
+  });
 }
