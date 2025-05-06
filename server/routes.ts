@@ -394,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API route to get profile by slug for QR code landing pages
-  apiRoutes.get('/p/:slug', async (req, res) => {
+  app.get('/p/:slug', async (req, res) => {
     try {
       const { slug } = req.params;
       
