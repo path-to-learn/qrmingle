@@ -1,82 +1,86 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "./lib/queryClient";
 import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
-import ProfilePage from "@/pages/profile-page";
-import ProfilesDashboard from "@/pages/profiles-dashboard";
-import AdminPage from "@/pages/admin";
-import Premium from "@/pages/premium";
-import PremiumSuccess from "@/pages/premium-success";
-import Analytics from "@/pages/analytics";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import ForgotPassword from "@/pages/forgot-password";
-import Privacy from "@/pages/privacy";
-import Terms from "@/pages/terms";
-import Help from "@/pages/help";
-import About from "@/pages/about";
-import ConfettiSettingsPage from "@/pages/confetti-settings";
-import Header from "./components/layout/Header";
-import Footer from "./components/layout/Footer";
-import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
 
-// Router component
-function AppRouter() {
+// Error boundary component to catch rendering errors
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("React Error Boundary caught an error:", error, errorInfo);
+    this.setState({ error, errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 max-w-2xl mx-auto">
+          <div className="bg-red-50 p-6 rounded-xl shadow-lg border border-red-200">
+            <h2 className="text-2xl font-semibold text-red-700 mb-4">Something went wrong</h2>
+            <p className="text-gray-600 mb-6">
+              There was an error rendering the application component.
+            </p>
+            <pre className="bg-gray-100 p-4 rounded overflow-auto text-xs">
+              {this.state.error && this.state.error.toString()}
+            </pre>
+            <div className="mt-6">
+              <a 
+                href="/redirect.html"
+                className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Go to Production Site
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Simplified App for testing
+function SimpleApp() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    console.log("SimpleApp component mounted");
+    setIsLoaded(true);
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow container mx-auto px-4 py-6">
-        <Switch>
-          {/* The component at "/" will now only be the welcome/tutorial page */}
-          <Route path="/" component={Home} />
-          
-          {/* Profiles dashboard will be the main area for managing profiles */}
-          <Route path="/profiles">
-            <RequireAuth>
-              <ProfilesDashboard />
-            </RequireAuth>
-          </Route>
-          
-          <Route path="/p/:slug" component={ProfilePage} />
-          <Route path="/admin">
-            <RequireAuth>
-              <AdminPage />
-            </RequireAuth>
-          </Route>
-          <Route path="/premium">
-            <RequireAuth>
-              <Premium />
-            </RequireAuth>
-          </Route>
-          <Route path="/premium/success">
-            <RequireAuth>
-              <PremiumSuccess />
-            </RequireAuth>
-          </Route>
-          <Route path="/analytics">
-            <RequireAuth>
-              <Analytics />
-            </RequireAuth>
-          </Route>
-          <Route path="/confetti-settings">
-            <RequireAuth>
-              <ConfettiSettingsPage />
-            </RequireAuth>
-          </Route>
-          <Route path="/login" component={Login} />
-          <Route path="/register" component={Register} />
-          <Route path="/forgot-password" component={ForgotPassword} />
-          <Route path="/privacy" component={Privacy} />
-          <Route path="/terms" component={Terms} />
-          <Route path="/help" component={Help} />
-          <Route path="/about" component={About} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <Footer />
+    <div className="p-8 max-w-2xl mx-auto">
+      <div className="bg-white p-6 rounded-xl shadow-lg">
+        <h2 className="text-2xl font-semibold text-blue-600 mb-4">QrMingle</h2>
+        <p className="text-gray-600 mb-6">
+          {isLoaded ? "React is working correctly!" : "Loading..."}
+        </p>
+        <div className="flex flex-wrap gap-4 justify-center">
+          <a 
+            href="/redirect.html" 
+            className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Go to Production Site
+          </a>
+          <a 
+            href="/profile.html" 
+            className="px-5 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          >
+            View Static Pages
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
@@ -84,12 +88,11 @@ function AppRouter() {
 // Main App component
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-          <AppRouter />
-          <Toaster />
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <SimpleApp />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

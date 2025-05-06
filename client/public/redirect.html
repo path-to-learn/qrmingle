@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QrMingle - Redirecting to Production</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      font-size: 24px;
+      color: #3b82f6;
+      margin-bottom: 20px;
+    }
+    p {
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #2563eb;
+    }
+    .btn.secondary {
+      background-color: #e5e7eb;
+      color: #111827;
+    }
+    .btn.secondary:hover {
+      background-color: #d1d5db;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+    }
+    .alert {
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>QrMingle - Deployment Access</h1>
+    
+    <div class="alert">
+      <p>You are currently in the development environment. To access the production site, please click the button below:</p>
+    </div>
+    
+    <p>Your production application is available at its deployed URL. The development environment is experiencing issues with React rendering. Your production application should be fully functional.</p>
+    
+    <div class="buttons">
+      <a href="https://qrmingle.app" class="btn">Go to Production Site</a>
+      <a href="direct.html" class="btn secondary">Stay in Development</a>
+    </div>
+  </div>
+  
+  <script>
+    // Optional: Automatically redirect after 5 seconds
+    setTimeout(() => {
+      window.location.href = 'https://qrmingle.app';
+    }, 5000);
+  </script>
+</body>
+</html>

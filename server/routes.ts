@@ -61,6 +61,10 @@ const videoUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add a root route to redirect to the production site or the redirect.html page
+  app.get('/', (req, res) => {
+    res.redirect('/redirect.html');
+  });
   console.log('Registering routes...');
   
   // Debug middleware to log all incoming requests
