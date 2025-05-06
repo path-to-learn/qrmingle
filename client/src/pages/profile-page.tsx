@@ -464,7 +464,11 @@ export default function ProfilePage() {
                       size="sm"
                       variant="default" 
                       className="w-full bg-gradient-to-r from-primary to-primary/80"
-                      onClick={() => saveToContacts(profile, profile.socialLinks)}
+                      onClick={() => {
+                        saveToContacts(profile, profile.socialLinks);
+                        // Launch confetti celebration
+                        celebrateSaveContact();
+                      }}
                     >
                       <UserPlus className="h-3 w-3 mr-1" />
                       Save Contact

@@ -74,7 +74,7 @@ export function celebrateQrGenerated() {
         y: Math.random() - 0.2,
       },
       colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'],
-      shapes: ['square', 'circle'],
+      shapes: ['square', 'circle'] as string[],
       zIndex: 2000,
     });
   }, 50);
@@ -88,7 +88,7 @@ export function celebrateSaveContact() {
     gravity: 0.5,
     decay: 0.94,
     startVelocity: 30,
-    shapes: ['circle', 'square'],
+    shapes: ['circle', 'square'] as string[],
     colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'],
     zIndex: 2000,
   };
@@ -97,7 +97,7 @@ export function celebrateSaveContact() {
     ...defaults,
     particleCount: 50,
     scalar: 1.2,
-    shapes: ['star'],
+    shapes: ['star'] as string[],
     origin: { x: 0.5, y: 0.7 },
   });
 
