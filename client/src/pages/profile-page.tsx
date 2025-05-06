@@ -77,7 +77,7 @@ export default function ProfilePage() {
 
   // Fetch profile data
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
-    queryKey: [`/p/${slug}`],
+    queryKey: [`/api/profile-by-slug/${slug}`],
     enabled: !!slug,
   });
 
