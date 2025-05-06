@@ -1,24 +1,19 @@
-import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useConfettiSettings } from '@/hooks/use-confetti-settings';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RocketIcon, Sparkles } from 'lucide-react';
 import ConfettiSettings from '@/components/confetti/ConfettiSettings';
-import { ConfettiOptions, triggerFireworks } from '@/lib/confetti';
+import { triggerFireworks } from '@/lib/confetti';
 
 export default function ConfettiSettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [confettiSettings, setConfettiSettings] = useState<ConfettiOptions>({
-    particleCount: 80,
-    spread: 70,
-    style: 'basic',
-  });
+  const { settings: confettiSettings, updateSettings } = useConfettiSettings();
 
-  const handleConfettiSettingsChange = (settings: ConfettiOptions) => {
-    setConfettiSettings(settings);
-    // You could save these settings to user preferences if you had a backend endpoint for it
+  const handleConfettiSettingsChange = (settings) => {
+    updateSettings(settings);
   };
 
   const handleSaveSettings = () => {
