@@ -18,11 +18,8 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
-// Import standard components instead of the custom color picker
 import { generateQrWidget, widgetInstructions } from '@/lib/qrWidget';
 import { Loader2, Download, Phone, Image as ImageIcon, Share2 } from 'lucide-react';
 
