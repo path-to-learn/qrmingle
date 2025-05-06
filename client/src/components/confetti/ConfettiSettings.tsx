@@ -17,10 +17,11 @@ import { HexColorPicker } from "react-colorful";
 
 export interface ConfettiSettingsProps {
   onChange?: (settings: ConfettiOptions) => void;
+  initialSettings?: ConfettiOptions;
 }
 
-export default function ConfettiSettings({ onChange }: ConfettiSettingsProps) {
-  const [settings, setSettings] = useState<ConfettiOptions>({
+export default function ConfettiSettings({ onChange, initialSettings }: ConfettiSettingsProps) {
+  const defaultSettings: ConfettiOptions = {
     particleCount: 80,
     spread: 70,
     startVelocity: 30,
@@ -28,7 +29,9 @@ export default function ConfettiSettings({ onChange }: ConfettiSettingsProps) {
     style: 'basic',
     colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'],
     shapes: ['square', 'circle'],
-  });
+  };
+  
+  const [settings, setSettings] = useState<ConfettiOptions>(initialSettings || defaultSettings);
 
   const [customColor, setCustomColor] = useState("#ff0000");
   const [previewMode, setPreviewMode] = useState(false);

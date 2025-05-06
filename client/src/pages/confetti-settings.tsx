@@ -1,19 +1,48 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useConfettiSettings } from '@/hooks/use-confetti-settings';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RocketIcon, Sparkles } from 'lucide-react';
 import ConfettiSettings from '@/components/confetti/ConfettiSettings';
-import { triggerFireworks } from '@/lib/confetti';
+import { triggerFireworks, ConfettiOptions } from '@/lib/confetti';
+
+const defaultSettings: ConfettiOptions = {
+  particleCount: 80,
+  spread: 70,
+  startVelocity: 30,
+  gravity: 1,
+  style: 'basic',
+  colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'],
+  shapes: ['square', 'circle'],
+};
 
 export default function ConfettiSettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { settings: confettiSettings, updateSettings } = useConfettiSettings();
+  const [confettiSettings, setConfettiSettings] = useState<ConfettiOptions>(defaultSettings);
+  
+  // Load settings from localStorage on initial mount
+  useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem('confettiSettings');
+      if (savedSettings) {
+        setConfettiSettings(JSON.parse(savedSettings));
+      }
+    } catch (error) {
+      console.error('Error loading confetti settings:', error);
+    }
+  }, []);
 
-  const handleConfettiSettingsChange = (settings) => {
-    updateSettings(settings);
+  const handleConfettiSettingsChange = (settings: ConfettiOptions) => {
+    setConfettiSettings(settings);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('confettiSettings', JSON.stringify(settings));
+    } catch (error) {
+      console.error('Error saving confetti settings:', error);
+    }
   };
 
   const handleSaveSettings = () => {
@@ -63,7 +92,10 @@ export default function ConfettiSettingsPage() {
                 and at other important moments. Choose how you want to celebrate!
               </p>
               
-              <ConfettiSettings onChange={handleConfettiSettingsChange} />
+              <ConfettiSettings 
+                onChange={handleConfettiSettingsChange}
+                initialSettings={confettiSettings}
+              />
               
               <div className="flex justify-end mt-6">
                 <Button onClick={handleSaveSettings} className="gap-2">

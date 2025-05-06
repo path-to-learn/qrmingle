@@ -85,8 +85,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppRouter />
-        <Toaster />
+          <AppRouter />
+          <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
