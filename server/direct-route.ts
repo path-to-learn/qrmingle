@@ -6,17 +6,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function addDirectRoute(app: express.Express) {
-  // Add route for the homepage that bypasses React rendering - use the react-fallback.html
+  // Add route for the homepage that uses our React app with ESM imports
   app.get('/', (req, res, next) => {
     console.log('ROOT ROUTE HANDLER CALLED');
-    console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'react-fallback.html'));
+    console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'react-app.html'));
     // Use explicit error handling
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'react-fallback.html'), (err) => {
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'react-app.html'), (err) => {
       if (err) {
-        console.error('ERROR SENDING FALLBACK HTML:', err);
-        next(err);
+        console.error('ERROR SENDING REACT APP HTML:', err);
+        // Fall back to the direct.html if react-app.html fails
+        res.sendFile(path.join(process.cwd(), 'client', 'public', 'direct.html'), (fallbackErr) => {
+          if (fallbackErr) {
+            console.error('ERROR SENDING FALLBACK HTML:', fallbackErr);
+            next(fallbackErr);
+          } else {
+            console.log('FALLBACK HTML SENT SUCCESSFULLY');
+          }
+        });
       } else {
-        console.log('FALLBACK HTML SENT SUCCESSFULLY');
+        console.log('REACT APP HTML SENT SUCCESSFULLY');
       }
     });
   });
@@ -72,6 +80,19 @@ export function addDirectRoute(app: express.Express) {
         res.status(500).send('Error loading test page');
       } else {
         console.log('TEST HTML SENT SUCCESSFULLY');
+      }
+    });
+  });
+  
+  // React App route using ESM imports
+  app.get('/react-app', (req, res) => {
+    console.log('REACT APP ROUTE HANDLER CALLED');
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'react-app.html'), (err) => {
+      if (err) {
+        console.error('ERROR SENDING REACT APP HTML:', err);
+        res.status(500).send('Error loading React app page');
+      } else {
+        console.log('REACT APP HTML SENT SUCCESSFULLY');
       }
     });
   });

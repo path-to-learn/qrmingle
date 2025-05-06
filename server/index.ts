@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { addDirectRoute } from "./direct-route";
@@ -38,6 +39,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Serve static files from public directory
+  app.use(express.static(path.join(process.cwd(), 'client', 'public')));
+  
   // Add direct HTML route before the API routes
   addDirectRoute(app);
   

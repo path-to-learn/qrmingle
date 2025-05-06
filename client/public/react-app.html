@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QrMingle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      color: #1f2937;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    /* Loading indicator */
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #f5f7fa;
+      z-index: 9999;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(59, 130, 246, 0.3);
+      border-radius: 50%;
+      border-top-color: #3b82f6;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading state -->
+  <div id="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <div>Loading QrMingle...</div>
+  </div>
+  
+  <!-- React mount point -->
+  <div id="root"></div>
+  
+  <!-- Error handling for script -->
+  <script>
+    window.addEventListener('error', function(e) {
+      console.error('Script error:', e);
+      document.getElementById('loading').innerHTML = `
+        <div style="background-color: #fee2e2; padding: 20px; border-radius: 8px; max-width: 500px; text-align: center;">
+          <h2 style="color: #b91c1c; margin-top: 0;">Error Loading Application</h2>
+          <p style="margin-bottom: 20px;">There was an error loading the application:</p>
+          <pre style="background: #fff; padding: 10px; border-radius: 4px; overflow: auto; text-align: left;">${e.message}</pre>
+          <div style="margin-top: 20px;">
+            <a href="/direct" style="background-color: #3b82f6; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+              Go to Simple Version
+            </a>
+          </div>
+        </div>
+      `;
+    });
+    
+    // Hide loading after successful load
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.opacity = '0';
+          loading.style.transition = 'opacity 0.5s ease';
+          setTimeout(function() {
+            loading.style.display = 'none';
+          }, 500);
+        }
+      }, 1000);
+    });
+  </script>
+  
+  <!-- React application script - using type module -->
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
