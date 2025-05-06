@@ -2,8 +2,6 @@ import type { Express, Request, Response } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { addDirectRoute } from "./direct-route";
-import { addStaticRoute } from "./static-route";
 import { insertProfileSchema, insertScanLogSchema, insertUserSchema, profileFormSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
@@ -62,62 +60,6 @@ const videoUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Register direct routes first to ensure correct routing priority
-  addDirectRoute(app);
-  
-  // Add static test route
-  addStaticRoute(app);
-  
-  // Root path should show the redirect page
-  app.get('/', (req, res) => {
-    console.log("Root path requested, serving index.html");
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'index.html'));
-  });
-  
-  // Test profile route
-  app.get('/test', (req, res) => {
-    console.log("Test profile requested");
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'test.html'));
-  });
-  // Add direct-profile route for viewing profiles without React
-  app.get('/direct-profile/:slug', async (req, res) => {
-    const slug = req.params.slug;
-    console.log(`DIRECT PROFILE ROUTE CALLED FOR SLUG: ${slug}`);
-    
-    try {
-      // If slug exists, fetch the profile data
-      if (slug) {
-        const profile = await storage.getProfileBySlug(slug);
-        if (profile) {
-          // Increment scan count
-          await storage.incrementScanCount(profile.id);
-          
-          // Get social links
-          const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
-          
-          // Log scan
-          const scanLog = await storage.createScanLog({
-            profileId: profile.id,
-            device: req.headers['user-agent'] || '',
-            referrer: req.headers.referer || '',
-            location: req.ip || ''
-          });
-          
-          // Send the profile.html file
-          res.sendFile(path.join(process.cwd(), 'client', 'public', 'profile.html'));
-        } else {
-          // Profile not found
-          res.status(404).send('Profile not found');
-        }
-      } else {
-        // No slug provided
-        res.status(400).send('No profile slug provided');
-      }
-    } catch (error) {
-      console.error('Error in direct-profile route:', error);
-      res.status(500).send('Server error');
-    }
-  });
   // Setup authentication (must happen before routes)
   setupAuth(app);
 
