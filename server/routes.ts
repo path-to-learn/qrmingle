@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { addDirectRoute } from "./direct-route";
 import { insertProfileSchema, insertScanLogSchema, insertUserSchema, profileFormSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
@@ -12,7 +13,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import { log } from "./vite";
-import { addDirectRoute } from "./direct-route";
 
 // Fix for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -61,16 +61,46 @@ const videoUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add a root route to redirect to the production site or the redirect.html page
-  app.get('/', (req, res) => {
-    res.redirect('/redirect.html');
-  });
-  console.log('Registering routes...');
-  
-  // Debug middleware to log all incoming requests
-  app.use((req, res, next) => {
-    console.log(`REQUEST: ${req.method} ${req.path}`);
-    next();
+  // Register direct routes first to ensure correct routing priority
+  addDirectRoute(app);
+  // Add direct-profile route for viewing profiles without React
+  app.get('/direct-profile/:slug', async (req, res) => {
+    const slug = req.params.slug;
+    console.log(`DIRECT PROFILE ROUTE CALLED FOR SLUG: ${slug}`);
+    
+    try {
+      // If slug exists, fetch the profile data
+      if (slug) {
+        const profile = await storage.getProfileBySlug(slug);
+        if (profile) {
+          // Increment scan count
+          await storage.incrementScanCount(profile.id);
+          
+          // Get social links
+          const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
+          
+          // Log scan
+          const scanLog = await storage.createScanLog({
+            profileId: profile.id,
+            device: req.headers['user-agent'] || '',
+            referrer: req.headers.referer || '',
+            location: req.ip || ''
+          });
+          
+          // Send the profile.html file
+          res.sendFile(path.join(process.cwd(), 'client', 'public', 'profile.html'));
+        } else {
+          // Profile not found
+          res.status(404).send('Profile not found');
+        }
+      } else {
+        // No slug provided
+        res.status(400).send('No profile slug provided');
+      }
+    } catch (error) {
+      console.error('Error in direct-profile route:', error);
+      res.status(500).send('Server error');
+    }
   });
   // Setup authentication (must happen before routes)
   setupAuth(app);
@@ -1301,73 +1331,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
-  // Add static routes first
-  app.get('/test.html', (req, res) => {
-    console.log('STATIC HTML TEST ROUTE CALLED');
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Static Test Page</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-          <h1>Static Test Page</h1>
-          <p>This is a simple static HTML test page that bypasses React rendering.</p>
-          <p>Current time: ${new Date().toLocaleString()}</p>
-        </body>
-      </html>
-    `;
-    res.setHeader('Content-Type', 'text/html');
-    res.send(htmlContent);
-  });
-  
-  // Direct access to profiles using static HTML (no React)
-  app.get('/direct-profile/:slug', async (req, res) => {
-    console.log(`DIRECT PROFILE ROUTE CALLED FOR SLUG: ${req.params.slug}`);
-    
-    try {
-      // Get profile data
-      const profile = await storage.getProfileBySlug(req.params.slug);
-      
-      if (!profile) {
-        res.status(404).send(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>Profile Not Found</title>
-            </head>
-            <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
-              <h1>Profile Not Found</h1>
-              <p>The profile you're looking for does not exist.</p>
-              <p><a href="/">Return to Home</a></p>
-            </body>
-          </html>
-        `);
-        return;
-      }
-      
-      // Increment scan count
-      await storage.incrementScanCount(profile.id);
-      
-      // Log the scan
-      await storage.createScanLog({
-        profileId: profile.id,
-        location: req.query.location as string || null,
-        device: req.headers['user-agent'] || null,
-        referrer: req.headers['referer'] || null,
-      });
-      
-      // Get social links
-      const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
-      
-      // Redirect to the static profile HTML with query parameters
-      res.redirect(`/profile.html?slug=${profile.slug}&name=${encodeURIComponent(profile.displayName)}&title=${encodeURIComponent(profile.title || '')}&load=true`);
-    } catch (error) {
-      console.error(`Error in direct profile route: ${error}`);
-      res.status(500).send('Server error loading profile');
-    }
-  });
-
   // Add a catch-all route to ensure all routes not explicitly handled above
   // are properly routed to the SPA for client-side routing to handle
   app.get('*', (req, res, next) => {
@@ -1377,9 +1340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.path.includes('.') ||
       req.path.startsWith('/@') ||  // Vite and React refresh
       req.path.startsWith('/__') || // Vite internal
-      req.path.startsWith('/node_modules/') ||
-      req.path === '/direct' ||  // Exclude our direct HTML route
-      req.path === '/direct-test'  // Exclude our test direct HTML route
+      req.path.startsWith('/node_modules/')
     ) {
       return next();
     }
@@ -1389,7 +1350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Send the index.html file so the client-side router can handle it
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
-  
+
   const httpServer = createServer(app);
   return httpServer;
 }
