@@ -5,44 +5,17 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { RocketIcon, Sparkles } from 'lucide-react';
 import ConfettiSettings from '@/components/confetti/ConfettiSettings';
-import { triggerFireworks, ConfettiOptions } from '@/lib/confetti';
-
-const defaultSettings: ConfettiOptions = {
-  particleCount: 80,
-  spread: 70,
-  startVelocity: 30,
-  gravity: 1,
-  style: 'basic',
-  colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'],
-  shapes: ['square', 'circle'],
-};
+import { ConfettiOptions, triggerFireworks } from '@/lib/confetti';
+import { getConfettiSettings, saveConfettiSettings, triggerUserConfetti } from '@/lib/confetti-utils';
 
 export default function ConfettiSettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [confettiSettings, setConfettiSettings] = useState<ConfettiOptions>(defaultSettings);
-  
-  // Load settings from localStorage on initial mount
-  useEffect(() => {
-    try {
-      const savedSettings = localStorage.getItem('confettiSettings');
-      if (savedSettings) {
-        setConfettiSettings(JSON.parse(savedSettings));
-      }
-    } catch (error) {
-      console.error('Error loading confetti settings:', error);
-    }
-  }, []);
+  const [confettiSettings, setConfettiSettings] = useState<ConfettiOptions>(getConfettiSettings());
 
   const handleConfettiSettingsChange = (settings: ConfettiOptions) => {
     setConfettiSettings(settings);
-    
-    // Save to localStorage
-    try {
-      localStorage.setItem('confettiSettings', JSON.stringify(settings));
-    } catch (error) {
-      console.error('Error saving confetti settings:', error);
-    }
+    saveConfettiSettings(settings);
   };
 
   const handleSaveSettings = () => {
@@ -54,7 +27,7 @@ export default function ConfettiSettingsPage() {
     });
 
     // Let's show a celebratory confetti to confirm settings saved
-    triggerFireworks();
+    triggerUserConfetti();
   };
 
   if (!user) {
