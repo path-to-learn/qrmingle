@@ -59,7 +59,7 @@ const videoUpload = multer({
   }
 });
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express, server: Server): Promise<void> {
   // Setup authentication (must happen before routes)
   setupAuth(app);
 
@@ -1309,6 +1309,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // No need to create server here, we're using the one passed in
+  return;
 }
