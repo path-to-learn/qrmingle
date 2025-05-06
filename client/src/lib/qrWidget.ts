@@ -1,5 +1,3 @@
-import { createCanvas } from 'canvas';
-
 // Configuration options for QR widget
 export interface QrWidgetOptions {
   qrCodeUrl: string;      // URL to the QR code image (data URL or image URL)
@@ -7,7 +5,6 @@ export interface QrWidgetOptions {
   bgColor?: string;       // Background color for the widget
   textColor?: string;     // Text color for the widget
   size?: number;          // Size of the widget (square)
-  format?: 'png' | 'jpeg' | 'dataUrl'; // Output format
 }
 
 /**
@@ -24,55 +21,60 @@ export async function generateQrWidget(options: QrWidgetOptions): Promise<string
     size = 400,
   } = options;
 
-  // Create a canvas for the widget
-  const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
-
-  // Fill background
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, size, size);
-
-  // Draw header with app name
-  ctx.fillStyle = textColor;
-  ctx.font = `bold ${Math.floor(size / 16)}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText('QrMingle', size / 2, size / 10);
-
-  // Draw user's name
-  ctx.font = `${Math.floor(size / 20)}px Arial, sans-serif`;
-  ctx.fillText(displayName, size / 2, size / 6);
-
-  // Load and draw the QR code
-  try {
-    const qrImage = new Image();
-    
-    // Handle loading the QR code image
-    await new Promise<void>((resolve, reject) => {
-      qrImage.onload = () => resolve();
-      qrImage.onerror = () => reject(new Error('Failed to load QR code image'));
+  return new Promise((resolve, reject) => {
+    try {
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+  
+      // Fill background
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, size, size);
+  
+      // Draw header with app name
+      ctx.fillStyle = textColor;
+      ctx.font = `bold ${Math.floor(size / 16)}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('QrMingle', size / 2, size / 10);
+  
+      // Draw user's name
+      ctx.font = `${Math.floor(size / 20)}px Arial, sans-serif`;
+      ctx.fillText(displayName, size / 2, size / 6);
+  
+      // Load and draw the QR code
+      const qrImage = new Image();
+      qrImage.crossOrigin = 'anonymous';
       
-      // If it's a data URL, use directly, otherwise assume it's a regular URL
+      qrImage.onload = () => {
+        // Calculate QR code size (about 70% of the canvas)
+        const qrSize = size * 0.7;
+        const qrX = (size - qrSize) / 2;
+        const qrY = size / 5;
+        
+        // Draw the QR code
+        ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+  
+        // Add instructions at the bottom
+        ctx.font = `${Math.floor(size / 25)}px Arial, sans-serif`;
+        ctx.fillText('Scan to view profile', size / 2, size * 0.92);
+        
+        // Return as data URL
+        resolve(canvas.toDataURL('image/png'));
+      };
+      
+      qrImage.onerror = () => {
+        reject(new Error('Failed to load QR code image'));
+      };
+      
+      // Set the source to load the image
       qrImage.src = qrCodeUrl;
-    });
-
-    // Calculate QR code size (about 70% of the canvas)
-    const qrSize = size * 0.7;
-    const qrX = (size - qrSize) / 2;
-    const qrY = size / 5;
-    
-    // Draw the QR code
-    ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
-
-    // Add instructions at the bottom
-    ctx.font = `${Math.floor(size / 25)}px Arial, sans-serif`;
-    ctx.fillText('Scan to view profile', size / 2, size * 0.92);
-    
-    // Return as data URL
-    return canvas.toDataURL('image/png');
-  } catch (error) {
-    console.error('Error generating QR widget:', error);
-    throw error;
-  }
+    } catch (error) {
+      console.error('Error generating QR widget:', error);
+      reject(error);
+    }
+  });
 }
 
 /**

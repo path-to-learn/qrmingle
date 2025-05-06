@@ -552,6 +552,15 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* QR Widget Generator Dialog */}
+      <QrWidgetGenerator
+        profileName={profile.name}
+        profileDisplayName={profile.displayName}
+        qrCodeUrl={window.location.href}
+        open={showQrWidget}
+        onOpenChange={setShowQrWidget}
+      />
     </div>
   );
 }
