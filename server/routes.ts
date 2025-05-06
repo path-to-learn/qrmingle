@@ -388,9 +388,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Public profile route for QR code scans
-  app.get('/p/:slug', (req, res) => {
-    // This will be handled by the frontend router
-    res.sendFile(path.resolve('client', 'index.html'));
+  app.get('/p/:slug', (req, res, next) => {
+    // Let the Vite middleware or static file handler handle this
+    next();
   });
 
   // API route to get profile by slug for QR code landing pages
