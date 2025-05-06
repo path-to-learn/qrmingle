@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Dialog, 
@@ -9,19 +9,13 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { generateQrWidget, widgetInstructions } from '@/lib/qrWidget';
-import { Loader2, Download, Phone, Image as ImageIcon, Share2 } from 'lucide-react';
+import { widgetInstructions } from '@/lib/qrWidget';
+import { QRCodeSVG } from 'qrcode.react';
+import { Loader2, Download, Image as ImageIcon } from 'lucide-react';
+import QRCode from 'qrcode';
 
 interface QrWidgetGeneratorProps {
   profileName: string;
@@ -44,24 +38,84 @@ export function QrWidgetGenerator({
   const [textColor, setTextColor] = useState('#000000');
   const [widgetSize, setWidgetSize] = useState(400);
   const [currentTab, setCurrentTab] = useState('android');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   async function handleGenerateWidget() {
     setIsGenerating(true);
     try {
-      // Pass in the current qrCodeUrl and styling options
-      const widgetImageUrl = await generateQrWidget({
-        qrCodeUrl,
-        displayName: profileDisplayName,
-        bgColor,
-        textColor,
-        size: widgetSize
+      // First generate a QR code data URL using the qrcode library
+      const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl, {
+        errorCorrectionLevel: 'H',
+        margin: 1,
+        width: Math.floor(widgetSize * 0.7),
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
       });
-      
-      setWidgetImage(widgetImageUrl);
+
+      // Create a temporary image to load the QR code
+      const qrImage = new Image();
+      qrImage.onload = () => {
+        // Make sure we have a canvas reference
+        const canvas = canvasRef.current;
+        if (!canvas) {
+          setIsGenerating(false);
+          return;
+        }
+
+        // Get the canvas context and prepare it
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          setIsGenerating(false);
+          return;
+        }
+
+        // Set canvas dimensions
+        canvas.width = widgetSize;
+        canvas.height = widgetSize;
+
+        // Fill background
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, widgetSize, widgetSize);
+        
+        // Draw header with app name
+        ctx.fillStyle = textColor;
+        ctx.font = `bold ${Math.floor(widgetSize / 16)}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('QrMingle', widgetSize / 2, widgetSize / 10);
+        
+        // Draw user's name
+        ctx.font = `${Math.floor(widgetSize / 20)}px Arial, sans-serif`;
+        ctx.fillText(profileDisplayName, widgetSize / 2, widgetSize / 6);
+
+        // Calculate QR code size and position
+        const qrSize = Math.floor(widgetSize * 0.7);
+        const qrX = (widgetSize - qrSize) / 2;
+        const qrY = widgetSize / 5;
+        
+        // Draw the QR code
+        ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+        
+        // Add instructions at the bottom
+        ctx.font = `${Math.floor(widgetSize / 25)}px Arial, sans-serif`;
+        ctx.fillText('Scan to view profile', widgetSize / 2, widgetSize * 0.92);
+        
+        // Get the image data URL and set it to state
+        const widgetDataUrl = canvas.toDataURL('image/png');
+        setWidgetImage(widgetDataUrl);
+        setIsGenerating(false);
+      };
+
+      qrImage.onerror = () => {
+        console.error('Failed to load QR code image');
+        setIsGenerating(false);
+      };
+
+      // Set the source to the generated QR code
+      qrImage.src = qrCodeDataUrl;
     } catch (error) {
       console.error('Failed to generate widget:', error);
-      // Handle error here, maybe show a toast
-    } finally {
       setIsGenerating(false);
     }
   }
@@ -87,6 +141,9 @@ export function QrWidgetGenerator({
             Generate a custom QR widget for your phone's home screen.
           </DialogDescription>
         </DialogHeader>
+        
+        {/* Hidden canvas for generation */}
+        <canvas ref={canvasRef} style={{ display: 'none' }} />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Widget Preview */}
