@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import SocialLink from "@/components/profile/SocialLink";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
+import { QrWidgetGenerator } from "@/components/profile/QrWidgetGenerator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -15,7 +16,8 @@ import {
   MessageSquare, 
   Copy, 
   Share, 
-  UserPlus
+  UserPlus,
+  LayoutGrid
 } from "lucide-react";
 import { Link } from "wouter";
 import { downloadVCard, getVCardDataUrl, saveToContacts, isMobileDevice } from "@/lib/vcard";
@@ -73,6 +75,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showQrWidget, setShowQrWidget] = useState(false);
   const [contactFormData, setContactFormData] = useState({
     name: "",
     email: "",
@@ -483,6 +486,16 @@ export default function ProfilePage() {
               </TooltipProvider>
               
               <div className="flex justify-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowQrWidget(true)}
+                  className="text-xs text-muted-foreground"
+                >
+                  <LayoutGrid className="h-3 w-3 mr-1" />
+                  QR Widget
+                </Button>
+                
                 <Button
                   size="sm"
                   variant="ghost"
