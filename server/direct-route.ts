@@ -6,15 +6,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function addDirectRoute(app: express.Express) {
-  // Add route for serving the original home page
+  // Add route to redirect to production site
   app.get('/', (req, res, next) => {
-    console.log('ORIGINAL HOME ROUTE HANDLER CALLED');
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'original-home.html'), (err) => {
+    console.log('PRODUCTION REDIRECT ROUTE HANDLER CALLED');
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'production-redirect.html'), (err) => {
       if (err) {
-        console.error('ERROR SENDING ORIGINAL HOME HTML:', err);
+        console.error('ERROR SENDING PRODUCTION REDIRECT HTML:', err);
         next(err);
       } else {
-        console.log('ORIGINAL HOME HTML SENT SUCCESSFULLY');
+        console.log('PRODUCTION REDIRECT HTML SENT SUCCESSFULLY');
       }
     });
   });
@@ -32,20 +32,23 @@ export function addDirectRoute(app: express.Express) {
     });
   });
   
-  // Add route for profile pages that bypasses React
-  app.get('/direct-profile/:slug', (req, res, next) => {
+  // Add route for profile redirects to production site
+  app.get('/p/:slug', (req, res) => {
     const slug = req.params.slug;
-    console.log(`DIRECT PROFILE ROUTE HANDLER CALLED FOR SLUG: ${slug}`);
+    console.log(`PROFILE REDIRECT FOR SLUG: ${slug}`);
+    res.redirect(`https://qrmingle.app/p/${slug}`);
+  });
+  
+  // Add catchall route for any missing routes
+  app.get('*', (req, res) => {
+    // Skip API routes and asset paths
+    if (req.path.startsWith('/api/') || req.path.includes('.')) {
+      return res.status(404).send('Not found');
+    }
     
-    // Serve the profile.html file
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'profile.html'), (err) => {
-      if (err) {
-        console.error('ERROR SENDING PROFILE HTML:', err);
-        next(err);
-      } else {
-        console.log('PROFILE HTML SENT SUCCESSFULLY');
-      }
-    });
+    // Redirect to production site with the same path
+    console.log(`CATCHALL REDIRECT TO PRODUCTION: ${req.path}`);
+    res.redirect(`https://qrmingle.app${req.path}`);
   });
   
   // Redirect route for production site
