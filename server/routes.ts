@@ -1264,67 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // URL shortener service
-  const shortUrls = new Map<string, string>();
-  let shortUrlCounter = 1000; // Starting counter for short URL IDs
-
-  // Generate a short ID for URLs
-  function generateShortId(): string {
-    shortUrlCounter++;
-    return shortUrlCounter.toString(36); // Base36 encoding for shorter IDs
-  }
-
-  // API endpoint to create short URLs
-  apiRoutes.post('/shorten-url', (req, res) => {
-    const { url } = req.body;
-    
-    if (!url) {
-      return res.status(400).json({ error: 'URL is required' });
-    }
-    
-    // Check if this URL already has a short version
-    let existingShortId = null;
-    
-    // Use a different approach to avoid iteration issues
-    const shortIdArray = Array.from(shortUrls.keys());
-    for (let i = 0; i < shortIdArray.length; i++) {
-      const shortId = shortIdArray[i];
-      const longUrl = shortUrls.get(shortId);
-      
-      if (longUrl === url) {
-        existingShortId = shortId;
-        break;
-      }
-    }
-    
-    if (existingShortId) {
-      return res.json({ 
-        shortUrl: `${req.protocol}://${req.get('host')}/s/${existingShortId}`,
-        shortId: existingShortId
-      });
-    }
-    
-    // Create a new short URL
-    const shortId = generateShortId();
-    shortUrls.set(shortId, url);
-    
-    res.json({ 
-      shortUrl: `${req.protocol}://${req.get('host')}/s/${shortId}`,
-      shortId 
-    });
-  });
-  
-  // Redirect short URLs
-  app.get('/s/:shortId', (req, res) => {
-    const { shortId } = req.params;
-    const longUrl = shortUrls.get(shortId);
-    
-    if (!longUrl) {
-      return res.status(404).json({ error: 'Short URL not found' });
-    }
-    
-    res.redirect(longUrl);
-  });
+  // URL shortener service has been removed
 
   const httpServer = createServer(app);
   return httpServer;
