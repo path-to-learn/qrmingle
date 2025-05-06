@@ -1290,6 +1290,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
+  // Add direct HTML route that bypasses React rendering
+  addDirectRoute(app);
+  
+  // Add a simpler direct HTML route as a fallback
+  app.get('/direct-test', (req, res) => {
+    console.log('DIRECT-TEST ROUTE HANDLER CALLED');
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Direct Test Page</title>
+        </head>
+        <body>
+          <h1>Direct Test Page</h1>
+          <p>This is a simple direct HTML test page that bypasses React rendering.</p>
+        </body>
+      </html>
+    `;
+    res.setHeader('Content-Type', 'text/html');
+    res.send(htmlContent);
+  });
+
   // Add a catch-all route to ensure all routes not explicitly handled above
   // are properly routed to the SPA for client-side routing to handle
   app.get('*', (req, res, next) => {
@@ -1299,7 +1321,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.path.includes('.') ||
       req.path.startsWith('/@') ||  // Vite and React refresh
       req.path.startsWith('/__') || // Vite internal
-      req.path.startsWith('/node_modules/')
+      req.path.startsWith('/node_modules/') ||
+      req.path === '/direct' ||  // Exclude our direct HTML route
+      req.path === '/direct-test'  // Exclude our test direct HTML route
     ) {
       return next();
     }
@@ -1309,9 +1333,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Send the index.html file so the client-side router can handle it
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
-
-  // Add direct HTML route that bypasses React rendering
-  addDirectRoute(app);
   
   const httpServer = createServer(app);
   return httpServer;
