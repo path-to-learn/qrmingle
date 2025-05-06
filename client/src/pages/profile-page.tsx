@@ -165,6 +165,15 @@ export default function ProfilePage() {
           description: "Contact information has been saved as a vCard file you can import."
         });
       }
+      
+      // Trigger a small confetti celebration on successful contact save
+      import('@/lib/confetti').then(({ triggerConfetti }) => {
+        triggerConfetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.8, x: 0.5 }
+        });
+      });
     } catch (error) {
       console.error("Error saving contact:", error);
       toast({
@@ -457,7 +466,17 @@ export default function ProfilePage() {
                       size="sm"
                       variant="default" 
                       className="w-full bg-gradient-to-r from-primary to-primary/80"
-                      onClick={() => saveToContacts(profile, profile.socialLinks)}
+                      onClick={async () => {
+                        await saveToContacts(profile, profile.socialLinks);
+                        // Trigger a small confetti celebration
+                        import('@/lib/confetti').then(({ triggerConfetti }) => {
+                          triggerConfetti({
+                            particleCount: 30,
+                            spread: 50,
+                            origin: { y: 0.7, x: 0.5 }
+                          });
+                        });
+                      }}
                     >
                       <UserPlus className="h-3 w-3 mr-1" />
                       {isMobileDevice() ? "Add to Contacts" : "Download vCard"}

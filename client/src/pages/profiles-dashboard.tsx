@@ -92,6 +92,12 @@ export default function ProfilesDashboard() {
     },
     onSuccess: () => {
       console.log("Profile created successfully");
+      
+      // Trigger confetti on successful profile creation!
+      import('@/lib/confetti').then(({ triggerFireworks }) => {
+        triggerFireworks();
+      });
+      
       toast({
         title: "Profile created successfully",
         description: "Your new profile is ready to share!",
