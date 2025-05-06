@@ -184,15 +184,50 @@ export default function ProfilePage() {
     }
   };
 
+  const [shortUrl, setShortUrl] = useState<string | null>(null);
+  const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+
+  // Generate a short URL for the profile
+  const generateShortUrl = async (): Promise<string> => {
+    if (shortUrl) return shortUrl;
+    
+    setIsGeneratingUrl(true);
+    try {
+      const response = await fetch('/api/shorten-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: window.location.href,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate short URL');
+      }
+      
+      const data = await response.json();
+      setShortUrl(data.shortUrl);
+      return data.shortUrl;
+    } catch (error) {
+      console.error('Error generating short URL:', error);
+      return window.location.href;
+    } finally {
+      setIsGeneratingUrl(false);
+    }
+  };
+
   // Copy profile URL to clipboard
-  const copyProfileUrl = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const copyProfileUrl = async () => {
+    const urlToCopy = await generateShortUrl();
+    navigator.clipboard.writeText(urlToCopy);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
     
     toast({
       title: "URL Copied",
-      description: "Profile link copied to clipboard!",
+      description: "Shortened profile link copied to clipboard!",
     });
   };
 
@@ -200,12 +235,14 @@ export default function ProfilePage() {
   const shareProfile = async () => {
     if (!profile) return;
     
+    const urlToShare = await generateShortUrl();
+    
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${profile.displayName}'s Contact Profile`,
           text: profile.bio || `Connect with ${profile.displayName}`,
-          url: window.location.href,
+          url: urlToShare,
         });
       } catch (err) {
         copyProfileUrl();
@@ -498,9 +535,14 @@ export default function ProfilePage() {
                   variant="ghost"
                   onClick={copyProfileUrl}
                   className="text-xs text-muted-foreground"
+                  disabled={isGeneratingUrl}
                 >
-                  <Copy className="h-3 w-3 mr-1" />
-                  {isCopied ? "Copied!" : "Copy Link"}
+                  {isGeneratingUrl ? (
+                    <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <Copy className="h-3 w-3 mr-1" />
+                  )}
+                  {isCopied ? "Copied!" : isGeneratingUrl ? "Generating..." : "Copy Link"}
                 </Button>
                 
                 <Button
@@ -508,9 +550,14 @@ export default function ProfilePage() {
                   variant="ghost"
                   onClick={shareProfile}
                   className="text-xs text-muted-foreground"
+                  disabled={isGeneratingUrl}
                 >
-                  <Share className="h-3 w-3 mr-1" />
-                  Share
+                  {isGeneratingUrl ? (
+                    <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <Share className="h-3 w-3 mr-1" />
+                  )}
+                  {isGeneratingUrl ? "Generating..." : "Share"}
                 </Button>
               </div>
             </div>

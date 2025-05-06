@@ -1271,13 +1271,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     // Check if this URL already has a short version
-    for (const [shortId, longUrl] of shortUrls.entries()) {
+    let existingShortId = null;
+    
+    // Use a different approach to avoid iteration issues
+    const shortIdArray = Array.from(shortUrls.keys());
+    for (let i = 0; i < shortIdArray.length; i++) {
+      const shortId = shortIdArray[i];
+      const longUrl = shortUrls.get(shortId);
+      
       if (longUrl === url) {
-        return res.json({ 
-          shortUrl: `${req.protocol}://${req.get('host')}/s/${shortId}`,
-          shortId
-        });
+        existingShortId = shortId;
+        break;
       }
+    }
+    
+    if (existingShortId) {
+      return res.json({ 
+        shortUrl: `${req.protocol}://${req.get('host')}/s/${existingShortId}`,
+        shortId: existingShortId
+      });
     }
     
     // Create a new short URL
