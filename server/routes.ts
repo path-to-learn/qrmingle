@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public profile route for QR code scans
   app.get('/p/:slug', (req, res) => {
     // This will be handled by the frontend router
-    res.sendFile('index.html', { root: './dist/public' });
+    res.sendFile(path.resolve('client', 'index.html'));
   });
 
   // API route to get profile by slug for QR code landing pages
