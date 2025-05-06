@@ -17,6 +17,7 @@ import Privacy from "@/pages/privacy";
 import Terms from "@/pages/terms";
 import Help from "@/pages/help";
 import About from "@/pages/about";
+import ConfettiSettings from "@/pages/confetti-settings";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
@@ -57,6 +58,11 @@ function AppRouter() {
           <Route path="/analytics">
             <RequireAuth>
               <Analytics />
+            </RequireAuth>
+          </Route>
+          <Route path="/confetti-settings">
+            <RequireAuth>
+              <ConfettiSettings />
             </RequireAuth>
           </Route>
           <Route path="/login" component={Login} />
