@@ -3,37 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QrMingle</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <meta name="description" content="QrMingle - Create and share digital contact cards with custom QR codes">
-  <link rel="icon" href="/favicon.ico">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>QrMingle - Redirecting</title>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: #333;
+      text-align: center;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 90%;
+    }
+    h1 {
+      color: #3B82F6;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .primary {
+      background: #3B82F6;
+      color: white;
+      box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+    }
+    .primary:hover {
+      background: #2563EB;
+      transform: translateY(-2px);
+    }
+    .secondary {
+      background: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #e5e7eb;
+    }
+    .secondary:hover {
+      background: #e5e7eb;
+      transform: translateY(-2px);
+    }
+    .countdown {
+      margin-top: 1.5rem;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    .logo {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #3B82F6;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo svg {
+      margin-right: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-      <h1 class="text-3xl font-bold mb-6 text-blue-600">QrMingle</h1>
-      <p class="mb-6 text-gray-600">
-        Create and share digital contact cards with custom QR codes
-      </p>
-      <button 
-        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md transition"
-        onclick="alert('Button clicked!')"
-      >
-        Get Started
-      </button>
-      <p class="mt-6 text-sm text-gray-500">
-        Simple static page for testing purposes
-      </p>
+  <div class="container">
+    <div class="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
+        <path d="M3 9v1a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"></path>
+        <path d="M15 13v2"></path>
+        <path d="M9 13v2"></path>
+      </svg>
+      QrMingle
     </div>
+    <h1>Development Environment</h1>
+    <p>You're currently in the QrMingle development environment. The production application is available at <strong>qrmingle.app</strong>.</p>
+    <p>You will be automatically redirected to the production site in <span id="countdown">5</span> seconds.</p>
+    
+    <div class="buttons">
+      <a href="https://qrmingle.app" class="button primary">Go to Production Site</a>
+      <button id="stay-here" class="button secondary">Stay in Development</button>
+    </div>
+    
+    <div class="countdown">Redirecting to <a href="https://qrmingle.app">qrmingle.app</a>...</div>
   </div>
+
   <script>
-    console.log('Static HTML page loaded successfully');
+    // Countdown logic
+    let seconds = 5;
+    const countdownElement = document.getElementById('countdown');
+    const stayButton = document.getElementById('stay-here');
+    
+    stayButton.addEventListener('click', function() {
+      // Cancel redirect
+      clearInterval(intervalId);
+      countdownElement.textContent = "Redirect canceled";
+      document.querySelector('.countdown').textContent = "Staying in development environment";
+    });
+    
+    const intervalId = setInterval(function() {
+      seconds--;
+      countdownElement.textContent = seconds;
+      
+      if (seconds <= 0) {
+        clearInterval(intervalId);
+        window.location.href = "https://qrmingle.app";
+      }
+    }, 1000);
   </script>
 </body>
 </html>

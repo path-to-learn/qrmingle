@@ -3,6 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { addDirectRoute } from "./direct-route";
+import { addStaticRoute } from "./static-route";
 import { insertProfileSchema, insertScanLogSchema, insertUserSchema, profileFormSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
@@ -63,6 +64,15 @@ const videoUpload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register direct routes first to ensure correct routing priority
   addDirectRoute(app);
+  
+  // Add static test route
+  addStaticRoute(app);
+  
+  // Root path should show the redirect page
+  app.get('/', (req, res) => {
+    console.log("Root path requested, serving index.html");
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'index.html'));
+  });
   // Add direct-profile route for viewing profiles without React
   app.get('/direct-profile/:slug', async (req, res) => {
     const slug = req.params.slug;
