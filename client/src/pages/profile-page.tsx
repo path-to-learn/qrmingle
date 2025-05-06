@@ -573,13 +573,13 @@ export default function ProfilePage() {
                 <CardTitle className="text-base font-medium">Connect with me</CardTitle>
               </CardHeader>
               <CardContent className="px-0 py-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-wrap justify-center gap-3">
                   {profile.socialLinks.map((link: any) => (
                     <SocialLink 
                       key={link.id}
                       platform={link.platform}
                       url={link.url}
-                      className="border-muted/40 hover:bg-muted/20"
+                      className="border-muted/40 hover:bg-muted/20 flex-1 min-w-[120px] max-w-[170px]"
                       style={{ backgroundColor: profile.cardColor || "#ffffff" }}
                     />
                   ))}

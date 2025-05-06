@@ -387,14 +387,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Public profile route for QR code scans
+  // Public profile route for QR code scans - Handle HTML requests
   app.get('/p/:slug', (req, res, next) => {
-    // Let the Vite middleware or static file handler handle this
-    next();
+    // Check if the request accepts HTML
+    const acceptHeader = req.headers.accept || '';
+    if (acceptHeader.includes('text/html')) {
+      // Serve the HTML file for the client-side router to handle
+      res.sendFile(path.resolve(__dirname, '../client/index.html'));
+    } else {
+      // For other types of requests, proceed to the next handler
+      next();
+    }
   });
 
   // API route to get profile by slug for QR code landing pages
-  app.get('/p/:slug', async (req, res) => {
+  apiRoutes.get('/profile-by-slug/:slug', async (req, res) => {
     try {
       const { slug } = req.params;
       
