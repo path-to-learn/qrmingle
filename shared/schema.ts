@@ -33,6 +33,11 @@ export const profiles = pgTable("profiles", {
   slug: text("slug").notNull().unique(),
   scanCount: integer("scan_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
+  // AR-related fields that exist in the current database
+  hasArEnabled: boolean("has_ar_enabled").default(false),
+  arModelUrl: text("ar_model_url"),
+  arScale: integer("ar_scale").default(100),
+  arAnimationEnabled: boolean("ar_animation_enabled").default(false),
 });
 
 export const socialLinks = pgTable("social_links", {

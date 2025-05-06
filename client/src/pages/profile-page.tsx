@@ -59,6 +59,11 @@ type ProfileData = {
   slug: string;
   scanCount: number;
   socialLinks: SocialLinkType[];
+  // AR-related fields
+  hasArEnabled: boolean | null;
+  arModelUrl: string | null;
+  arScale: number | null;
+  arAnimationEnabled: boolean | null;
 };
 
 export default function ProfilePage() {
