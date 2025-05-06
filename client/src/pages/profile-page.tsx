@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { downloadVCard, getVCardDataUrl, saveToContacts, isMobileDevice } from "@/lib/vcard";
+import { celebrateSaveContact } from "@/lib/confetti";
 import { 
   Tooltip, 
   TooltipContent, 
@@ -168,6 +169,9 @@ export default function ProfilePage() {
           description: "Contact information has been saved to your device.",
         });
       }
+      
+      // Launch confetti celebration
+      celebrateSaveContact();
     } catch (error) {
       console.error("Error saving contact:", error);
       toast({
