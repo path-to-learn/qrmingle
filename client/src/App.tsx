@@ -1,30 +1,94 @@
-import React from "react";
+import { Switch, Route } from "wouter";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { queryClient } from "./lib/queryClient";
+import NotFound from "@/pages/not-found";
+import Home from "@/pages/home";
+import ProfilePage from "@/pages/profile-page";
+import ProfilesDashboard from "@/pages/profiles-dashboard";
+import AdminPage from "@/pages/admin";
+import Premium from "@/pages/premium";
+import PremiumSuccess from "@/pages/premium-success";
+import Analytics from "@/pages/analytics";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
+import ForgotPassword from "@/pages/forgot-password";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
+import Help from "@/pages/help";
+import About from "@/pages/about";
+import ConfettiSettingsPage from "@/pages/confetti-settings";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
 
-// Simple test app to verify React is working without JSX
+// Router component
+function AppRouter() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-grow container mx-auto px-4 py-6">
+        <Switch>
+          {/* The component at "/" will now only be the welcome/tutorial page */}
+          <Route path="/" component={Home} />
+          
+          {/* Profiles dashboard will be the main area for managing profiles */}
+          <Route path="/profiles">
+            <RequireAuth>
+              <ProfilesDashboard />
+            </RequireAuth>
+          </Route>
+          
+          <Route path="/p/:slug" component={ProfilePage} />
+          <Route path="/admin">
+            <RequireAuth>
+              <AdminPage />
+            </RequireAuth>
+          </Route>
+          <Route path="/premium">
+            <RequireAuth>
+              <Premium />
+            </RequireAuth>
+          </Route>
+          <Route path="/premium/success">
+            <RequireAuth>
+              <PremiumSuccess />
+            </RequireAuth>
+          </Route>
+          <Route path="/analytics">
+            <RequireAuth>
+              <Analytics />
+            </RequireAuth>
+          </Route>
+          <Route path="/confetti-settings">
+            <RequireAuth>
+              <ConfettiSettingsPage />
+            </RequireAuth>
+          </Route>
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/help" component={Help} />
+          <Route path="/about" component={About} />
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+// Main App component
 function App() {
-  // Using React.createElement instead of JSX to avoid transform issues
-  return React.createElement(
-    "div", 
-    { className: "min-h-screen flex items-center justify-center bg-blue-50" },
-    React.createElement(
-      "div", 
-      { className: "bg-white p-8 rounded-xl shadow-lg max-w-md w-full" },
-      React.createElement(
-        "h1", 
-        { className: "text-3xl font-bold text-blue-600 mb-4" }, 
-        "QrMingle"
-      ),
-      React.createElement(
-        "p", 
-        { className: "text-gray-600 mb-6" }, 
-        "React is now working! This is a simple test page to verify that React rendering is functioning correctly."
-      ),
-      React.createElement(
-        "p", 
-        { className: "text-sm text-gray-500" }, 
-        "We've temporarily simplified the app to fix rendering issues. Your data is still in the database."
-      )
-    )
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+          <AppRouter />
+          <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
