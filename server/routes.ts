@@ -11,6 +11,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { log } from "./vite";
 
 // Fix for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -409,14 +410,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   apiRoutes.get('/profile-by-slug/:slug', async (req, res) => {
     try {
       const { slug } = req.params;
+      log(`Fetching profile data for slug: ${slug}`, "api");
       
       const profile = await storage.getProfileBySlug(slug);
       
       if (!profile) {
+        log(`No profile found for slug: ${slug}`, "api");
         return res.status(404).json({ message: "Profile not found" });
       }
       
+      log(`Found profile ${profile.id} (${profile.name}) for slug: ${slug}`, "api");
       const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
+      log(`Retrieved ${socialLinks.length} social links for profile ${profile.id}`, "api");
       
       // Get client IP address
       const ip = req.headers['x-forwarded-for'] || 
@@ -1266,12 +1271,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // URL shortener service has been removed
 
-  // Add a simpler route to handle direct URL access to profile pages
-  app.get('/p/:slug', (req, res) => {
-    // Serve the index.html file and let client-side routing handle the rest
-    const indexPath = path.join(__dirname, '..', 'client', 'index.html');
-    res.sendFile(indexPath);
+  // Create a profile view API endpoint that increments the scan count
+  app.get('/api/profile-view/:slug', async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      log(`Recording view for profile slug: ${slug}`, "routes");
+      
+      const profile = await storage.getProfileBySlug(slug);
+      if (profile) {
+        log(`Found profile for slug ${slug}, incrementing scan count`, "routes");
+        const updatedProfile = await storage.incrementScanCount(profile.id);
+        res.json({ success: true, scanCount: updatedProfile.scanCount });
+      } else {
+        log(`No profile found for slug ${slug}`, "routes");
+        res.status(404).json({ success: false, message: "Profile not found" });
+      }
+    } catch (error) {
+      console.error(`Error recording profile view: ${error}`);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
   });
+
+  // We remove the catch-all route from here to let Vite middleware handle it
+  // The Vite middleware will properly serve the SPA and handle all client-side routing
 
   const httpServer = createServer(app);
   return httpServer;

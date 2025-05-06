@@ -75,10 +75,11 @@ export default function ProfilePage() {
     message: ""
   });
 
-  // Fetch profile data
+  // Fetch profile data with better error handling
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
     queryKey: [`/api/profile-by-slug/${slug}`],
     enabled: !!slug,
+    retry: 3
   });
 
   // Mutation for submitting contact form
@@ -219,22 +220,24 @@ export default function ProfilePage() {
     }
   };
 
-  // Log the scan (would normally be done server-side)
+  // Log the scan using our new API endpoint
   useEffect(() => {
-    // Get location for analytics
-    const getLocation = async () => {
+    const recordProfileView = async () => {
+      if (!slug) return;
+      
       try {
-        // In a real app, this would be done server-side
-        // Logging scan would be part of the initial profile fetch
+        // Call our new API endpoint to record the view
+        await fetch(`/api/profile-view/${slug}`);
+        console.log('Profile view recorded successfully');
       } catch (error) {
-        console.error("Error getting location:", error);
+        console.error("Error recording profile view:", error);
       }
     };
 
     if (profile) {
-      getLocation();
+      recordProfileView();
     }
-  }, [profile]);
+  }, [profile, slug]);
 
   if (isLoading) {
     return (
