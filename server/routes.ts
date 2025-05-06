@@ -9,13 +9,7 @@ import Stripe from "stripe";
 import { setupAuth } from "./auth";
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
 import fs from "fs";
-import { log } from "./vite";
-
-// Fix for __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Initialize Stripe if secret key is available
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -393,35 +387,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Public profile route for QR code scans - Handle HTML requests
-  app.get('/p/:slug', (req, res, next) => {
-    // Check if the request accepts HTML
-    const acceptHeader = req.headers.accept || '';
-    if (acceptHeader.includes('text/html')) {
-      // Serve the HTML file for the client-side router to handle
-      res.sendFile(path.resolve(__dirname, '../client/index.html'));
-    } else {
-      // For other types of requests, proceed to the next handler
-      next();
-    }
+  // Public profile route for QR code scans
+  app.get('/p/:slug', (req, res) => {
+    // This will be handled by the frontend router
+    res.sendFile('index.html', { root: './dist/public' });
   });
 
   // API route to get profile by slug for QR code landing pages
-  apiRoutes.get('/profile-by-slug/:slug', async (req, res) => {
+  apiRoutes.get('/p/:slug', async (req, res) => {
     try {
       const { slug } = req.params;
-      log(`Fetching profile data for slug: ${slug}`, "api");
       
       const profile = await storage.getProfileBySlug(slug);
       
       if (!profile) {
-        log(`No profile found for slug: ${slug}`, "api");
         return res.status(404).json({ message: "Profile not found" });
       }
       
-      log(`Found profile ${profile.id} (${profile.name}) for slug: ${slug}`, "api");
       const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
-      log(`Retrieved ${socialLinks.length} social links for profile ${profile.id}`, "api");
       
       // Get client IP address
       const ip = req.headers['x-forwarded-for'] || 
@@ -936,84 +919,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
-  // AR Business Card feature routes
-  apiRoutes.post('/request-ar-access', requireAuth, async (req, res) => {
-    try {
-      const { profileId } = req.body;
-      
-      if (!profileId) {
-        return res.status(400).json({ message: "Profile ID is required" });
-      }
-      
-      // Get the profile
-      const profile = await storage.getProfile(profileId);
-      
-      if (!profile) {
-        return res.status(404).json({ message: "Profile not found" });
-      }
-      
-      // The requireAuth middleware already ensures the user is authenticated
-      // TypeScript doesn't know this, so we need to manually check
-      if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-
-      // Check if this profile belongs to the current user
-      if (profile.userId !== req.user.id) {
-        return res.status(403).json({ message: "You don't have permission to modify this profile" });
-      }
-      
-      // Special case - automatically enable AR for user "dathwal@qrmingle#2025"
-      if (req.user.username === 'dathwal@qrmingle#2025') {
-        // Auto-approve and enable AR
-        await storage.updateProfile(profileId, {
-          hasArEnabled: true,
-          arModelUrl: '/models/business-card-3d.gltf',
-          arScale: 100,
-          arAnimationEnabled: true
-        });
-        
-        return res.status(200).json({ 
-          success: true, 
-          message: "AR Business Card enabled for your profile",
-          hasArEnabled: true
-        });
-      }
-      
-      // For all other users, check if they have at least one profile
-      const userProfiles = await storage.getProfilesByUserId(req.user.id);
-      
-      if (userProfiles.length > 0) {
-        // They qualify for AR - enable it
-        await storage.updateProfile(profileId, {
-          hasArEnabled: true,
-          arModelUrl: '/models/business-card-3d.gltf',
-          arScale: 100,
-          arAnimationEnabled: true
-        });
-        
-        return res.status(200).json({ 
-          success: true, 
-          message: "AR Business Card enabled for your profile",
-          hasArEnabled: true
-        });
-      } else {
-        // They don't qualify yet
-        return res.status(403).json({ 
-          success: false, 
-          message: "You need to create at least one profile before enabling AR Business Cards",
-          hasArEnabled: false
-        });
-      }
-    } catch (error) {
-      console.error("AR access request error:", error);
-      res.status(500).json({ 
-        message: "Failed to process AR access request", 
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
 
   // Admin routes
   const adminRoutes = express.Router();
@@ -1025,7 +930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Not authenticated" });
     }
     
-    if (!req.user || !req.user.isAdmin) {
+    if (!req.user.isAdmin) {
       return res.status(403).json({ message: "Not authorized - Admin access required" });
     }
     
@@ -1267,46 +1172,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error deleting review:", error);
       res.status(500).json({ error: "Failed to delete review" });
     }
-  });
-
-  // Explicit handler for profile pages with slug
-  app.get('/p/:slug', (req, res) => {
-    const slug = req.params.slug;
-    log(`Direct access to profile with slug: ${slug}`, "routes");
-    
-    // Increment scan count if this is a real profile visit
-    storage.getProfileBySlug(slug)
-      .then(profile => {
-        if (profile) {
-          log(`Profile found, incrementing scan count for: ${slug}`, "routes");
-          storage.incrementScanCount(profile.id)
-            .catch(err => console.error(`Error incrementing scan count: ${err}`));
-        }
-      })
-      .catch(err => console.error(`Error getting profile by slug: ${err}`));
-    
-    // Send the index.html file so the client-side router can handle it
-    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
-  });
-
-  // Add a catch-all route to ensure all routes not explicitly handled above
-  // are properly routed to the SPA for client-side routing to handle
-  app.get('*', (req, res, next) => {
-    // Skip API routes, Vite middleware routes, and static file requests
-    if (
-      req.path.startsWith('/api/') || 
-      req.path.includes('.') ||
-      req.path.startsWith('/@') ||  // Vite and React refresh
-      req.path.startsWith('/__') || // Vite internal
-      req.path.startsWith('/node_modules/')
-    ) {
-      return next();
-    }
-    
-    log(`Catch-all route handling path: ${req.path}`, "routes");
-    
-    // Send the index.html file so the client-side router can handle it
-    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
   const httpServer = createServer(app);

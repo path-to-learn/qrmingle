@@ -35,8 +35,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-
-
 // Type definition for profile data
 type SocialLinkType = {
   id: number;
@@ -77,9 +75,8 @@ export default function ProfilePage() {
 
   // Fetch profile data
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
-    queryKey: [`/api/profile-by-slug/${slug}`],
+    queryKey: [`/api/p/${slug}`],
     enabled: !!slug,
-    retry: 3
   });
 
   // Mutation for submitting contact form
@@ -157,24 +154,15 @@ export default function ProfilePage() {
       // Show appropriate message based on device
       if (isMobileDevice()) {
         toast({
-          title: "Adding to Contacts",
-          description: "Follow the prompts to save this contact to your phone."
+          title: "Adding Contact",
+          description: "Your contacts app should open to save this contact."
         });
       } else {
         toast({
           title: "Contact Downloaded",
-          description: "Contact information has been saved as a vCard file you can import."
+          description: "Contact information has been saved to your device.",
         });
       }
-      
-      // Trigger a small confetti celebration on successful contact save
-      import('@/lib/confetti-utils').then(({ triggerUserConfetti }) => {
-        triggerUserConfetti({
-          particleCount: 50,
-          spread: 60,
-          origin: { y: 0.8, x: 0.5 }
-        });
-      });
     } catch (error) {
       console.error("Error saving contact:", error);
       toast({
@@ -187,10 +175,7 @@ export default function ProfilePage() {
 
   // Copy profile URL to clipboard
   const copyProfileUrl = () => {
-    if (!profile) return;
-    
-    const profileUrl = `${window.location.origin}/p/${profile.slug}`;
-    navigator.clipboard.writeText(profileUrl);
+    navigator.clipboard.writeText(window.location.href);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
     
@@ -201,16 +186,15 @@ export default function ProfilePage() {
   };
 
   // Share profile
-  const shareProfile = () => {
+  const shareProfile = async () => {
     if (!profile) return;
     
     if (navigator.share) {
       try {
-        const profileUrl = `${window.location.origin}/p/${profile.slug}`;
-        navigator.share({
+        await navigator.share({
           title: `${profile.displayName}'s Contact Profile`,
           text: profile.bio || `Connect with ${profile.displayName}`,
-          url: profileUrl,
+          url: window.location.href,
         });
       } catch (err) {
         copyProfileUrl();
@@ -353,12 +337,12 @@ export default function ProfilePage() {
                     onClick={handleDownloadVCard}
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
-                    {isMobileDevice() ? "Add to Contacts" : "Save Contact"}
+                    Save Contact
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{isMobileDevice() ? 
-                    "Save directly to your phone contacts" : 
+                    "Add to your device's contacts" : 
                     "Download contact as vCard (.vcf)"}</p>
                 </TooltipContent>
               </Tooltip>
@@ -456,7 +440,7 @@ export default function ProfilePage() {
           {/* QR Code with actions */}
           <div className="flex flex-col items-center mb-6 bg-muted/10 p-4 rounded-lg">
             <QrCodeDisplay
-              value={`${window.location.origin}/p/${profile.slug}`}
+              value={window.location.href}
               fgColor={profile.qrColor || "#3B82F6"}
               size={150}
               qrStyle={profile.qrStyle || "basic"}
@@ -471,31 +455,19 @@ export default function ProfilePage() {
                       size="sm"
                       variant="default" 
                       className="w-full bg-gradient-to-r from-primary to-primary/80"
-                      onClick={async () => {
-                        await saveToContacts(profile, profile.socialLinks);
-                        // Trigger a small confetti celebration
-                        import('@/lib/confetti-utils').then(({ triggerUserConfetti }) => {
-                          triggerUserConfetti({
-                            particleCount: 30,
-                            spread: 50,
-                            origin: { y: 0.7, x: 0.5 }
-                          });
-                        });
-                      }}
+                      onClick={() => saveToContacts(profile, profile.socialLinks)}
                     >
                       <UserPlus className="h-3 w-3 mr-1" />
-                      {isMobileDevice() ? "Add to Contacts" : "Download vCard"}
+                      Save Contact
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{isMobileDevice() ? 
-                      "Save directly to your phone contacts" : 
+                      "Add to your device's contacts" : 
                       "Download contact as vCard (.vcf)"}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              
-
               
               <div className="flex justify-center gap-2">
                 <Button
@@ -527,21 +499,19 @@ export default function ProfilePage() {
               className="border-none shadow-none" 
               style={{ backgroundColor: profile.cardColor || "#ffffff" }}
             >
-              <CardHeader className="px-0 pt-0 pb-2 text-center">
+              <CardHeader className="px-0 pt-0 pb-2">
                 <CardTitle className="text-base font-medium">Connect with me</CardTitle>
               </CardHeader>
-              <CardContent className="px-0 py-1">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 place-items-center">
-                  {profile.socialLinks.map((link: any) => (
-                    <SocialLink 
-                      key={link.id}
-                      platform={link.platform}
-                      url={link.url}
-                      className="border-muted/40 hover:bg-muted/20 w-full"
-                      style={{ backgroundColor: profile.cardColor || "#ffffff" }}
-                    />
-                  ))}
-                </div>
+              <CardContent className="px-0 py-1 space-y-2">
+                {profile.socialLinks.map((link: any) => (
+                  <SocialLink 
+                    key={link.id}
+                    platform={link.platform}
+                    url={link.url}
+                    className="border-muted/40 hover:bg-muted/20"
+                    style={{ backgroundColor: profile.cardColor || "#ffffff" }}
+                  />
+                ))}
               </CardContent>
             </Card>
           )}
@@ -556,8 +526,6 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
-
-
     </div>
   );
 }

@@ -30,10 +30,6 @@ export const profiles = pgTable("profiles", {
   qrPosition: text("qr_position").default("bottom"), // top, bottom, left, right
   photoPosition: text("photo_position").default("top"), // top, left, right, hidden
   layoutStyle: text("layout_style").default("standard"), // standard, compact, centered, minimal
-  hasArEnabled: boolean("has_ar_enabled").default(false), // Whether AR mode is enabled
-  arModelUrl: text("ar_model_url"), // URL to 3D model for AR view
-  arScale: integer("ar_scale").default(100), // AR model scale percentage
-  arAnimationEnabled: boolean("ar_animation_enabled").default(true), // Whether AR animation is enabled
   slug: text("slug").notNull().unique(),
   scanCount: integer("scan_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -163,12 +159,6 @@ export const profileFormSchema = insertProfileSchema.extend({
   qrPosition: z.enum(["top", "bottom", "left", "right"]).default("bottom"),
   photoPosition: z.enum(["top", "left", "right", "hidden"]).default("top"),
   layoutStyle: z.enum(["standard", "compact", "centered", "minimal"]).default("standard"),
-  
-  // AR business card fields
-  hasArEnabled: z.boolean().default(false),
-  arModelUrl: z.string().nullable().optional(),
-  arScale: z.number().min(10).max(200).default(100),
-  arAnimationEnabled: z.boolean().default(true),
   
   // Ensure social links are an array with at least one entry
   socialLinks: z.array(

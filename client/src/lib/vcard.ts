@@ -197,44 +197,6 @@ export function isMobileDevice(): boolean {
   return /iPhone|iPad|iPod|Android|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent);
 }
 
-// Define missing types for the Web Contacts API
-interface ContactInfo {
-  name?: string[];
-  email?: string[];
-  tel?: string[];
-  address?: string[];
-  icon?: Blob[];
-  [key: string]: any;
-}
-
-interface ContactsManager {
-  select: (properties: string[], options?: {multiple?: boolean}) => Promise<ContactInfo[]>;
-  getProperties: () => Promise<string[]>;
-}
-
-// Extend Navigator interface to include the Web Contacts API
-declare global {
-  interface Navigator {
-    contacts?: ContactsManager;
-  }
-}
-
-/**
- * Check if the Web Contact API is available
- * This is a newer API that allows direct saving to contacts on supported browsers
- */
-export function hasContactsAPI(): boolean {
-  return !!(navigator.contacts && typeof (navigator.contacts as any).select === 'function');
-}
-
-/**
- * Check if the Web Share API supports sharing files
- */
-export function hasShareWithFilesAPI(): boolean {
-  // Simple feature detection without actually trying to share
-  return typeof navigator.share === 'function' && typeof navigator.canShare === 'function';
-}
-
 /**
  * Save contact to device contacts
  * This function handles the appropriate method based on the device
@@ -243,101 +205,39 @@ export function hasShareWithFilesAPI(): boolean {
  * @returns A promise that resolves when the operation is complete
  */
 export async function saveToContacts(profile: ProfileLike, socialLinks: SocialLink[] | any[]): Promise<void> {
-  const isMobile = isMobileDevice();
-  const vCardString = generateVCard(profile, socialLinks);
-  const fileName = `${profile.displayName || profile.name}.vcf`;
-  
-  try {
-    // METHOD 1: Try using the modern Contacts API for Chrome on Android (when available)
-    if (hasContactsAPI()) {
-      console.log('Using Web Contacts API');
-      // We return early as we handle fallbacks directly in this block
-      try {
-        // Extract phone number from social links if available
-        let phoneNumber = '';
-        let email = '';
-        for (const link of socialLinks) {
-          if (['phone', 'mobile', 'cell'].includes(link.platform.toLowerCase())) {
-            phoneNumber = link.url.replace(/[^+0-9]/g, '');
-            break;
-          }
-          if (['email', 'mail'].includes(link.platform.toLowerCase())) {
-            email = link.url;
-            break;
-          }
-        }
-        
-        // The Contacts API can only add a contact, not fully populate it
-        // We open the contacts API with the basic info, then the user can save
-        const props = ['name', 'email', 'tel'];
-        const opts = { multiple: false };
-        
-        // Create a contact with the basic info - this just helps populate the fields
-        // The user still needs to save the contact themselves
-        const contacts = [{
-          name: [profile.displayName || profile.name],
-          email: email ? [email] : [],
-          tel: phoneNumber ? [phoneNumber] : []
-        }];
-        
-        await (navigator.contacts as any).select(props, opts);
-        return;
-      } catch (e) {
-        console.error('Error using Contacts API, falling back:', e);
-        // Continue to fallback methods
-      }
-    }
-    
-    // METHOD 2: Try using Web Share API with file sharing (Android)
-    // This is most reliable for Android devices as it works with most default contacts apps
-    if (isMobile && hasShareWithFilesAPI()) {
-      try {
-        console.log('Using Web Share API with file sharing');
+  if (isMobileDevice()) {
+    try {
+      // On mobile devices, try to use the direct mechanism
+      const dataUrl = getVCardDataUrl(profile, socialLinks);
+      
+      // Check if Web Share API is available as a fallback for mobile
+      if (navigator.share && /Android/i.test(navigator.userAgent)) {
+        // Create a file to share
+        const vCardString = generateVCard(profile, socialLinks);
         const blob = new Blob([vCardString], { type: 'text/vcard' });
-        const file = new File([blob], fileName, { type: 'text/vcard' });
+        const file = new File([blob], `${profile.displayName || profile.name}.vcf`, { type: 'text/vcard' });
         
-        // Safely check and use canShare
-        const shareData = { files: [file] } as any;
-        if (typeof navigator.canShare === 'function' && navigator.canShare(shareData)) {
-          // Add title and text to the share data
-          shareData.title = `${profile.displayName || profile.name}'s Contact Info`;
-          shareData.text = `Contact information for ${profile.displayName || profile.name}`;
-          
-          // Safely use share
-          if (typeof navigator.share === 'function') {
-            await navigator.share(shareData);
-            return;
-          }
+        try {
+          await navigator.share({
+            title: `${profile.displayName || profile.name}'s Contact Info`,
+            files: [file]
+          });
+          return;
+        } catch (error) {
+          // Fall back to direct URL approach if share fails
+          console.log('Falling back to direct URL approach', error);
         }
-      } catch (e) {
-        console.error('Error using Web Share API with files, falling back:', e);
-        // Continue to fallback methods
       }
+      
+      // Direct URL approach for iOS and as fallback
+      window.location.href = dataUrl;
+    } catch (error) {
+      console.error('Error saving contact on mobile:', error);
+      // Fallback to download if anything fails
+      downloadVCard(profile, socialLinks);
     }
-    
-    // METHOD 3: Direct vCard URL (works on iOS especially)
-    if (isMobile) {
-      try {
-        console.log('Using direct vCard URL method');
-        const dataUrl = getVCardDataUrl(profile, socialLinks);
-        
-        // On iOS this often triggers the native "Add to Contacts" flow
-        // A new tab/window will open briefly and then close
-        window.location.href = dataUrl;
-        return;
-      } catch (e) {
-        console.error('Error using direct vCard URL, falling back:', e);
-        // Continue to fallback methods
-      }
-    }
-    
-    // METHOD 4: Fallback to traditional download for desktops and as last resort
-    console.log('Using traditional download method');
-    downloadVCard(profile, socialLinks);
-    
-  } catch (error) {
-    console.error('Error in saveToContacts:', error);
-    // Final fallback
+  } else {
+    // On desktop, use the download method
     downloadVCard(profile, socialLinks);
   }
 }

@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, LogOut, User, BarChart2, Crown, Clock, Shield, Sparkles } from "lucide-react";
+import { ChevronDown, LogOut, User, BarChart2, Crown, Clock, Shield } from "lucide-react";
 import { isAdmin } from "@/lib/video";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -101,14 +101,6 @@ export default function Header() {
                     <div className="flex items-center cursor-pointer">
                       <BarChart2 className="mr-2 h-4 w-4" />
                       <span>Analytics</span>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/confetti-settings">
-                    <div className="flex items-center cursor-pointer">
-                      <Sparkles className="mr-2 h-4 w-4 text-amber-500" />
-                      <span>Celebration Settings</span>
                     </div>
                   </Link>
                 </DropdownMenuItem>

@@ -17,7 +17,6 @@ import Privacy from "@/pages/privacy";
 import Terms from "@/pages/terms";
 import Help from "@/pages/help";
 import About from "@/pages/about";
-import ConfettiSettingsPage from "@/pages/confetti-settings";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
@@ -60,11 +59,6 @@ function AppRouter() {
               <Analytics />
             </RequireAuth>
           </Route>
-          <Route path="/confetti-settings">
-            <RequireAuth>
-              <ConfettiSettingsPage />
-            </RequireAuth>
-          </Route>
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/forgot-password" component={ForgotPassword} />
@@ -85,8 +79,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-          <AppRouter />
-          <Toaster />
+        <AppRouter />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
