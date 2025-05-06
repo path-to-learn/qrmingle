@@ -1269,31 +1269,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // URL shortener service has been removed
+  // URL shortener endpoints (now removed but endpoints maintained for backward compatibility)
+  app.get('/s/:code', (req, res) => {
+    const code = req.params.code;
+    log(`URL shortener lookup for code: ${code}`, "routes");
+    res.redirect('/');
+  });
 
-  // Create a profile view API endpoint that increments the scan count
-  app.get('/api/profile-view/:slug', async (req, res) => {
+  // Handle direct URL access to profile pages
+  app.get('/p/:slug', (req, res) => {
     try {
       const slug = req.params.slug;
-      log(`Recording view for profile slug: ${slug}`, "routes");
+      log(`Handling direct access to profile page for slug: ${slug}`, "routes");
       
-      const profile = await storage.getProfileBySlug(slug);
-      if (profile) {
-        log(`Found profile for slug ${slug}, incrementing scan count`, "routes");
-        const updatedProfile = await storage.incrementScanCount(profile.id);
-        res.json({ success: true, scanCount: updatedProfile.scanCount });
-      } else {
-        log(`No profile found for slug ${slug}`, "routes");
-        res.status(404).json({ success: false, message: "Profile not found" });
-      }
+      // Increment scan count for the profile
+      storage.getProfileBySlug(slug)
+        .then(profile => {
+          if (profile) {
+            log(`Found profile for slug ${slug}, incrementing scan count`, "routes");
+            storage.incrementScanCount(profile.id)
+              .catch(error => console.error(`Failed to increment scan count: ${error}`));
+          } else {
+            log(`No profile found for slug ${slug}`, "routes");
+          }
+        })
+        .catch(error => console.error(`Error looking up profile by slug: ${error}`));
+      
+      // Send the index.html file to let client-side routing handle it
+      const indexPath = path.join(__dirname, '..', 'client', 'index.html');
+      res.sendFile(indexPath);
     } catch (error) {
-      console.error(`Error recording profile view: ${error}`);
-      res.status(500).json({ success: false, message: "Server error" });
+      console.error(`Error handling profile page: ${error}`);
+      res.status(500).send('Server Error');
     }
   });
 
-  // We remove the catch-all route from here to let Vite middleware handle it
-  // The Vite middleware will properly serve the SPA and handle all client-side routing
+  // Add a catch-all route to ensure all routes not explicitly handled above
+  // are properly routed to the SPA for client-side routing to handle
+  app.get('*', (req, res, next) => {
+    // Skip API routes and static file requests
+    if (req.path.startsWith('/api/') || req.path.includes('.')) {
+      return next();
+    }
+    
+    log(`Catch-all route handling path: ${req.path}`, "routes");
+    const indexPath = path.join(__dirname, '..', 'client', 'index.html');
+    res.sendFile(indexPath);
+  });
 
   const httpServer = createServer(app);
   return httpServer;

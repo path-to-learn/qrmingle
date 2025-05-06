@@ -79,7 +79,15 @@ export default function ProfilePage() {
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
     queryKey: [`/api/profile-by-slug/${slug}`],
     enabled: !!slug,
-    retry: 3
+    retry: 3,
+    onError: (error) => {
+      console.error(`Error fetching profile with slug ${slug}:`, error);
+      toast({
+        title: "Error Loading Profile",
+        description: "There was a problem loading this profile. It may not exist or may have been deleted.",
+        variant: "destructive"
+      });
+    }
   });
 
   // Mutation for submitting contact form
@@ -220,24 +228,22 @@ export default function ProfilePage() {
     }
   };
 
-  // Log the scan using our new API endpoint
+  // Log the scan (would normally be done server-side)
   useEffect(() => {
-    const recordProfileView = async () => {
-      if (!slug) return;
-      
+    // Get location for analytics
+    const getLocation = async () => {
       try {
-        // Call our new API endpoint to record the view
-        await fetch(`/api/profile-view/${slug}`);
-        console.log('Profile view recorded successfully');
+        // In a real app, this would be done server-side
+        // Logging scan would be part of the initial profile fetch
       } catch (error) {
-        console.error("Error recording profile view:", error);
+        console.error("Error getting location:", error);
       }
     };
 
     if (profile) {
-      recordProfileView();
+      getLocation();
     }
-  }, [profile, slug]);
+  }, [profile]);
 
   if (isLoading) {
     return (
@@ -533,13 +539,13 @@ export default function ProfilePage() {
                 <CardTitle className="text-base font-medium">Connect with me</CardTitle>
               </CardHeader>
               <CardContent className="px-0 py-1">
-                <div className="flex flex-wrap justify-center gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 place-items-center">
                   {profile.socialLinks.map((link: any) => (
                     <SocialLink 
                       key={link.id}
                       platform={link.platform}
                       url={link.url}
-                      className="border-muted/40 hover:bg-muted/20 flex-1 min-w-[120px] max-w-[170px]"
+                      className="border-muted/40 hover:bg-muted/20 w-full"
                       style={{ backgroundColor: profile.cardColor || "#ffffff" }}
                     />
                   ))}

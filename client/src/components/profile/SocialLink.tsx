@@ -101,10 +101,10 @@ export default function SocialLink({ platform, url, className = "", style }: Soc
       href={formattedUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex flex-col items-center justify-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors w-full ${className}`}
+      className={`flex flex-col items-center justify-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors w-full text-center ${className}`}
       style={style}
     >
-      <div className="text-primary mb-2 flex justify-center">
+      <div className="text-primary mb-2 flex justify-center items-center">
         {isCustomQrCode ? (
           <div className="w-10 h-10 rounded overflow-hidden">
             <img 
@@ -118,11 +118,11 @@ export default function SocialLink({ platform, url, className = "", style }: Soc
         )}
       </div>
       <div className="text-center w-full">
-        <p className="font-medium text-sm">{platform}</p>
+        <p className="font-medium text-sm mb-1">{platform}</p>
         {isCustomQrCode ? (
           <p className="text-xs text-muted-foreground">Custom QR code</p>
         ) : (
-          <p className="text-xs text-muted-foreground truncate max-w-full">{url}</p>
+          <p className="text-xs text-muted-foreground truncate mx-auto">{url}</p>
         )}
       </div>
     </a>
