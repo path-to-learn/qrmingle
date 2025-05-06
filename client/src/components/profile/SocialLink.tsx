@@ -65,31 +65,31 @@ export default function SocialLink({ platform, url, className = "", style }: Soc
   const getIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
       case "linkedin":
-        return <FaLinkedin className="w-5 h-5" />;
+        return <FaLinkedin className="w-6 h-6" />;
       case "facebook":
-        return <FaFacebook className="w-5 h-5" />;
+        return <FaFacebook className="w-6 h-6" />;
       case "twitter":
-        return <FaTwitter className="w-5 h-5" />;
+        return <FaTwitter className="w-6 h-6" />;
       case "instagram":
-        return <FaInstagram className="w-5 h-5" />;
+        return <FaInstagram className="w-6 h-6" />;
       case "github":
-        return <FaGithub className="w-5 h-5" />;
+        return <FaGithub className="w-6 h-6" />;
       case "youtube":
-        return <FaYoutube className="w-5 h-5" />;
+        return <FaYoutube className="w-6 h-6" />;
       case "tiktok":
-        return <FaTiktok className="w-5 h-5" />;
+        return <FaTiktok className="w-6 h-6" />;
       case "whatsapp":
-        return <FaWhatsapp className="w-5 h-5" />;
+        return <FaWhatsapp className="w-6 h-6" />;
       case "telegram":
-        return <FaTelegram className="w-5 h-5" />;
+        return <FaTelegram className="w-6 h-6" />;
       case "website":
-        return <FaGlobe className="w-5 h-5" />;
+        return <FaGlobe className="w-6 h-6" />;
       case "phone":
-        return <FaPhone className="w-5 h-5" />;
+        return <FaPhone className="w-6 h-6" />;
       case "email":
-        return <FaEnvelope className="w-5 h-5" />;
+        return <FaEnvelope className="w-6 h-6" />;
       default:
-        return <FaGlobe className="w-5 h-5" />;
+        return <FaGlobe className="w-6 h-6" />;
     }
   };
 
@@ -101,10 +101,10 @@ export default function SocialLink({ platform, url, className = "", style }: Soc
       href={formattedUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex items-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors ${className}`}
+      className={`flex flex-col items-center justify-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors ${className}`}
       style={style}
     >
-      <div className="mr-3 text-primary">
+      <div className="text-primary mb-2">
         {isCustomQrCode ? (
           <div className="w-10 h-10 rounded overflow-hidden">
             <img 
@@ -117,12 +117,12 @@ export default function SocialLink({ platform, url, className = "", style }: Soc
           getIcon(platform)
         )}
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="text-center">
         <p className="font-medium text-sm">{platform}</p>
         {isCustomQrCode ? (
           <p className="text-xs text-muted-foreground">Custom QR code</p>
         ) : (
-          <p className="text-xs text-muted-foreground truncate">{url}</p>
+          <p className="text-xs text-muted-foreground truncate max-w-[200px]">{url}</p>
         )}
       </div>
     </a>
