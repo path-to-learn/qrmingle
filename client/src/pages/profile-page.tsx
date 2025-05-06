@@ -75,19 +75,11 @@ export default function ProfilePage() {
     message: ""
   });
 
-  // Fetch profile data with better error handling
+  // Fetch profile data
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
     queryKey: [`/api/profile-by-slug/${slug}`],
     enabled: !!slug,
-    retry: 3,
-    onError: (error) => {
-      console.error(`Error fetching profile with slug ${slug}:`, error);
-      toast({
-        title: "Error Loading Profile",
-        description: "There was a problem loading this profile. It may not exist or may have been deleted.",
-        variant: "destructive"
-      });
-    }
+    retry: 3
   });
 
   // Mutation for submitting contact form

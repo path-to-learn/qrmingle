@@ -1269,41 +1269,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // URL shortener endpoints (now removed but endpoints maintained for backward compatibility)
-  app.get('/s/:code', (req, res) => {
-    const code = req.params.code;
-    log(`URL shortener lookup for code: ${code}`, "routes");
-    res.redirect('/');
-  });
-
-  // Handle direct URL access to profile pages
-  app.get('/p/:slug', (req, res) => {
-    try {
-      const slug = req.params.slug;
-      log(`Handling direct access to profile page for slug: ${slug}`, "routes");
-      
-      // Increment scan count for the profile
-      storage.getProfileBySlug(slug)
-        .then(profile => {
-          if (profile) {
-            log(`Found profile for slug ${slug}, incrementing scan count`, "routes");
-            storage.incrementScanCount(profile.id)
-              .catch(error => console.error(`Failed to increment scan count: ${error}`));
-          } else {
-            log(`No profile found for slug ${slug}`, "routes");
-          }
-        })
-        .catch(error => console.error(`Error looking up profile by slug: ${error}`));
-      
-      // Send the index.html file to let client-side routing handle it
-      const indexPath = path.join(__dirname, '..', 'client', 'index.html');
-      res.sendFile(indexPath);
-    } catch (error) {
-      console.error(`Error handling profile page: ${error}`);
-      res.status(500).send('Server Error');
-    }
-  });
-
   // Add a catch-all route to ensure all routes not explicitly handled above
   // are properly routed to the SPA for client-side routing to handle
   app.get('*', (req, res, next) => {
@@ -1312,9 +1277,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
     
-    log(`Catch-all route handling path: ${req.path}`, "routes");
-    const indexPath = path.join(__dirname, '..', 'client', 'index.html');
-    res.sendFile(indexPath);
+    // For profile slugs, increment the scan count
+    if (req.path.startsWith('/p/')) {
+      const slug = req.path.substring(3); // Remove "/p/" prefix
+      log(`Direct access to profile with slug: ${slug}`, "routes");
+      
+      // Increment scan count if this is a real profile visit
+      storage.getProfileBySlug(slug)
+        .then(profile => {
+          if (profile) {
+            log(`Profile found, incrementing scan count for: ${slug}`, "routes");
+            storage.incrementScanCount(profile.id)
+              .catch(err => console.error(`Error incrementing scan count: ${err}`));
+          }
+        })
+        .catch(err => console.error(`Error getting profile by slug: ${err}`));
+    } else {
+      log(`Catch-all route handling path: ${req.path}`, "routes");
+    }
+    
+    // Let Vite handle serving the HTML file with proper headers
+    next();
   });
 
   const httpServer = createServer(app);
