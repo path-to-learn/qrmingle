@@ -6,7 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function addDirectRoute(app: express.Express) {
-  // Add route for the homepage that uses the original index.html with full UI
+  // Comment out the root route to allow Vite to handle it
+  /*
   app.get('/', (req, res, next) => {
     console.log('ROOT ROUTE HANDLER CALLED');
     console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'index.html'));
@@ -20,6 +21,7 @@ export function addDirectRoute(app: express.Express) {
       }
     });
   });
+  */
   
   // Keep the original /direct route
   app.get('/direct', (req, res, next) => {
