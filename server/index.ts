@@ -37,24 +37,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Create HTTP server first
-  const { createServer } = await import("http");
-  const server = createServer(app);
+  const server = await registerRoutes(app);
 
-  // Set up our API routes FIRST before Vite middleware
-  // to ensure API requests are handled by our server
-  await registerRoutes(app);
-
-  // Set up error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    console.error("Server error:", err);
+
     res.status(status).json({ message });
+    throw err;
   });
 
-  // Then set up Vite development server LAST
-  // so its catch-all route doesn't interfere with our API routes
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {

@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import express from "express";
-import type { Server } from "http";
+import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertProfileSchema, insertScanLogSchema, insertUserSchema, profileFormSchema } from "@shared/schema";
 import { z } from "zod";
@@ -59,7 +59,7 @@ const videoUpload = multer({
   }
 });
 
-export async function registerRoutes(app: Express): Promise<void> {
+export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication (must happen before routes)
   setupAuth(app);
 
