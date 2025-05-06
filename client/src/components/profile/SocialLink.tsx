@@ -101,29 +101,32 @@ export default function SocialLink({ platform, url, className = "", style }: Soc
       href={formattedUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex items-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors ${className}`}
+      className={`flex items-center justify-center p-3 rounded-lg border border-muted hover:bg-muted/50 transition-colors ${className}`}
       style={style}
     >
-      <div className="mr-3 text-primary">
-        {isCustomQrCode ? (
-          <div className="w-10 h-10 rounded overflow-hidden">
-            <img 
-              src={qrCodeImageUrl!}
-              alt={`${platform} QR Code`}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          getIcon(platform)
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm">{platform}</p>
-        {isCustomQrCode ? (
-          <p className="text-xs text-muted-foreground">Custom QR code</p>
-        ) : (
-          <p className="text-xs text-muted-foreground truncate">{url}</p>
-        )}
+      <div className="flex items-center justify-center w-full">
+        <div className="flex-shrink-0 mr-3 text-primary">
+          {isCustomQrCode ? (
+            <div className="w-10 h-10 rounded overflow-hidden">
+              <img 
+                src={qrCodeImageUrl!}
+                alt={`${platform} QR Code`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            getIcon(platform)
+          )}
+        </div>
+        <div className="flex-grow max-w-[70%]">
+          <p className="font-medium text-sm">{platform}</p>
+          {isCustomQrCode ? (
+            <p className="text-xs text-muted-foreground">Custom QR code</p>
+          ) : (
+            <p className="text-xs text-muted-foreground truncate">{url}</p>
+          )}
+        </div>
+        <div className="flex-shrink-0 ml-3 w-5"></div> {/* This empty div creates balanced spacing */}
       </div>
     </a>
   );
