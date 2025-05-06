@@ -1269,35 +1269,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Explicit handler for profile pages with slug
+  app.get('/p/:slug', (req, res) => {
+    const slug = req.params.slug;
+    log(`Direct access to profile with slug: ${slug}`, "routes");
+    
+    // Increment scan count if this is a real profile visit
+    storage.getProfileBySlug(slug)
+      .then(profile => {
+        if (profile) {
+          log(`Profile found, incrementing scan count for: ${slug}`, "routes");
+          storage.incrementScanCount(profile.id)
+            .catch(err => console.error(`Error incrementing scan count: ${err}`));
+        }
+      })
+      .catch(err => console.error(`Error getting profile by slug: ${err}`));
+    
+    // Send the index.html file so the client-side router can handle it
+    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
+  });
+
   // Add a catch-all route to ensure all routes not explicitly handled above
   // are properly routed to the SPA for client-side routing to handle
   app.get('*', (req, res, next) => {
-    // Skip API routes and static file requests
-    if (req.path.startsWith('/api/') || req.path.includes('.')) {
+    // Skip API routes, Vite middleware routes, and static file requests
+    if (
+      req.path.startsWith('/api/') || 
+      req.path.includes('.') ||
+      req.path.startsWith('/@') ||  // Vite and React refresh
+      req.path.startsWith('/__') || // Vite internal
+      req.path.startsWith('/node_modules/')
+    ) {
       return next();
     }
     
-    // For profile slugs, increment the scan count
-    if (req.path.startsWith('/p/')) {
-      const slug = req.path.substring(3); // Remove "/p/" prefix
-      log(`Direct access to profile with slug: ${slug}`, "routes");
-      
-      // Increment scan count if this is a real profile visit
-      storage.getProfileBySlug(slug)
-        .then(profile => {
-          if (profile) {
-            log(`Profile found, incrementing scan count for: ${slug}`, "routes");
-            storage.incrementScanCount(profile.id)
-              .catch(err => console.error(`Error incrementing scan count: ${err}`));
-          }
-        })
-        .catch(err => console.error(`Error getting profile by slug: ${err}`));
-    } else {
-      log(`Catch-all route handling path: ${req.path}`, "routes");
-    }
+    log(`Catch-all route handling path: ${req.path}`, "routes");
     
-    // Let Vite handle serving the HTML file with proper headers
-    next();
+    // Send the index.html file so the client-side router can handle it
+    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 
   const httpServer = createServer(app);
