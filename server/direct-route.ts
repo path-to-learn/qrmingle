@@ -6,25 +6,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function addDirectRoute(app: express.Express) {
-  // Add route for the homepage that uses our React app with ESM imports
+  // Add route for the homepage that uses the original direct.html
   app.get('/', (req, res, next) => {
     console.log('ROOT ROUTE HANDLER CALLED');
-    console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'react-app.html'));
+    console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'direct.html'));
     // Use explicit error handling
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'react-app.html'), (err) => {
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'direct.html'), (err) => {
       if (err) {
-        console.error('ERROR SENDING REACT APP HTML:', err);
-        // Fall back to the direct.html if react-app.html fails
-        res.sendFile(path.join(process.cwd(), 'client', 'public', 'direct.html'), (fallbackErr) => {
-          if (fallbackErr) {
-            console.error('ERROR SENDING FALLBACK HTML:', fallbackErr);
-            next(fallbackErr);
-          } else {
-            console.log('FALLBACK HTML SENT SUCCESSFULLY');
-          }
-        });
+        console.error('ERROR SENDING DIRECT HTML:', err);
+        next(err);
       } else {
-        console.log('REACT APP HTML SENT SUCCESSFULLY');
+        console.log('DIRECT HTML SENT SUCCESSFULLY');
       }
     });
   });
