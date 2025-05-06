@@ -6,22 +6,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function addDirectRoute(app: express.Express) {
-  // Comment out the root route to allow Vite to handle it
-  /*
+  // Add route for serving the original home page
   app.get('/', (req, res, next) => {
-    console.log('ROOT ROUTE HANDLER CALLED');
-    console.log('Sending file from:', path.join(process.cwd(), 'client', 'public', 'index.html'));
-    // Use explicit error handling
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'index.html'), (err) => {
+    console.log('ORIGINAL HOME ROUTE HANDLER CALLED');
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'original-home.html'), (err) => {
       if (err) {
-        console.error('ERROR SENDING INDEX HTML:', err);
+        console.error('ERROR SENDING ORIGINAL HOME HTML:', err);
         next(err);
       } else {
-        console.log('INDEX HTML SENT SUCCESSFULLY');
+        console.log('ORIGINAL HOME HTML SENT SUCCESSFULLY');
       }
     });
   });
-  */
   
   // Keep the original /direct route
   app.get('/direct', (req, res, next) => {
