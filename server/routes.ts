@@ -1266,6 +1266,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // URL shortener service has been removed
 
+  // Add a route to handle direct URL access to profile pages
+  app.get('/p/:slug', (req, res) => {
+    // Forward to the root and let the client-side router handle it
+    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
