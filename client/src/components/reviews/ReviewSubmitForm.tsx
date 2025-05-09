@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { StarIcon } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { celebrateWithColors } from "@/lib/confetti";
 
 interface ReviewSubmitFormProps {
   onSuccess?: () => void;

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { celebrateCreation } from "@/lib/confetti";
 
 export default function Register() {
   const [location, setLocation] = useLocation();
@@ -44,8 +45,10 @@ export default function Register() {
       return;
     }
 
-    // Use the mutation from context
+    // Use the mutation from context with confetti on success
     registerMutation.mutate({ username, password });
+    
+    // We'll add confetti when user redirects to homepage
   };
 
   return (
