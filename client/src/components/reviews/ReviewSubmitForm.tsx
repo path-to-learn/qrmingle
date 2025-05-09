@@ -33,6 +33,9 @@ export default function ReviewSubmitForm({ onSuccess, className = "" }: ReviewSu
       return response.json();
     },
     onSuccess: () => {
+      // Trigger confetti celebration with review star colors
+      celebrateWithColors(['#FFD700', '#FFC107', '#FFEB3B', '#FFF59D', '#FFFDE7']);
+      
       toast({
         title: "Review Submitted",
         description: "Thank you! Your review has been submitted and will be visible after approval.",

@@ -16,6 +16,7 @@ import { widgetInstructions } from '@/lib/qrWidget';
 import { QRCodeSVG } from 'qrcode.react';
 import { Loader2, Download, Image as ImageIcon } from 'lucide-react';
 import QRCode from 'qrcode';
+import { celebrateQrGenerated } from '@/lib/confetti';
 
 interface QrWidgetGeneratorProps {
   profileName: string;
@@ -105,6 +106,9 @@ export function QrWidgetGenerator({
         const widgetDataUrl = canvas.toDataURL('image/png');
         setWidgetImage(widgetDataUrl);
         setIsGenerating(false);
+        
+        // Trigger confetti animation to celebrate successful QR widget generation
+        celebrateQrGenerated();
       };
 
       qrImage.onerror = () => {
