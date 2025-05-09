@@ -18,6 +18,11 @@ export default function Footer() {
                 About
               </div>
             </Link>
+            <Link href="/reviews">
+              <div className="text-muted-foreground hover:text-primary text-sm cursor-pointer">
+                Reviews
+              </div>
+            </Link>
             <Link href="/privacy">
               <div className="text-muted-foreground hover:text-primary text-sm cursor-pointer">
                 Privacy Policy
