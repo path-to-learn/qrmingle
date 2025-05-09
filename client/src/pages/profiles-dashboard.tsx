@@ -8,6 +8,7 @@ import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProfileFormData } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { celebrateCreation } from "@/lib/confetti";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -92,6 +93,8 @@ export default function ProfilesDashboard() {
     },
     onSuccess: () => {
       console.log("Profile created successfully");
+      // Trigger confetti celebration
+      celebrateCreation();
       toast({
         title: "Profile created successfully",
         description: "Your new profile is ready to share!",
