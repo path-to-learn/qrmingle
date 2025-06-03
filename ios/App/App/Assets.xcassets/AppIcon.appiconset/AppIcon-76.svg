@@ -1,17 +1,35 @@
 
 <svg width="76" height="76" viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="76" height="76" rx="15.200000000000001" fill="url(#gradient)"/>
+  <rect width="76" height="76" rx="16.72" fill="url(#grad)"/>
+  
+  <!-- QR Code representation -->
   <g transform="translate(15.200000000000001, 15.200000000000001)">
-    <rect x="11.4" y="11.4" width="22.8" height="22.8" rx="3.8000000000000003" fill="white" opacity="0.9"/>
-    <rect x="26.599999999999998" y="19" width="7.6000000000000005" height="7.6000000000000005" fill="white"/>
-    <rect x="19" y="26.599999999999998" width="7.6000000000000005" height="7.6000000000000005" fill="white"/>
-    <rect x="26.599999999999998" y="26.599999999999998" width="7.6000000000000005" height="7.6000000000000005" fill="white"/>
+    <rect x="0" y="0" width="45.6" height="45.6" rx="3.8000000000000003" fill="white" fill-opacity="0.95"/>
+    
+    <!-- QR corner markers -->
+    <rect x="3.8000000000000003" y="3.8000000000000003" width="11.4" height="11.4" rx="1.52" fill="#4F46E5"/>
+    <rect x="30.400000000000002" y="3.8000000000000003" width="11.4" height="11.4" rx="1.52" fill="#4F46E5"/>
+    <rect x="3.8000000000000003" y="30.400000000000002" width="11.4" height="11.4" rx="1.52" fill="#4F46E5"/>
+    
+    <!-- QR data dots -->
+    <rect x="19" y="6.08" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="24.32" y="6.08" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="19" y="11.4" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="24.32" y="19" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="6.08" y="19" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="31.919999999999998" y="19" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="19" y="24.32" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="24.32" y="31.919999999999998" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="31.919999999999998" y="31.919999999999998" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="36.48" y="24.32" width="2.28" height="2.28" fill="#4F46E5"/>
+    <rect x="19" y="36.48" width="2.28" height="2.28" fill="#4F46E5"/>
   </g>
-  <text x="38" y="64.6" text-anchor="middle" font-family="Arial, sans-serif" font-size="6.08" font-weight="bold" fill="white">QrMingle</text>
+  
+  <text x="38" y="68.4" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Arial" font-size="6.08" font-weight="600" fill="white">QrMingle</text>
 </svg>

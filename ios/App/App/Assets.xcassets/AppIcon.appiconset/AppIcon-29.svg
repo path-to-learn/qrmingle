@@ -1,17 +1,35 @@
 
 <svg width="29" height="29" viewBox="0 0 29 29" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="29" height="29" rx="5.800000000000001" fill="url(#gradient)"/>
+  <rect width="29" height="29" rx="6.38" fill="url(#grad)"/>
+  
+  <!-- QR Code representation -->
   <g transform="translate(5.800000000000001, 5.800000000000001)">
-    <rect x="4.35" y="4.35" width="8.7" height="8.7" rx="1.4500000000000002" fill="white" opacity="0.9"/>
-    <rect x="10.149999999999999" y="7.25" width="2.9000000000000004" height="2.9000000000000004" fill="white"/>
-    <rect x="7.25" y="10.149999999999999" width="2.9000000000000004" height="2.9000000000000004" fill="white"/>
-    <rect x="10.149999999999999" y="10.149999999999999" width="2.9000000000000004" height="2.9000000000000004" fill="white"/>
+    <rect x="0" y="0" width="17.4" height="17.4" rx="1.4500000000000002" fill="white" fill-opacity="0.95"/>
+    
+    <!-- QR corner markers -->
+    <rect x="1.4500000000000002" y="1.4500000000000002" width="4.35" height="4.35" rx="0.58" fill="#4F46E5"/>
+    <rect x="11.600000000000001" y="1.4500000000000002" width="4.35" height="4.35" rx="0.58" fill="#4F46E5"/>
+    <rect x="1.4500000000000002" y="11.600000000000001" width="4.35" height="4.35" rx="0.58" fill="#4F46E5"/>
+    
+    <!-- QR data dots -->
+    <rect x="7.25" y="2.32" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="9.28" y="2.32" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="7.25" y="4.35" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="9.28" y="7.25" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="2.32" y="7.25" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="12.18" y="7.25" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="7.25" y="9.28" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="9.28" y="12.18" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="12.18" y="12.18" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="13.92" y="9.28" width="0.87" height="0.87" fill="#4F46E5"/>
+    <rect x="7.25" y="13.92" width="0.87" height="0.87" fill="#4F46E5"/>
   </g>
-  <text x="14.5" y="24.65" text-anchor="middle" font-family="Arial, sans-serif" font-size="2.32" font-weight="bold" fill="white">QrMingle</text>
+  
+  
 </svg>
