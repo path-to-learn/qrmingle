@@ -1,0 +1,17 @@
+
+<svg width="87" height="87" viewBox="0 0 87 87" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="87" height="87" rx="17.400000000000002" fill="url(#gradient)"/>
+  <g transform="translate(17.400000000000002, 17.400000000000002)">
+    <rect x="13.049999999999999" y="13.049999999999999" width="26.099999999999998" height="26.099999999999998" rx="4.3500000000000005" fill="white" opacity="0.9"/>
+    <rect x="30.45" y="21.75" width="8.700000000000001" height="8.700000000000001" fill="white"/>
+    <rect x="21.75" y="30.45" width="8.700000000000001" height="8.700000000000001" fill="white"/>
+    <rect x="30.45" y="30.45" width="8.700000000000001" height="8.700000000000001" fill="white"/>
+  </g>
+  <text x="43.5" y="73.95" text-anchor="middle" font-family="Arial, sans-serif" font-size="6.96" font-weight="bold" fill="white">QrMingle</text>
+</svg>
