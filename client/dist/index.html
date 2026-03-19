@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QrMingle</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #webview-container {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe 
+        id="webview-container" 
+        src="https://contact-qr-connect-prashantdathwal.replit.app"
+        frameborder="0"
+        allowfullscreen>
+    </iframe>
+    
+    <script>
+        // Basic Capacitor integration
+        if (window.Capacitor) {
+            console.log('Running in Capacitor');
+        }
+    </script>
+</body>
+</html>
