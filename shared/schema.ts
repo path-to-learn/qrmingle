@@ -30,6 +30,7 @@ export const profiles = pgTable("profiles", {
   qrPosition: text("qr_position").default("bottom"), // top, bottom, left, right
   photoPosition: text("photo_position").default("top"), // top, left, right, hidden
   layoutStyle: text("layout_style").default("standard"), // standard, compact, centered, minimal
+  shortBio: text("short_bio"),
   slug: text("slug").notNull().unique(),
   scanCount: integer("scan_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
