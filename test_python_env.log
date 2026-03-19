@@ -1,0 +1,33 @@
+2025-04-06 08:28:28,221 - test_python - INFO - ==================== ENVIRONMENT TEST START ====================
+2025-04-06 08:28:28,221 - test_python - INFO - Test started at: 2025-04-06T08:28:28.221882
+2025-04-06 08:28:28,224 - test_python - INFO - Environment loaded
+2025-04-06 08:28:28,224 - test_python - INFO - Working directory: /home/runner/workspace
+2025-04-06 08:28:28,224 - test_python - INFO - Python version: 3.11.10 (main, Sep  7 2024, 01:03:31) [GCC 13.3.0]
+2025-04-06 08:28:28,224 - test_python - INFO - Environment: DATABASE_URL exists: True
+2025-04-06 08:28:28,224 - test_python - INFO - Environment: SECRET_KEY exists: True
+2025-04-06 08:28:28,250 - test_python - INFO - Number of Python processes running: 1
+2025-04-06 08:28:28,250 - test_python - INFO - PID: 4633, Command: python test_python_env.py
+2025-04-06 08:28:28,251 - test_python - INFO - Memory usage: 66.5% (Total: 62.81 GB)
+2025-04-06 08:28:29,252 - test_python - INFO - CPU usage: 60.1%
+2025-04-06 08:28:29,254 - test_python - INFO - Port 5001 is not in use
+2025-04-06 08:28:29,254 - test_python - INFO - Testing Flask import...
+2025-04-06 08:28:29,439 - test_python - INFO - Flask imported successfully
+2025-04-06 08:28:29,440 - test_python - INFO - Testing SQLAlchemy import...
+2025-04-06 08:28:29,635 - test_python - INFO - SQLAlchemy imported successfully
+2025-04-06 08:28:29,635 - test_python - INFO - Testing database connection...
+2025-04-06 08:28:29,636 - test_python - INFO - Database URL format check: True
+2025-04-06 08:28:29,646 - test_python - INFO - Attempting direct database connection...
+2025-04-06 08:28:30,002 - test_python - INFO - Database connection successful!
+2025-04-06 08:28:30,144 - test_python - INFO - Found tables: profiles, scan_logs, social_links, users, session
+2025-04-06 08:28:30,144 - test_python - INFO - Testing model imports...
+2025-04-06 08:28:30,160 - test_python - INFO - Models imported successfully
+2025-04-06 08:28:30,161 - test_python - INFO - Testing other imports...
+2025-04-06 08:28:30,162 - test_python - INFO - Authentication functions imported successfully
+2025-04-06 08:28:30,163 - test_python - INFO - Testing password hashing and verification...
+2025-04-06 08:28:30,297 - test_python - INFO - Password hashed successfully: scrypt:32768:8:1$TX8...
+2025-04-06 08:28:30,298 - qrmingle.auth.password - INFO - Password verification started
+2025-04-06 08:28:30,298 - qrmingle.auth.password - INFO - Verifying password - Stored hash prefix: scrypt:327..., Provided password length: 12
+2025-04-06 08:28:30,424 - qrmingle.auth.password - INFO - Password verification result: True
+2025-04-06 08:28:30,424 - test_python - INFO - Password verification result: True
+2025-04-06 08:28:30,425 - test_python - INFO - Testing complete - all looks good!
+2025-04-06 08:28:30,425 - test_python - INFO - ==================== ENVIRONMENT TEST END ====================
