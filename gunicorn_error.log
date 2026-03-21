@@ -1,6 +1,0 @@
-[2025-04-08 15:35:55 +0000] [3362] [INFO] Starting gunicorn 23.0.0
-[2025-04-08 15:35:55 +0000] [3362] [INFO] Listening at: http://0.0.0.0:5001 (3362)
-[2025-04-08 15:35:55 +0000] [3362] [INFO] Using worker: sync
-[2025-04-08 15:35:55 +0000] [3369] [INFO] Booting worker with pid: 3369
-[2025-04-08 15:36:00 +0000] [3362] [INFO] Handling signal: hup
-[2025-04-08 15:36:00 +0000] [3362] [INFO] Hang up: Master
