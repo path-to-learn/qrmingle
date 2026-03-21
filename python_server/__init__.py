@@ -1,1 +1,0 @@
-# QrMingle Server
