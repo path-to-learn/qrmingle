@@ -1,0 +1,29 @@
+node_modules
+
+# Local data files - never commit
+data-store.json
+session/
+
+# Log files
+*.log
+gunicorn_access.log
+gunicorn_error.log
+python_server.log
+python_server_output.log
+test_flask.log
+
+# PID files
+flask_pid.txt
+python_pid.txt
+
+# Environment & secrets
+.env
+
+# Dependencies
+node_modules/
+
+# Uploads
+uploads/
+
+# Temp files
+tmp.html
