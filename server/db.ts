@@ -1,10 +1,10 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import { users, profiles, socialLinks, scanLogs, reviews } from '@shared/schema';
 
-// Initialize database client
-const sql = neon(process.env.DATABASE_URL!);
-export const db = drizzle(sql);
+// Use standard postgres driver (works locally and with any Postgres)
+const client = postgres(process.env.DATABASE_URL!);
+export const db = drizzle(client);
 
 // Export for convenience
 export { eq, and, desc, sql, asc } from 'drizzle-orm';
