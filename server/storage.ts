@@ -11,6 +11,7 @@ import {
 import connectPgSimple from "connect-pg-simple";
 import session from "express-session";
 import pg from "pg";
+import { parse as parsePgUrl } from "pg-connection-string";
 
 export interface IStorage {
   // User methods
@@ -70,14 +71,18 @@ export class DatabaseStorage implements IStorage {
 
   constructor() {
     const PostgresStore = connectPgSimple(session);
-    // Explicitly create a pool using only DATABASE_URL
-    // This prevents connect-pg-simple from picking up PGHOST/PGUSER
-    // environment variables that Replit sets internally (helium)
+    // Parse DATABASE_URL into individual components so that PGHOST,
+    // PGUSER, PGPASSWORD and other PG* env vars are completely ignored.
+    // pg.Pool prioritises explicit config options over env vars.
+    const dbUrl = process.env.DATABASE_URL!;
+    const parsed = parsePgUrl(dbUrl);
     const pool = new pg.Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.DATABASE_URL?.includes('neon.tech') 
-        ? { rejectUnauthorized: false } 
-        : false
+      host:     parsed.host     ?? undefined,
+      port:     parsed.port     ? Number(parsed.port) : 5432,
+      user:     parsed.user     ?? undefined,
+      password: parsed.password ?? undefined,
+      database: parsed.database ?? undefined,
+      ssl: dbUrl.includes('neon.tech') ? { rejectUnauthorized: false } : false,
     });
     this.sessionStore = new PostgresStore({
       pool,
