@@ -8,6 +8,7 @@ import {
   ScanLog,
   InsertScanLog,
 } from "@shared/schema";
+import "dotenv/config";
 import connectPgSimple from "connect-pg-simple";
 import session from "express-session";
 import pg from "pg";
