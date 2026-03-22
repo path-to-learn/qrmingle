@@ -1,10 +1,22 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
+import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
+import { neon } from '@neondatabase/serverless';
 import postgres from 'postgres';
-import { users, profiles, socialLinks, scanLogs, reviews } from '@shared/schema';
+import * as schema from '@shared/schema';
 
-// Use standard postgres driver (works locally and with any Postgres)
-const client = postgres(process.env.DATABASE_URL!);
-export const db = drizzle(client);
+const isNeon = process.env.DATABASE_URL?.includes('neon.tech');
 
-// Export for convenience
+let db: ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzlePostgres>;
+
+if (isNeon) {
+  // Production — Neon cloud database
+  const sql = neon(process.env.DATABASE_URL!);
+  db = drizzleNeon(sql);
+} else {
+  // Local — standard Postgres (Docker)
+  const client = postgres(process.env.DATABASE_URL!);
+  db = drizzlePostgres(client);
+}
+
+export { db };
 export { eq, and, desc, sql, asc } from 'drizzle-orm';
