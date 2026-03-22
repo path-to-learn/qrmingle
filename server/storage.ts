@@ -83,15 +83,6 @@ export class DatabaseStorage implements IStorage {
 
   private async initializeStorage() {
     try {
-      // Push the schema to the database (creates tables if they don't exist)
-      const { migrate } = await import('drizzle-orm/postgres-js/migrator');
-      const { db } = await import('./db');
-      
-      // Run migration to sync schema with database
-      console.log("Running database migrations...");
-      await this.pushSchema();
-      console.log("Database migrations complete.");
-      
       // Check if demo user exists, create if not
       const demoUser = await this.getUserByUsername("demo");
       if (!demoUser) {
@@ -103,16 +94,6 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error("Failed to initialize database storage:", error);
-    }
-  }
-  
-  private async pushSchema() {
-    try {
-      // Run the database push command programmatically
-      const { execSync } = await import('child_process');
-      execSync('npm run db:push', { stdio: 'inherit' });
-    } catch (error) {
-      console.error("Error pushing schema to database:", error);
     }
   }
 
