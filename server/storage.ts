@@ -74,7 +74,9 @@ export class DatabaseStorage implements IStorage {
     // Parse DATABASE_URL into individual components so that PGHOST,
     // PGUSER, PGPASSWORD and other PG* env vars are completely ignored.
     // pg.Pool prioritises explicit config options over env vars.
-    const dbUrl = process.env.DATABASE_URL!;
+    // Prefer NEON_DATABASE_URL — DATABASE_URL is runtime-managed by Replit
+    // and resolves to the internal helium host in production deployments.
+    const dbUrl = (process.env.NEON_DATABASE_URL || process.env.DATABASE_URL)!;
     const parsed = parsePgUrl(dbUrl);
     const pool = new pg.Pool({
       host:     parsed.host     ?? undefined,

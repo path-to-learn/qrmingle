@@ -3,8 +3,11 @@ import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
 import { neon } from '@neondatabase/serverless';
 import postgres from 'postgres';
 
-// Read DATABASE_URL once — never fall back to PGHOST / PGUSER / etc.
-const dbUrl = process.env.DATABASE_URL!;
+// Prefer NEON_DATABASE_URL (external Neon endpoint, works in production).
+// DATABASE_URL is runtime-managed by Replit and points to the internal
+// helium host which is only reachable from the dev container, not from
+// the production deployment.
+const dbUrl = (process.env.NEON_DATABASE_URL || process.env.DATABASE_URL)!;
 const isNeon = dbUrl?.includes('neon.tech');
 
 let db: any;
