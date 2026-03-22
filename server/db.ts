@@ -1,20 +1,24 @@
-import "dotenv/config";
 import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
 import { neon } from '@neondatabase/serverless';
 import postgres from 'postgres';
 
-const isNeon = process.env.DATABASE_URL?.includes('neon.tech');
+// Read DATABASE_URL once — never fall back to PGHOST / PGUSER / etc.
+const dbUrl = process.env.DATABASE_URL!;
+const isNeon = dbUrl?.includes('neon.tech');
 
 let db: any;
 
 if (isNeon) {
-  // Production — Neon cloud database
-  const sql = neon(process.env.DATABASE_URL!);
+  // Neon HTTP driver makes HTTPS requests directly to neon.tech.
+  // It reads only the URL string and completely ignores all PG* env vars.
+  const sql = neon(dbUrl);
   db = drizzleNeon(sql);
 } else {
-  // Local — standard Postgres (Docker)
-  const client = postgres(process.env.DATABASE_URL!);
+  // Local / fallback: pass the URL string so postgres.js uses its parsed
+  // values (host, port, user, password, database) and does NOT fall back
+  // to PGHOST / PGUSER / PGPASSWORD / etc. from the environment.
+  const client = postgres(dbUrl);
   db = drizzlePostgres(client);
 }
 
