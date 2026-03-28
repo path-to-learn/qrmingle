@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'QrMingle',
   webDir: 'client/dist',
   server: {
-    androidScheme: 'https'
+    url: 'https://qrmingle.com',
+    cleartext: false
   },
   plugins: {
     Camera: {
