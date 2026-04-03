@@ -223,7 +223,7 @@ export default function ProfilesDashboard() {
       {isLoading ? (
         <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>Loading...</div>
       ) : (
-        <div style={{ width: "100%", overflow: "hidden", padding: "0 12px" }}>
+        <div style={{ width: "100%", maxWidth: "100vw", overflow: "hidden", padding: "0 8px", boxSizing: "border-box" }}>
           <FullScreenProfileView
             profiles={profiles}
             onEdit={handleEditProfile}

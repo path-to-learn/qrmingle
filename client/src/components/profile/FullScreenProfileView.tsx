@@ -58,7 +58,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
 
   return (
     <motion.div
-      style={{ x, rotate }}
+      style={{ x, rotate, width: "100%", maxWidth: "100%", overflow: "hidden" }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.5}
