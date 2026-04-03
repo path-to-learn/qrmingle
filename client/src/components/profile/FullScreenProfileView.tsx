@@ -70,7 +70,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 180px)",
+        height: "calc(100vh - 220px)",
         width: "100%",
         boxSizing: "border-box",
       }}>
