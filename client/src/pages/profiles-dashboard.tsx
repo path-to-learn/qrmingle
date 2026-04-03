@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(true);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
+  return true; // Always mobile in this app
 };
 import SwipeProfileStack from "@/components/profile/SwipeProfileStack";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -234,10 +227,12 @@ export default function ProfilesDashboard() {
           <p className="text-muted-foreground">
             Create and manage your contact profiles with custom QR codes
           </p>
-          <Button onClick={handleNewProfile}>
-            <PlusIcon className="mr-2 h-5 w-5" />
-            Create New Profile
-          </Button>
+          {!isMobile && (
+            <Button onClick={handleNewProfile}>
+              <PlusIcon className="mr-2 h-5 w-5" />
+              Create New Profile
+            </Button>
+          )}
         </div>
 
         {isLoading ? (
