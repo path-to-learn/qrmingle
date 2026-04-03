@@ -33,10 +33,15 @@ function StoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight, index
   const { toast } = useToast();
   const bg = bgGradients[index % bgGradients.length];
   const profileUrl = `${window.location.origin}/p/${profile.slug}`;
+  const isDragging = { current: false };
 
+  const handleDragStart = () => { isDragging.current = true; };
   const handleDragEnd = (_: any, info: any) => {
-    if (info.offset.x > 100) onSwipeRight();
-    else if (info.offset.x < -100) onSwipeLeft();
+    setTimeout(() => { isDragging.current = false; }, 100);
+    if (Math.abs(info.offset.x) > 80) {
+      if (info.offset.x > 100) onSwipeRight();
+      else if (info.offset.x < -100) onSwipeLeft();
+    }
   };
 
   const handleShare = async () => {
@@ -64,6 +69,7 @@ function StoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight, index
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.4}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <div style={{
@@ -301,7 +307,7 @@ export default function CardsPage() {
     }}>
       {/* Dot indicators */}
       {profiles.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "center", gap: "6px", padding: "8px 0" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "6px", padding: "8px 0", position: "relative", zIndex: 50 }}>
           {profiles.map((_: any, i: number) => (
             <div key={i} onClick={() => setCurrentIndex(i)} style={{
               height: "4px", borderRadius: "99px", cursor: "pointer",
@@ -314,7 +320,7 @@ export default function CardsPage() {
       )}
 
       {/* Main content */}
-      <div style={{ flex: 1, padding: "4px 12px 0", minHeight: 0 }}>
+      <div style={{ flex: 1, padding: "4px 12px 0", minHeight: 0, position: "relative", zIndex: 10 }}>
         {isLoading ? (
           <div style={{
             height: "100%", display: "flex", alignItems: "center",
@@ -360,6 +366,7 @@ export default function CardsPage() {
       <div style={{
         display: "flex", justifyContent: "space-between",
         alignItems: "center", padding: "8px 16px",
+        position: "relative", zIndex: 50,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button onClick={goPrev} disabled={currentIndex === 0} style={{
