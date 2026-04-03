@@ -70,7 +70,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 220px)",
+        height: "100%",
         width: "100%",
         boxSizing: "border-box",
       }}>
@@ -109,7 +109,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
           {/* Photo */}
           {profile.photoUrl ? (
             <div style={{
-              width: "110px", height: "110px", borderRadius: "50%",
+              width: "150px", height: "150px", borderRadius: "50%",
               border: "4px solid rgba(255,255,255,0.8)",
               overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
             }}>
@@ -131,7 +131,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
 
           {/* Name & title */}
           <div style={{ textAlign: "center" }}>
-            <h2 style={{ color: "white", fontSize: "26px", fontWeight: 700, margin: 0 }}>
+            <h2 style={{ color: "white", fontSize: "30px", fontWeight: 700, margin: 0 }}>
               {profile.displayName}
             </h2>
             {profile.title && (
@@ -254,40 +254,44 @@ export default function FullScreenProfileView({ profiles, onEdit, onDelete, onNe
   }
 
   return (
-    <div style={{ position: "relative" }}>
-
+    <div style={{
+      position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+      display: "flex", flexDirection: "column",
+      background: "#f0f9ff", zIndex: 5,
+      paddingTop: "env(safe-area-inset-top)",
+      paddingBottom: "calc(env(safe-area-inset-bottom) + 60px)",
+    }}>
       {/* Dot indicators */}
-      <div style={{
-        display: "flex", justifyContent: "center", gap: "6px", marginBottom: "12px",
-      }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "6px", padding: "8px 0" }}>
         {profiles.map((_: any, i: number) => (
           <div key={i} onClick={() => setCurrentIndex(i)} style={{
             height: "4px",
             width: i === currentIndex ? "24px" : "8px",
             borderRadius: "99px",
             background: i === currentIndex ? "#0ea5e9" : "#cbd5e1",
-            transition: "all 0.3s",
-            cursor: "pointer",
+            transition: "all 0.3s", cursor: "pointer",
           }} />
         ))}
       </div>
 
-      {/* Card */}
-      <AnimatePresence mode="wait">
-        <ProfileStoryCard
-          key={currentIndex}
-          profile={profiles[currentIndex]}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onSwipeLeft={goNext}
-          onSwipeRight={goPrev}
-        />
-      </AnimatePresence>
+      {/* Card - flex 1 so it fills remaining space */}
+      <div style={{ flex: 1, padding: "0 12px", minHeight: 0, overflow: "hidden" }}>
+        <AnimatePresence mode="wait">
+          <ProfileStoryCard
+            key={currentIndex}
+            profile={profiles[currentIndex]}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onSwipeLeft={goNext}
+            onSwipeRight={goPrev}
+          />
+        </AnimatePresence>
+      </div>
 
       {/* Counter + Add button */}
       <div style={{
         display: "flex", justifyContent: "space-between",
-        alignItems: "center", padding: "12px 12px 16px",
+        alignItems: "center", padding: "8px 16px",
       }}>
         <span style={{ fontSize: "13px", color: "#94a3b8", fontWeight: 500 }}>
           {currentIndex + 1} of {profiles.length}
