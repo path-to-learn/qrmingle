@@ -3,6 +3,7 @@ const useIsMobile = () => {
   return true; // Always mobile in this app
 };
 import SwipeProfileStack from "@/components/profile/SwipeProfileStack";
+import FullScreenProfileView from "@/components/profile/FullScreenProfileView";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -219,7 +220,7 @@ export default function ProfilesDashboard() {
   return (
     <>
       {/* My QR Profiles section */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6 overflow-hidden" style={{ maxWidth: "100vw", boxSizing: "border-box" }}>
+      <div className={`bg-white rounded-lg shadow-md p-4 mb-6 overflow-hidden ${isMobile ? "hidden" : ""}`} style={{ maxWidth: "100vw", boxSizing: "border-box" }}>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">My QR Profiles</h1>
         </div>
@@ -243,15 +244,15 @@ export default function ProfilesDashboard() {
           </div>
         ) : (
           <>
-            {/* Mobile: swipe card stack */}
-            <div className={isMobile ? "block" : "hidden"}>
-              <SwipeProfileStack
+            {/* Mobile: full screen story view */}
+            {isMobile ? (
+              <FullScreenProfileView
                 profiles={profiles}
                 onEdit={handleEditProfile}
                 onDelete={handleDeleteProfile}
                 onNewProfile={handleNewProfile}
               />
-            </div>
+            ) : null}
 
             {/* Desktop: grid layout */}
             <div className={!isMobile ? "grid grid-cols-2 lg:grid-cols-3 gap-6" : "hidden"}>
