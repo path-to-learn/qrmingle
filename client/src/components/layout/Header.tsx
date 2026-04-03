@@ -62,7 +62,8 @@ export default function Header() {
         <div>
           {user ? (
             <>
-              {/* Avatar button */}
+              {/* Avatar button - hidden on native app since Settings tab handles navigation */}
+              {!(window as any).Capacitor && (
               <button
                 onClick={() => setShowMenu(true)}
                 style={{ WebkitTapHighlightColor: 'transparent', minHeight: '44px', minWidth: '44px', touchAction: 'manipulation' }}
@@ -75,6 +76,7 @@ export default function Header() {
                 </Avatar>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
+              )}
 
               {/* Mobile slide-in menu */}
               {showMenu && (

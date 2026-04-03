@@ -38,7 +38,7 @@ function SwipeCard({ profile, onEdit, onDelete, isTop, onSwipeLeft, onSwipeRight
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="w-full"
     >
-      <ProfileCard {...profile} onEdit={onEdit} onDelete={onDelete} />
+      <div style={{ width: "100%", overflow: "hidden" }}><ProfileCard {...profile} onEdit={onEdit} onDelete={onDelete} /></div>
     </motion.div>
   );
 }
@@ -73,7 +73,7 @@ export default function SwipeProfileStack({ profiles, onEdit, onDelete, onNewPro
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full overflow-hidden">
+    <div className="flex flex-col gap-4 overflow-hidden" style={{ width: "100%", maxWidth: "100%" }}>
       {/* Dot indicators */}
       <div className="flex items-center justify-center gap-2">
         {profiles.map((_: any, i: number) => (
