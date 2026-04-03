@@ -19,6 +19,9 @@ import Help from "@/pages/help";
 import About from "@/pages/about";
 import Reviews from "@/pages/reviews";
 import Header from "./components/layout/Header";
+import BottomTabBar from "./components/layout/BottomTabBar";
+import Settings from "@/pages/settings";
+import Scan from "@/pages/scan";
 import Footer from "./components/layout/Footer";
 import { useState, useEffect } from "react";
 
@@ -32,7 +35,7 @@ function AppRouter() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-3 py-4 overflow-hidden max-w-full">
+      <main className="flex-grow container mx-auto px-3 py-4 overflow-hidden max-w-full" style={{ paddingBottom: "80px" }}>
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />
@@ -73,10 +76,13 @@ function AppRouter() {
           <Route path="/help" component={Help} />
           <Route path="/about" component={About} />
           <Route path="/reviews" component={Reviews} />
+          <Route path="/settings" component={Settings} />
+          <Route path="/scan" component={Scan} />
           <Route component={NotFound} />
         </Switch>
       </main>
       <MobileHidden><Footer /></MobileHidden>
+      <BottomTabBar />
     </div>
   );
 }

@@ -67,11 +67,13 @@ export default function Login() {
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
                 </label>
-                <Link href="/forgot-password">
-                  <span className="text-xs text-primary hover:underline cursor-pointer">
-                    Forgot password?
-                  </span>
-                </Link>
+                {!(window as any).Capacitor && (
+                  <Link href="/forgot-password">
+                    <span className="text-xs text-primary hover:underline cursor-pointer">
+                      Forgot password?
+                    </span>
+                  </Link>
+                )}
               </div>
               <Input
                 id="password"
