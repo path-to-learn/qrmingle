@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
-import { PlusIcon, Pencil, Trash2, Share, UserPlus, QrCode } from "lucide-react";
+import { PlusIcon, Pencil, Trash2, Share, UserPlus, QrCode, ChevronLeft, ChevronRight } from "lucide-react";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
 import { saveToContacts } from "@/lib/vcard";
 import { useToast } from "@/hooks/use-toast";
@@ -103,51 +103,68 @@ function StoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight, index
         <div style={{
           flex: 1, display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          padding: "12px 20px", gap: "12px",
+          padding: "12px 20px", gap: "10px",
+          backgroundImage: profile.backgroundUrl ? `url(${profile.backgroundUrl})` : undefined,
+          backgroundSize: "cover", backgroundPosition: "center",
         }}>
-          {/* Photo */}
-          {profile.photoUrl ? (
-            <img src={profile.photoUrl} alt={profile.displayName} style={{
-              width: "140px", height: "140px", borderRadius: "50%",
-              border: "4px solid rgba(255,255,255,0.8)",
-              objectFit: "cover",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-            }} />
-          ) : (
+          {/* Overlay if background image */}
+          {profile.backgroundUrl && (
             <div style={{
-              width: "140px", height: "140px", borderRadius: "50%",
-              background: "rgba(255,255,255,0.3)",
-              border: "4px solid rgba(255,255,255,0.8)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <span style={{ fontSize: "56px", color: "white", fontWeight: 700 }}>
-                {profile.displayName?.charAt(0)?.toUpperCase()}
-              </span>
-            </div>
+              position: "absolute", inset: 0,
+              background: "rgba(0,0,0,0.4)", borderRadius: "24px",
+            }} />
           )}
 
-          {/* Name */}
-          <div style={{ textAlign: "center" }}>
-            <div style={{ color: "white", fontSize: "28px", fontWeight: 700 }}>
-              {profile.displayName}
-            </div>
-            {profile.title && (
-              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginTop: "4px" }}>
-                {profile.title}
+          {/* Photo */}
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {profile.photoUrl ? (
+              <img src={profile.photoUrl} alt={profile.displayName} style={{
+                width: "130px", height: "130px", borderRadius: "50%",
+                border: "4px solid rgba(255,255,255,0.8)",
+                objectFit: "cover", boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+              }} />
+            ) : (
+              <div style={{
+                width: "130px", height: "130px", borderRadius: "50%",
+                background: "rgba(255,255,255,0.3)",
+                border: "4px solid rgba(255,255,255,0.8)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <span style={{ fontSize: "52px", color: "white", fontWeight: 700 }}>
+                  {profile.displayName?.charAt(0)?.toUpperCase()}
+                </span>
               </div>
             )}
           </div>
 
-          {/* Social links */}
+          {/* Name + bio */}
+          <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
+            <div style={{ color: "white", fontSize: "26px", fontWeight: 700 }}>
+              {profile.displayName}
+            </div>
+            {profile.title && (
+              <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "15px", marginTop: "2px" }}>
+                {profile.title}
+              </div>
+            )}
+            {profile.bio && (
+              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", marginTop: "6px", maxWidth: "260px" }}>
+                {profile.bio}
+              </div>
+            )}
+          </div>
+
+          {/* Social links - clickable */}
           {profile.socialLinks?.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", position: "relative", zIndex: 1 }}>
               {profile.socialLinks.slice(0, 4).map((link: any, i: number) => (
-                <div key={i} style={{
+                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" style={{
                   background: "rgba(255,255,255,0.2)", borderRadius: "20px",
                   padding: "6px 14px", color: "white", fontSize: "13px", fontWeight: 500,
+                  textDecoration: "none", cursor: "pointer",
                 }}>
                   {link.platform}
-                </div>
+                </a>
               ))}
             </div>
           )}
@@ -155,11 +172,12 @@ function StoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight, index
           {/* QR Button */}
           <button onClick={() => setShowQR(!showQR)} style={{
             background: "rgba(255,255,255,0.95)", border: "none",
-            borderRadius: "14px", padding: "12px 24px",
+            borderRadius: "14px", padding: "10px 20px",
             display: "flex", alignItems: "center", gap: "8px",
-            fontWeight: 600, fontSize: "15px", color: "#374151", cursor: "pointer",
+            fontWeight: 600, fontSize: "14px", color: "#374151", cursor: "pointer",
+            position: "relative", zIndex: 1,
           }}>
-            <QrCode size={20} />
+            <QrCode size={18} />
             {showQR ? "Hide QR" : "Show QR Code"}
           </button>
 
@@ -170,10 +188,10 @@ function StoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight, index
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                style={{ background: "white", borderRadius: "16px", padding: "12px" }}
+                style={{ background: "white", borderRadius: "16px", padding: "12px", position: "relative", zIndex: 1 }}
               >
                 <QrCodeDisplay
-                  value={profileUrl} size={150}
+                  value={profileUrl} size={140}
                   color={profile.qrColor || "#3B82F6"}
                   style={profile.qrStyle || "basic"}
                 />
@@ -343,9 +361,27 @@ export default function CardsPage() {
         display: "flex", justifyContent: "space-between",
         alignItems: "center", padding: "8px 16px",
       }}>
-        <span style={{ fontSize: "13px", color: "#94a3b8", fontWeight: 500 }}>
-          {profiles.length > 0 ? `${currentIndex + 1} of ${profiles.length}` : ""}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <button onClick={goPrev} disabled={currentIndex === 0} style={{
+            background: currentIndex === 0 ? "#e2e8f0" : "#6366f1",
+            border: "none", borderRadius: "50%", width: "32px", height: "32px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: currentIndex === 0 ? "default" : "pointer", color: "white",
+          }}>
+            <ChevronLeft size={18} />
+          </button>
+          <span style={{ fontSize: "13px", color: "#94a3b8", fontWeight: 500 }}>
+            {profiles.length > 0 ? `${currentIndex + 1} of ${profiles.length}` : ""}
+          </span>
+          <button onClick={goNext} disabled={currentIndex === profiles.length - 1} style={{
+            background: currentIndex === profiles.length - 1 ? "#e2e8f0" : "#6366f1",
+            border: "none", borderRadius: "50%", width: "32px", height: "32px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: currentIndex === profiles.length - 1 ? "default" : "pointer", color: "white",
+          }}>
+            <ChevronRight size={18} />
+          </button>
+        </div>
         <button onClick={() => { setEditingProfileId(null); setShowEditor(true); }} style={{
           background: "#6366f1", border: "none", borderRadius: "99px",
           padding: "8px 18px", display: "flex", alignItems: "center", gap: "6px",
