@@ -32,7 +32,7 @@ function AppRouter() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-6 overflow-x-hidden max-w-full">
+      <main className="flex-grow container mx-auto px-3 py-4 overflow-hidden max-w-full">
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />

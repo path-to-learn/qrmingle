@@ -219,7 +219,7 @@ export default function ProfilesDashboard() {
   return (
     <>
       {/* My QR Profiles section */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6 overflow-hidden">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">My QR Profiles</h1>
         </div>
