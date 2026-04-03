@@ -287,10 +287,10 @@ export default function FullScreenProfileView({ profiles, onEdit, onDelete, onNe
       {/* Counter + Add button */}
       <div style={{
         display: "flex", justifyContent: "space-between",
-        alignItems: "center", padding: "12px 4px 16px",
+        alignItems: "center", padding: "12px 12px 16px",
       }}>
-        <span style={{ fontSize: "13px", color: "#94a3b8" }}>
-          {currentIndex + 1} / {profiles.length}
+        <span style={{ fontSize: "13px", color: "#94a3b8", fontWeight: 500 }}>
+          {currentIndex + 1} of {profiles.length}
         </span>
         <button onClick={onNewProfile} style={{
           background: "#0ea5e9", border: "none",
