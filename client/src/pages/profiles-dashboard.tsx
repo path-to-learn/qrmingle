@@ -223,12 +223,14 @@ export default function ProfilesDashboard() {
       {isLoading ? (
         <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>Loading...</div>
       ) : (
-        <FullScreenProfileView
-          profiles={profiles}
-          onEdit={handleEditProfile}
-          onDelete={handleDeleteProfile}
-          onNewProfile={handleNewProfile}
-        />
+        <div style={{ width: "100%", overflow: "hidden", padding: "0 2px" }}>
+          <FullScreenProfileView
+            profiles={profiles}
+            onEdit={handleEditProfile}
+            onDelete={handleDeleteProfile}
+            onNewProfile={handleNewProfile}
+          />
+        </div>
       )}
 
       {/* My QR Profiles section - desktop only */}

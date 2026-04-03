@@ -66,11 +66,13 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
     >
       <div style={{
         background: bgGradient,
-        borderRadius: "20px",
+        borderRadius: "16px",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         minHeight: "70vh",
+        width: "100%",
+        boxSizing: "border-box",
       }}>
         {/* Top actions */}
         <div style={{
