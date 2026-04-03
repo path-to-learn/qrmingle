@@ -271,12 +271,14 @@ export default function CardsPage() {
 
   return (
     <div style={{
-      position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+      position: "fixed", top: 0, left: 0,
+      width: "100vw", height: "100vh",
       background: "#f0f9ff", display: "flex", flexDirection: "column",
       paddingTop: "env(safe-area-inset-top)",
+      paddingLeft: "env(safe-area-inset-left)",
+      paddingRight: "env(safe-area-inset-right)",
       paddingBottom: "calc(env(safe-area-inset-bottom) + 60px)",
       overflow: "hidden",
-      maxWidth: "100vw",
       boxSizing: "border-box",
     }}>
       {/* Dot indicators */}
