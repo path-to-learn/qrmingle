@@ -253,10 +253,7 @@ export default function FullScreenProfileView({ profiles, onEdit, onDelete, onNe
 
   return (
     <div style={{ position: "relative" }}>
-      {/* Debug info */}
-      <div style={{ padding: "8px", background: "#fef3c7", borderRadius: "8px", marginBottom: "8px", fontSize: "12px", color: "#92400e" }}>
-        Debug: {profiles.length} profiles loaded. Current: {currentIndex + 1}
-      </div>
+
       {/* Dot indicators */}
       <div style={{
         display: "flex", justifyContent: "center", gap: "6px", marginBottom: "12px",
@@ -288,7 +285,7 @@ export default function FullScreenProfileView({ profiles, onEdit, onDelete, onNe
       {/* Counter + Add button */}
       <div style={{
         display: "flex", justifyContent: "space-between",
-        alignItems: "center", padding: "12px 4px 0",
+        alignItems: "center", padding: "12px 4px 16px",
       }}>
         <span style={{ fontSize: "13px", color: "#94a3b8" }}>
           {currentIndex + 1} / {profiles.length}
