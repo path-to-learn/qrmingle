@@ -219,7 +219,19 @@ export default function ProfilesDashboard() {
 
   return (
     <>
-      {/* My QR Profiles section */}
+      {/* Full screen story view */}
+      {isLoading ? (
+        <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>Loading...</div>
+      ) : (
+        <FullScreenProfileView
+          profiles={profiles}
+          onEdit={handleEditProfile}
+          onDelete={handleDeleteProfile}
+          onNewProfile={handleNewProfile}
+        />
+      )}
+
+      {/* My QR Profiles section - desktop only */}
       <div className={`bg-white rounded-lg shadow-md p-4 mb-6 overflow-hidden ${isMobile ? "hidden" : ""}`} style={{ maxWidth: "100vw", boxSizing: "border-box" }}>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">My QR Profiles</h1>
@@ -244,15 +256,7 @@ export default function ProfilesDashboard() {
           </div>
         ) : (
           <>
-            {/* Mobile: full screen story view */}
-            {isMobile ? (
-              <FullScreenProfileView
-                profiles={profiles}
-                onEdit={handleEditProfile}
-                onDelete={handleDeleteProfile}
-                onNewProfile={handleNewProfile}
-              />
-            ) : null}
+
 
             {/* Desktop: grid layout */}
             <div className={!isMobile ? "grid grid-cols-2 lg:grid-cols-3 gap-6" : "hidden"}>
