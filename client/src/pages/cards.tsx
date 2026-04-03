@@ -60,7 +60,7 @@ function StoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight, index
 
   return (
     <motion.div
-      style={{ x, rotate, width: "100%", height: "100%", touchAction: "pan-y" }}
+      style={{ x, rotate, width: "100%", height: "100%", touchAction: "pan-y", overflow: "hidden", maxWidth: "100%" }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.4}
@@ -276,6 +276,8 @@ export default function CardsPage() {
       paddingTop: "env(safe-area-inset-top)",
       paddingBottom: "calc(env(safe-area-inset-bottom) + 60px)",
       overflow: "hidden",
+      maxWidth: "100vw",
+      boxSizing: "border-box",
     }}>
       {/* Dot indicators */}
       {profiles.length > 0 && (
