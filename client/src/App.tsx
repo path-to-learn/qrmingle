@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "./lib/queryClient";
@@ -32,10 +32,11 @@ import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
 
 // Router component
 function AppRouter() {
+  const [location] = useLocation();
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow container mx-auto px-3 py-4 overflow-hidden max-w-full" style={{ paddingBottom: "80px" }}>
+      {!["/profiles", "/"].includes(location) && <Header />}
+      <main className="flex-grow overflow-hidden max-w-full" style={{ paddingBottom: "80px", paddingTop: "8px" }}>
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />

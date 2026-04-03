@@ -70,7 +70,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        minHeight: "70vh",
+        height: "calc(100vh - 180px)",
         width: "100%",
         boxSizing: "border-box",
       }}>
@@ -103,8 +103,8 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
         {/* Profile content */}
         <div style={{
           flex: 1, display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center",
-          padding: "16px", gap: "16px",
+          alignItems: "center", justifyContent: "space-evenly",
+          padding: "16px", gap: "8px",
         }}>
           {/* Photo */}
           {profile.photoUrl ? (
