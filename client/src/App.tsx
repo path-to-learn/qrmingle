@@ -19,6 +19,7 @@ import Help from "@/pages/help";
 import About from "@/pages/about";
 import Reviews from "@/pages/reviews";
 import Header from "./components/layout/Header";
+import CardsPage from "@/pages/cards";
 import BottomTabBar from "./components/layout/BottomTabBar";
 import Settings from "@/pages/settings";
 import Scan from "@/pages/scan";
@@ -44,7 +45,7 @@ function AppRouter() {
           {/* Profiles dashboard will be the main area for managing profiles */}
           <Route path="/profiles">
             <RequireAuth>
-              <ProfilesDashboard />
+              <CardsPage />
             </RequireAuth>
           </Route>
           
