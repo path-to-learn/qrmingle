@@ -1,4 +1,15 @@
 import { useState, useEffect } from "react";
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(true);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+};
+import SwipeProfileStack from "@/components/profile/SwipeProfileStack";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,6 +33,7 @@ import {
 
 export default function ProfilesDashboard() {
   const { user, isEffectivelyPremium } = useAuth();
+  const isMobile = useIsMobile();
   const { toast } = useToast();
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
@@ -214,7 +226,7 @@ export default function ProfilesDashboard() {
   return (
     <>
       {/* My QR Profiles section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">My QR Profiles</h1>
         </div>
@@ -231,40 +243,45 @@ export default function ProfilesDashboard() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="border border-muted rounded-lg h-96 animate-pulse"
-              />
+              <div key={i} className="border border-muted rounded-lg h-96 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {profiles?.map((profile: any) => (
-              <ProfileCard
-                key={profile.id}
-                {...profile}
+          <>
+            {/* Mobile: swipe card stack */}
+            <div className={isMobile ? "block" : "hidden"}>
+              <SwipeProfileStack
+                profiles={profiles}
                 onEdit={handleEditProfile}
                 onDelete={handleDeleteProfile}
+                onNewProfile={handleNewProfile}
               />
-            ))}
+            </div>
 
-            <div
-              className="border border-dashed border-muted-foreground rounded-lg flex items-center justify-center p-8 hover:border-primary cursor-pointer transition-colors"
-              onClick={handleNewProfile}
-            >
-              <div className="text-center">
-                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                  <PlusIcon className="h-8 w-8 text-muted-foreground" />
+            {/* Desktop: grid layout */}
+            <div className={!isMobile ? "grid grid-cols-2 lg:grid-cols-3 gap-6" : "hidden"}>
+              {profiles?.map((profile: any) => (
+                <ProfileCard
+                  key={profile.id}
+                  {...profile}
+                  onEdit={handleEditProfile}
+                  onDelete={handleDeleteProfile}
+                />
+              ))}
+              <div
+                className="border border-dashed border-muted-foreground rounded-lg flex items-center justify-center p-8 hover:border-primary cursor-pointer transition-colors"
+                onClick={handleNewProfile}
+              >
+                <div className="text-center">
+                  <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <PlusIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-medium text-foreground">Create New Profile</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Add a new contact profile</p>
                 </div>
-                <h3 className="font-medium text-foreground">
-                  Create New Profile
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Add a new contact profile
-                </p>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 

@@ -6,7 +6,12 @@ const config: CapacitorConfig = {
   webDir: 'client/dist',
   server: {
     url: 'https://qrmingle.com',
-    cleartext: false
+    cleartext: true
+  },
+  ios: {
+    contentInset: 'always',
+    scrollEnabled: true,
+    backgroundColor: '#ffffff'
   },
   plugins: {
     Camera: {

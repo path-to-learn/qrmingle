@@ -105,8 +105,25 @@ export default function ProfileEditor({
   };
 
   const handleCropComplete = (croppedImageData: string) => {
-    setPreviewUrl(croppedImageData);
-    form.setValue("photoUrl", croppedImageData);
+    // Compress image before storing to avoid payload too large errors
+    const img = document.createElement('img');
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxSize = 400;
+      let { width, height } = img;
+      if (width > maxSize || height > maxSize) {
+        if (width > height) { height = (height / width) * maxSize; width = maxSize; }
+        else { width = (width / height) * maxSize; height = maxSize; }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      setPreviewUrl(compressed);
+      form.setValue("photoUrl", compressed);
+    };
+    img.src = croppedImageData;
   };
   
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

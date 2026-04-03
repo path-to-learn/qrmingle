@@ -2,11 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
   <title>QrMingle</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta name="description" content="QrMingle - Create and share digital contact cards with custom QR codes">
   <link rel="icon" href="/favicon.ico">
+  <style>
+    /* Safe area support for iPhone notch and home indicator */
+    :root {
+      --sat: env(safe-area-inset-top);
+      --sar: env(safe-area-inset-right);
+      --sab: env(safe-area-inset-bottom);
+      --sal: env(safe-area-inset-left);
+    }
+
+    /* Prevent overscroll bounce on iOS */
+    html, body {
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      height: 100%;
+    }
+
+    body {
+      padding: 0;
+      margin: 0;
+    }
+
+    /* Better tap targets on mobile */
+    button, a, [role="button"] {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* Prevent text size adjustment on orientation change */
+    * {
+      -webkit-text-size-adjust: 100%;
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>
