@@ -37,7 +37,7 @@ function AppRouter() {
   return (
     <div className="min-h-screen flex flex-col">
       {!["/profiles", "/"].includes(location) && <Header />}
-      <main className="flex-grow overflow-hidden max-w-full" style={{ paddingBottom: "80px", paddingTop: "8px", paddingLeft: location === "/profiles" ? "0" : "12px", paddingRight: location === "/profiles" ? "0" : "12px" }}>
+      <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto max-w-full" style={{ paddingBottom: "80px", paddingTop: "8px", paddingLeft: location === "/profiles" ? "0" : "12px", paddingRight: location === "/profiles" ? "0" : "12px" }}>
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />

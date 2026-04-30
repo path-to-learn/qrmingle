@@ -460,10 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       await storage.createScanLog(scanLogData);
-      
-      // Increment the profile scan count
-      await storage.incrementScanCount(profile.id);
-      
+
       res.json({ ...profile, socialLinks });
     } catch (error) {
       console.error("Failed to get profile:", error);

@@ -1,43 +1,31 @@
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  Share, UserPlus, Pencil, Trash2, QrCode,
+  Mail, Phone, Globe, Link2, Linkedin, Twitter, Instagram, Facebook,
+} from "lucide-react";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
-import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Eye, UserPlus, Share, ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Link } from "wouter";
 import { saveToContacts, isMobileDevice } from "@/lib/vcard";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLink } from "@shared/schema";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useState } from "react";
 
 type ProfileCardProps = {
   id: number;
   name: string;
   displayName: string;
   title?: string;
+  bio?: string;
   photoUrl?: string;
-  photoSize?: number;
+  backgroundUrl?: string;
+  backgroundOpacity?: number;
+  cardColor?: string;
   qrStyle?: string;
   qrColor?: string;
   qrSize?: number;
   qrPosition?: string;
   photoPosition?: string;
+  photoSize?: number;
   layoutStyle?: string;
   slug: string;
   scanCount: number;
@@ -46,366 +34,335 @@ type ProfileCardProps = {
   onDelete: (id: number) => void;
 };
 
+export const getCardAccent = (name: string, cardColor?: string) => {
+  if (cardColor && cardColor !== "#ffffff" && cardColor !== "#fff") return cardColor;
+  switch (name.toLowerCase()) {
+    case "professional": return "#2d6a9f";
+    case "social":       return "#2d9b5d";
+    case "personal":     return "#7b3fa8";
+    default:             return "#6366f1";
+  }
+};
+
+const getDefaultGradient = (name: string) => {
+  switch (name.toLowerCase()) {
+    case "professional": return "linear-gradient(160deg, #1e3a5f 0%, #2d6a9f 100%)";
+    case "social":       return "linear-gradient(160deg, #1a5c38 0%, #2d9b5d 100%)";
+    case "personal":     return "linear-gradient(160deg, #4a1a7a 0%, #7b3fa8 100%)";
+    default:             return "linear-gradient(160deg, #2c3e50 0%, #4a6fa5 100%)";
+  }
+};
+
+const PlatformIcon = ({ platform }: { platform: string }) => {
+  const p = platform.toLowerCase();
+  const props = { size: 14, color: "white" };
+  if (p === "email")              return <Mail {...props} />;
+  if (p === "phone")              return <Phone {...props} />;
+  if (p === "linkedin")           return <Linkedin {...props} />;
+  if (p === "twitter" || p === "x") return <Twitter {...props} />;
+  if (p === "instagram")          return <Instagram {...props} />;
+  if (p === "facebook")           return <Facebook {...props} />;
+  if (p === "website")            return <Globe {...props} />;
+  return <Link2 {...props} />;
+};
+
+const formatLinkLabel = (platform: string, url: string) => {
+  const p = platform.toLowerCase();
+  if (p === "email" || p === "phone") return url;
+  return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+};
+
 export default function ProfileCard({
-  id,
-  name,
-  displayName,
-  title,
-  photoUrl,
-  photoSize = 120,
-  qrStyle,
-  qrColor,
-  qrSize = 150,
-  qrPosition = "bottom",
-  photoPosition = "top",
-  layoutStyle = "standard",
-  slug,
-  scanCount,
-  socialLinks,
-  onEdit,
-  onDelete,
+  id, name, displayName, title,
+  photoUrl, backgroundUrl, backgroundOpacity = 100,
+  cardColor, qrStyle, qrColor,
+  slug, scanCount, socialLinks,
+  onEdit, onDelete,
 }: ProfileCardProps) {
   const { toast } = useToast();
-  const baseUrl = window.location.origin;
-  const profileUrl = `${baseUrl}/p/${slug}`;
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  
-  // Map platform to background color class
-  const getBgColor = (name: string) => {
-    switch (name.toLowerCase()) {
-      case 'professional':
-        return 'bg-gradient-to-r from-blue-100 to-blue-300';
-      case 'social':
-        return 'bg-gradient-to-r from-green-100 to-green-300';
-      case 'personal':
-        return 'bg-gradient-to-r from-purple-100 to-purple-300';
-      default:
-        return 'bg-gradient-to-r from-sky-100 to-sky-300';
+  const [, setLocation] = useLocation();
+  const [showQr, setShowQr] = useState(false);
+  const profileUrl = `${window.location.origin}/p/${slug}`;
+  const accent = getCardAccent(name, cardColor);
+
+  const handleSaveContact = async () => {
+    try {
+      await saveToContacts({ id, name, displayName, title, photoUrl, slug }, socialLinks);
+      toast({
+        title: isMobileDevice() ? "Adding Contact" : "Contact Downloaded",
+        description: isMobileDevice()
+          ? "Your contacts app should open to save this contact."
+          : "Contact saved as a vCard file.",
+      });
+    } catch {
+      toast({ title: "Error", description: "Failed to save contact.", variant: "destructive" });
     }
   };
 
-  // Handle saving the contact to the device
-  const handleSaveContact = async () => {
-    try {
-      // Create a profile-like object with the necessary fields for vCard
-      const profileData = {
-        id,
-        name,
-        displayName,
-        title,
-        photoUrl,
-        slug,
-      };
-      
-      // Save the contact to the device
-      await saveToContacts(profileData, socialLinks);
-      
-      // Show appropriate toast message based on device
-      if (isMobileDevice()) {
-        toast({
-          title: "Adding Contact",
-          description: "Your contacts app should open to save this contact."
-        });
-      } else {
-        toast({
-          title: "Contact Downloaded",
-          description: "Contact information has been saved as a vCard file."
-        });
-      }
-    } catch (error) {
-      console.error("Error saving contact:", error);
-      toast({
-        title: "Error",
-        description: "There was a problem saving this contact. Please try again.",
-        variant: "destructive"
+  const fallbackCopy = (text: string) => {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.style.position = "fixed";
+    el.style.opacity = "0";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+  };
+
+  const copyToClipboard = (text: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `${displayName}'s Contact Card`,
+        text: `Connect with ${displayName}`,
+        url: profileUrl,
+      }).catch(() => {
+        copyToClipboard(profileUrl);
+        toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
       });
+    } else {
+      copyToClipboard(profileUrl);
+      toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
     }
   };
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-        <div className={`p-4 ${getBgColor(name)}`}>
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-lg text-blue-900">{name}</h3>
-            <div className="flex space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-blue-900 hover:text-blue-900 hover:bg-white/20"
-                onClick={() => onEdit(id)}
-              >
-                <Pencil className="h-5 w-5" />
-                <span className="sr-only">Edit profile</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-blue-900 hover:text-blue-900 hover:bg-white/20"
-                onClick={() => onDelete(id)}
-              >
-                <Trash2 className="h-5 w-5" />
-                <span className="sr-only">Delete profile</span>
-              </Button>
-            </div>
-          </div>
+      {/* ── Portrait card — overflow:hidden prevents any horizontal bleed ── */}
+      <div style={{
+        borderRadius: "20px",
+        overflow: "hidden",
+        background: "white",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.13)",
+      }}>
+
+        {/* ── Photo / hero section ── */}
+        <div style={{
+          height: "230px",
+          position: "relative",
+          background: getDefaultGradient(name),
+        }}>
+          {/* Background image */}
+          {backgroundUrl && (
+            <div style={{
+              position: "absolute", inset: 0,
+              backgroundImage: `url(${backgroundUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center top",
+              opacity: backgroundOpacity / 100,
+            }} />
+          )}
+
+          {/* Top gradient for badge legibility */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 55%)",
+          }} />
+
+          {/* Card name badge — top center */}
+          <div style={{
+            position: "absolute", top: "14px", left: "50%", transform: "translateX(-50%)",
+            background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)",
+            color: "white", fontSize: "10px", fontWeight: 700,
+            padding: "4px 14px", borderRadius: "6px",
+            letterSpacing: "1px", textTransform: "uppercase",
+            whiteSpace: "nowrap",
+          }}>{name}</div>
+
+          {/* Scan count — top right */}
+          {scanCount > 0 && (
+            <div style={{
+              position: "absolute", top: "12px", right: "14px",
+              background: "rgba(0,0,0,0.35)",
+              color: "rgba(255,255,255,0.9)", fontSize: "10px", fontWeight: 500,
+              padding: "3px 8px", borderRadius: "99px",
+            }}>{scanCount} {scanCount === 1 ? "scan" : "scans"}</div>
+          )}
+
+          {/*
+            Avatar sits inside the photo section, above the wave.
+            z-index: 2 ensures it renders on top of the white wave fill.
+          */}
+          {photoUrl && (
+            <div style={{
+              position: "absolute", bottom: "8px", left: "16px",
+              width: "52px", height: "52px", borderRadius: "50%",
+              border: "3px solid white",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+              backgroundImage: `url(${photoUrl})`,
+              backgroundSize: "cover", backgroundPosition: "center",
+              zIndex: 2,
+            }} />
+          )}
+
+          {/* Wave — white fill bites into photo section; z-index: 1 stays below avatar */}
+          <svg
+            viewBox="0 0 400 48"
+            style={{
+              position: "absolute", bottom: 0, width: "100%", height: "48px",
+              display: "block", zIndex: 1,
+            }}
+            preserveAspectRatio="none"
+          >
+            <path d="M0,24 C80,48 200,4 400,28 L400,48 L0,48 Z" fill="white" />
+          </svg>
         </div>
 
-        <CardContent className={`p-4 ${layoutStyle === "compact" ? "space-y-2" : "space-y-4"}`}>
-          {/* Layout with conditional rendering based on photoPosition */}
-          {photoPosition !== "hidden" && (
-            <div className={`
-              ${photoPosition === "top" ? "flex flex-col items-center text-center" : 
-                photoPosition === "left" ? "flex items-center" : 
-                photoPosition === "right" ? "flex flex-row-reverse items-center" : "hidden"}
-              ${layoutStyle === "compact" ? "mb-2" : "mb-4"}
-            `}>
-              {(photoPosition === "left" || photoPosition === "right") ? (
-                <>
-                  <Avatar 
-                    className={`${photoPosition === "left" ? "mr-4" : "ml-4"}`}
-                    style={{ width: `${photoSize}px`, height: `${photoSize}px` }}
-                  >
-                    {photoUrl ? (
-                      <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
-                    ) : (
-                      <AvatarFallback className="bg-muted text-muted-foreground">
-                        {displayName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className={photoPosition === "right" ? "text-right" : ""}>
-                    <h3 className="font-semibold">{displayName}</h3>
-                    {title && <p className="text-sm text-muted-foreground">{title}</p>}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Avatar 
-                    className="mb-3"
-                    style={{ width: `${photoSize}px`, height: `${photoSize}px` }}
-                  >
-                    {photoUrl ? (
-                      <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
-                    ) : (
-                      <AvatarFallback className="bg-muted text-muted-foreground">
-                        {displayName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div>
-                    <h3 className="font-semibold">{displayName}</h3>
-                    {title && <p className="text-sm text-muted-foreground">{title}</p>}
-                  </div>
-                </>
+        {/* ── Info section ── */}
+        <div style={{ padding: "12px 16px 18px" }}>
+
+          {/* Name / title + inline QR */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px",
+            paddingLeft: photoUrl ? "62px" : "0",
+          }}>
+            {/* Name + title with left accent bar */}
+            <div style={{
+              flex: 1, minWidth: 0,
+              paddingLeft: "10px",
+              borderLeft: `3px solid ${accent}`,
+            }}>
+              <div style={{
+                fontSize: "19px", fontWeight: 700, color: "#1e293b", lineHeight: 1.2,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>{displayName}</div>
+              {title && (
+                <div style={{
+                  fontSize: "13px", color: "#64748b", marginTop: "3px",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>{title}</div>
               )}
             </div>
-          )}
 
-          {/* Display photo info even if photo is hidden */}
-          {photoPosition === "hidden" && (
-            <div className={`text-center ${layoutStyle === "compact" ? "mb-2" : "mb-4"}`}>
-              <h3 className="font-semibold text-lg">{displayName}</h3>
-              {title && <p className="text-sm text-muted-foreground">{title}</p>}
+            {/* Inline QR — works without internet once rendered */}
+            <div style={{
+              flexShrink: 0, padding: "5px", borderRadius: "10px",
+              background: "white", border: "1px solid #e2e8f0",
+              boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
+            }}>
+              <QRCodeSVG value={profileUrl} size={58} fgColor={accent} bgColor="white" level="L" />
             </div>
-          )}
+          </div>
 
-          {socialLinks && socialLinks.length > 0 && (
-            <div className={`flex flex-wrap gap-2 ${socialLinks.length === 1 ? "justify-center" : ""} ${layoutStyle === "compact" ? "mb-2" : "mb-4"}`}>
-              {socialLinks.map((link) => (
-                <Badge key={link.id} variant="secondary" className="text-xs">
-                  {link.platform}
-                </Badge>
+          {/* Social links */}
+          {socialLinks.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
+              {socialLinks.slice(0, 4).map((link, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{
+                    width: "30px", height: "30px", borderRadius: "50%",
+                    background: accent, flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <PlatformIcon platform={link.platform} />
+                  </div>
+                  <span style={{
+                    fontSize: "13px", color: "#475569",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {formatLinkLabel(link.platform, link.url)}
+                  </span>
+                </div>
               ))}
             </div>
           )}
+        </div>
+      </div>
 
-          {/* QR Code display based on position */}
-          {qrPosition === "top" && (
-            <div className="flex justify-center mb-4">
-              <QrCodeDisplay 
-                value={profileUrl}
-                fgColor={qrColor || "#3B82F6"}
-                profileName={name}
-                scanCount={scanCount}
-                size={qrSize || 150}
-                qrStyle={qrStyle}
-              />
-            </div>
-          )}
+      {/* ── Action buttons ── */}
+      <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+        {/* Primary: Share + Edit */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            onClick={handleShare}
+            style={{
+              flex: 1, background: accent, color: "white",
+              border: "none", borderRadius: "14px", padding: "14px 0",
+              fontSize: "15px", fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+              cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
+            }}
+          >
+            <Share size={17} /> Share
+          </button>
+          <button
+            onClick={() => onEdit(id)}
+            style={{
+              flex: 1, background: "#f1f5f9", color: "#1e293b",
+              border: "none", borderRadius: "14px", padding: "14px 0",
+              fontSize: "15px", fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+              cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
+            }}
+          >
+            <Pencil size={16} /> Edit
+          </button>
+        </div>
 
-          {(qrPosition === "left" || qrPosition === "right") && (
-            <div className={`flex ${qrPosition === "right" ? "justify-end" : "justify-start"} mb-4`}>
-              <QrCodeDisplay 
-                value={profileUrl}
-                fgColor={qrColor || "#3B82F6"}
-                profileName={name}
-                scanCount={scanCount}
-                size={qrSize || 150}
-                qrStyle={qrStyle}
-              />
-            </div>
-          )}
-          
-          {qrPosition === "bottom" && (
-            <div className="flex justify-center mb-4">
-              <QrCodeDisplay 
-                value={profileUrl}
-                fgColor={qrColor || "#3B82F6"}
-                profileName={name}
-                scanCount={scanCount}
-                size={qrSize || 150}
-                qrStyle={qrStyle}
-              />
-            </div>
-          )}
-          
-          <div className="flex flex-col space-y-2 mt-4">
-            {/* Save Contact Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="default" 
-                    className="w-full bg-gradient-to-r from-primary to-primary/80"
-                    onClick={handleSaveContact}
-                  >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Save Contact
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isMobileDevice() ? 
-                    "Add to your device's contacts" : 
-                    "Download contact as vCard (.vcf)"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            {/* Add Preview Button */}
-            <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Preview as others see it
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Preview: {displayName}'s Profile</DialogTitle>
-                  <DialogDescription>
-                    This is how your profile appears to others when they scan your QR code
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="py-4">
-                  <div className="flex flex-col items-center mb-6">
-                    {photoUrl && (
-                      <Avatar 
-                        className="mb-4"
-                        style={{ width: `${photoSize}px`, height: `${photoSize}px` }}
-                      >
-                        <AvatarImage src={photoUrl} alt={`${displayName}'s profile`} />
-                        <AvatarFallback className="text-xl">
-                          {displayName.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <h2 className="text-2xl font-bold">{displayName}</h2>
-                    {title && <p className="text-muted-foreground mt-1">{title}</p>}
-                  </div>
-                  
-                  {socialLinks && socialLinks.length > 0 && (
-                    <div className="space-y-4 mb-6">
-                      <h3 className="text-lg font-semibold">Connect with {displayName}</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {socialLinks.map((link) => (
-                          <a 
-                            key={link.id} 
-                            href={link.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center rounded-lg border px-3 py-2 hover:bg-muted"
-                          >
-                            <Badge variant="outline" className="mr-2">
-                              {link.platform}
-                            </Badge>
-                            <span className="text-sm truncate max-w-[200px]">{link.url}</span>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="mt-4 space-y-4">
-                    <Button
-                      variant="default"
-                      className="w-full"
-                      onClick={handleSaveContact}
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Save Contact
-                    </Button>
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">Close Preview</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            
-            {/* Edit and View Buttons */}
-            <div className="flex justify-between gap-2">
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => onEdit(id)}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
-              </Button>
-              <Link href={`/p/${slug}`} className="flex-1">
-                <Button className="w-full">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View
-                </Button>
-              </Link>
-            </div>
-            
-            {/* Share Button */}
-            <Button
-              variant="ghost"
-              className="w-full text-muted-foreground"
-              onClick={() => {
-                // Use Web Share API if available
-                if (navigator.share) {
-                  navigator.share({
-                    title: `${displayName}'s Contact Card`,
-                    text: `Check out ${displayName}'s contact card`,
-                    url: profileUrl
-                  }).catch(err => console.error("Error sharing", err));
-                } else {
-                  // Copy to clipboard as fallback
-                  navigator.clipboard.writeText(profileUrl);
-                  toast({
-                    title: "Link Copied",
-                    description: "Profile link copied to clipboard!"
-                  });
-                }
+        {/* Secondary: QR fullscreen · Preview (web) · Save · Delete */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          {([
+            { icon: <QrCode size={19} color="#475569" />, label: "QR Code", onClick: () => setShowQr(true), bg: "#f1f5f9", color: "#64748b" },
+            { icon: <Globe size={19} color="#475569" />, label: "Preview", onClick: () => setLocation(`/p/${slug}?preview=1`), bg: "#f1f5f9", color: "#64748b" },
+            { icon: <UserPlus size={19} color="#475569" />, label: "Save", onClick: handleSaveContact, bg: "#f1f5f9", color: "#64748b" },
+            { icon: <Trash2 size={17} color="#ef4444" />, label: "Delete", onClick: () => onDelete(id), bg: "#fff0f0", color: "#ef4444" },
+          ] as const).map(({ icon, label, onClick, bg, color }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              title={label}
+              style={{
+                flex: 1, background: bg, border: "none", borderRadius: "12px", padding: "10px 0",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px",
+                cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
               }}
             >
-              <Share className="mr-2 h-4 w-4" />
-              Share
-            </Button>
+              {icon}
+              <span style={{ fontSize: "10px", color, fontWeight: 500 }}>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── QR full-screen modal ── */}
+      {showQr && (
+        <div
+          onClick={() => setShowQr(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 500,
+            background: "rgba(0,0,0,0.88)",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: "20px",
+          }}
+        >
+          <div style={{ background: "white", borderRadius: "24px", padding: "28px" }}>
+            <QrCodeDisplay
+              value={profileUrl}
+              fgColor={qrColor || accent}
+              size={220}
+              qrStyle={qrStyle}
+              profileName={name}
+              scanCount={scanCount}
+            />
           </div>
-        </CardContent>
-      </Card>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ color: "white", fontSize: "16px", fontWeight: 600 }}>{displayName}</div>
+            {title && (
+              <div style={{ color: "rgba(255,255,255,0.65)", fontSize: "13px", marginTop: "4px" }}>{title}</div>
+            )}
+          </div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>Tap anywhere to close</div>
+        </div>
+      )}
     </>
   );
 }

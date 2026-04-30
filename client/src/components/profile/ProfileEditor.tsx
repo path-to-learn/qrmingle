@@ -308,19 +308,20 @@ export default function ProfileEditor({
                     
                     {previewUrl && (
                       <div className="w-full mt-2">
-                        <FormLabel className="text-sm block mb-2">Photo Size</FormLabel>
+                        <FormLabel className="text-sm block mb-2">Photo Size (profile view)</FormLabel>
                         <FormField
                           control={form.control}
                           name="photoSize"
                           render={({ field }) => (
                             <div>
-                              <Slider
-                                value={[field.value]}
+                              <input
+                                type="range"
                                 min={60}
-                                max={300}
+                                max={240}
                                 step={10}
-                                onValueChange={(values) => field.onChange(values[0])}
-                                className="mb-2"
+                                value={field.value}
+                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                style={{ width: "100%", marginBottom: "6px" }}
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>Small</span>
@@ -408,19 +409,20 @@ export default function ProfileEditor({
                     
                     {backgroundPreviewUrl && (
                       <div className="w-full mt-4">
-                        <FormLabel className="text-sm block mb-2">Background Opacity</FormLabel>
+                        <FormLabel className="text-sm block mb-2">Background Opacity (profile view)</FormLabel>
                         <FormField
                           control={form.control}
                           name="backgroundOpacity"
                           render={({ field }) => (
                             <div>
-                              <Slider
-                                value={[field.value]}
+                              <input
+                                type="range"
                                 min={0}
                                 max={100}
                                 step={5}
-                                onValueChange={(values) => field.onChange(values[0])}
-                                className="mb-2"
+                                value={field.value}
+                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                style={{ width: "100%", marginBottom: "6px" }}
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>Transparent</span>

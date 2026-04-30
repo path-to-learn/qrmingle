@@ -43,7 +43,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-10" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       {isInTrialMode && (
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center text-sm py-1">
+        <div className="text-white text-center text-sm py-1" style={{ background: "var(--app-accent, #6366f1)" }}>
           <div className="container mx-auto px-4 flex items-center justify-center">
             <Clock className="h-4 w-4 mr-1" />
             <span>Premium trial active - {formatTrialExpiry()}</span>
@@ -54,8 +54,29 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/">
           <div className="flex items-center space-x-2 cursor-pointer">
-            <img src="/qrmingle-logo-bright.svg" alt="QrMingle Logo" className="h-8 w-8" />
-            <span className="font-bold text-xl text-primary">QrMingle</span>
+            <svg width="32" height="32" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="512" height="512" rx="256" fill="var(--app-accent, #6366f1)"/>
+              <g opacity="0.95">
+                <rect x="144" y="144" width="80" height="80" rx="16" fill="white"/>
+                <rect x="160" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.35)"/>
+                <rect x="288" y="144" width="80" height="80" rx="16" fill="white"/>
+                <rect x="304" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.35)"/>
+                <rect x="144" y="288" width="80" height="80" rx="16" fill="white"/>
+                <rect x="160" y="304" width="48" height="48" rx="8" fill="rgba(255,255,255,0.35)"/>
+                <rect x="240" y="144" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
+                <rect x="240" y="192" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+                <rect x="240" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
+                <rect x="240" y="288" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+                <rect x="288" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.6)"/>
+                <rect x="336" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.4)"/>
+                <rect x="144" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.6)"/>
+                <rect x="192" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.4)"/>
+                <rect x="288" y="336" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+                <rect x="336" y="336" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
+                <rect x="336" y="288" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+              </g>
+            </svg>
+            <span style={{ fontWeight: 700, fontSize: "1.25rem", color: "var(--app-accent, #6366f1)" }}>QrMingle</span>
           </div>
         </Link>
 
@@ -70,7 +91,7 @@ export default function Header() {
                 className="flex items-center gap-1 p-2 rounded-lg"
               >
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                  <AvatarFallback style={{ background: "var(--app-accent, #6366f1)", color: "white" }} className="font-bold">
                     {user.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>

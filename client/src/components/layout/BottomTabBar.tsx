@@ -59,7 +59,7 @@ export default function BottomTabBar() {
             <Icon
               size={22}
               style={{
-                color: isActive ? "var(--color-text-info, #0ea5e9)" : "var(--color-text-tertiary, #9ca3af)",
+                color: isActive ? "var(--app-accent, #6366f1)" : "var(--color-text-tertiary, #9ca3af)",
                 strokeWidth: isActive ? 2.5 : 1.5,
               }}
             />
@@ -67,7 +67,7 @@ export default function BottomTabBar() {
               style={{
                 fontSize: "10px",
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? "var(--color-text-info, #0ea5e9)" : "var(--color-text-tertiary, #9ca3af)",
+                color: isActive ? "var(--app-accent, #6366f1)" : "var(--color-text-tertiary, #9ca3af)",
               }}
             >
               {tab.label}

@@ -1,13 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+// ─── Build modes ────────────────────────────────────────────────────────────
+// DEV  (laptop connected): uncomment server.url block below
+// DEMO / RELEASE: keep server.url block commented out
+//   → runs npm run build + npx cap copy ios, then Xcode archive
+// ────────────────────────────────────────────────────────────────────────────
 const config: CapacitorConfig = {
   appId: 'com.qrmingle.app',
   appName: 'QrMingle',
   webDir: 'client/dist',
-  server: {
-    url: 'https://qrmingle.com',
-    cleartext: true
-  },
+  // DEV ONLY — uncomment for local dev with laptop:
+  // server: {
+  //   url: 'http://10.0.0.179:5000',
+  //   cleartext: true
+  // },
   ios: {
     contentInset: 'always',
     scrollEnabled: true,

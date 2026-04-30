@@ -23,7 +23,7 @@ export default function Settings() {
     <div style={{ paddingBottom: "80px" }}>
       {/* Profile header */}
       <div style={{
-        background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+        background: "var(--app-accent, #6366f1)",
         padding: "24px 16px",
         display: "flex",
         alignItems: "center",

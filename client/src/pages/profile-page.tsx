@@ -1,44 +1,24 @@
 import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
+import { useRoute, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import SocialLink from "@/components/profile/SocialLink";
-import { QrCodeDisplay } from "@/components/ui/qr-code";
 import { QrWidgetGenerator } from "@/components/profile/QrWidgetGenerator";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  ArrowLeft,
-  MessageSquare, 
-  Copy, 
-  Share, 
-  UserPlus,
-  LayoutGrid
-} from "lucide-react";
-import { Link } from "wouter";
-import { downloadVCard, getVCardDataUrl, saveToContacts, isMobileDevice } from "@/lib/vcard";
-import { celebrateSaveContact } from "@/lib/confetti";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+  MessageSquare, Share, UserPlus,
+  Mail, Phone, Globe, Link2, Linkedin, Twitter, Instagram, Facebook,
+  ArrowLeft,
+} from "lucide-react";
+import { saveToContacts, isMobileDevice } from "@/lib/vcard";
+import { celebrateSaveContact } from "@/lib/confetti";
+import {
+  Sheet, SheetContent, SheetDescription,
+  SheetFooter, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
+import { getCardAccent } from "@/components/profile/ProfileCard";
 
-// Type definition for profile data
 type SocialLinkType = {
   id: number;
   platform: string;
@@ -62,498 +42,448 @@ type ProfileData = {
   slug: string;
   scanCount: number;
   socialLinks: SocialLinkType[];
-  // AR-related fields
   hasArEnabled: boolean | null;
   arModelUrl: string | null;
   arScale: number | null;
   arAnimationEnabled: boolean | null;
 };
 
+const getDefaultGradient = (name: string) => {
+  switch (name.toLowerCase()) {
+    case "professional": return "linear-gradient(160deg, #1e3a5f 0%, #2d6a9f 100%)";
+    case "social":       return "linear-gradient(160deg, #1a5c38 0%, #2d9b5d 100%)";
+    case "personal":     return "linear-gradient(160deg, #4a1a7a 0%, #7b3fa8 100%)";
+    default:             return "linear-gradient(160deg, #2c3e50 0%, #4a6fa5 100%)";
+  }
+};
+
+const PlatformIcon = ({ platform }: { platform: string }) => {
+  const p = platform.toLowerCase();
+  const props = { size: 16, color: "white" };
+  if (p === "email")              return <Mail {...props} />;
+  if (p === "phone")              return <Phone {...props} />;
+  if (p === "linkedin")           return <Linkedin {...props} />;
+  if (p === "twitter" || p === "x") return <Twitter {...props} />;
+  if (p === "instagram")          return <Instagram {...props} />;
+  if (p === "facebook")           return <Facebook {...props} />;
+  if (p === "website")            return <Globe {...props} />;
+  return <Link2 {...props} />;
+};
+
+const getLinkHref = (platform: string, url: string) => {
+  const p = platform.toLowerCase();
+  if (p === "email") return `mailto:${url}`;
+  if (p === "phone") return `tel:${url}`;
+  return url.startsWith("http") ? url : `https://${url}`;
+};
+
+const formatLinkLabel = (platform: string, url: string) => {
+  const p = platform.toLowerCase();
+  if (p === "email" || p === "phone") return url;
+  return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+};
+
 export default function ProfilePage() {
   const [_, params] = useRoute("/p/:slug");
   const slug = params?.slug;
   const { toast } = useToast();
-  const [isCopied, setIsCopied] = useState(false);
+  const isPreview = typeof window !== "undefined" && window.location.search.includes("preview=1");
+
   const [showContactForm, setShowContactForm] = useState(false);
   const [showQrWidget, setShowQrWidget] = useState(false);
-  const [contactFormData, setContactFormData] = useState({
-    name: "",
-    email: "",
-    message: ""
-  });
+  const [contactFormData, setContactFormData] = useState({ name: "", email: "", message: "" });
 
-  // Fetch profile data
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
     queryKey: [`/api/p/${slug}`],
     enabled: !!slug,
   });
 
-  // Mutation for submitting contact form
   const contactMutation = useMutation({
     mutationFn: async (data: typeof contactFormData) => {
-      if (!profile) {
-        throw new Error("Profile not found");
-      }
-      
-      const response = await fetch('/api/contact-form', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          profileId: profile.id,
-          ...data,
-        }),
+      if (!profile) throw new Error("Profile not found");
+      const response = await fetch("/api/contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: profile.id, ...data }),
       });
-      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to send message");
+        const err = await response.json();
+        throw new Error(err.message || "Failed to send message");
       }
-      
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Message Sent",
-        description: "Your message has been sent successfully!",
-      });
+      toast({ title: "Message Sent", description: "Your message has been sent!" });
       setShowContactForm(false);
-      setContactFormData({
-        name: "",
-        email: "",
-        message: ""
-      });
+      setContactFormData({ name: "", email: "", message: "" });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send your message. Please try again.",
-        variant: "destructive"
-      });
-    }
+    onError: (e: Error) => {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    },
   });
 
-  // Handle contact form submission
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     contactMutation.mutate(contactFormData);
   };
 
-  // Handle contact form input changes
   const handleContactInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setContactFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Get vCard data URL for direct linking
-  const getVCardUrl = () => {
-    if (!profile) return "";
-    return getVCardDataUrl(profile, profile.socialLinks);
-  };
-
-  // Handle vCard download/add to contacts
-  const handleDownloadVCard = async () => {
+  const handleSaveContact = async () => {
     if (!profile) return;
-    
     try {
-      // Use our enhanced saveToContacts function that handles device differences
       await saveToContacts(profile, profile.socialLinks);
-      
-      // Show appropriate message based on device
-      if (isMobileDevice()) {
-        toast({
-          title: "Adding Contact",
-          description: "Your contacts app should open to save this contact."
-        });
-      } else {
-        toast({
-          title: "Contact Downloaded",
-          description: "Contact information has been saved to your device.",
-        });
-      }
-      
-      // Launch confetti celebration
-      celebrateSaveContact();
-    } catch (error) {
-      console.error("Error saving contact:", error);
       toast({
-        title: "Error",
-        description: "There was a problem saving this contact. Please try again.",
-        variant: "destructive"
+        title: isMobileDevice() ? "Adding Contact" : "Contact Downloaded",
+        description: isMobileDevice()
+          ? "Your contacts app should open to save this contact."
+          : "Contact information has been saved to your device.",
       });
+      celebrateSaveContact();
+    } catch {
+      toast({ title: "Error", description: "There was a problem saving this contact.", variant: "destructive" });
     }
   };
 
-  // Copy profile URL to clipboard
-  const copyProfileUrl = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-    
-    toast({
-      title: "URL Copied",
-      description: "Profile link copied to clipboard!",
-    });
+  const fallbackCopy = (text: string) => {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.style.position = "fixed";
+    el.style.opacity = "0";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
   };
 
-  // Share profile
-  const shareProfile = async () => {
-    if (!profile) return;
-    
+  const handleShare = () => {
+    const url = window.location.href;
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${profile.displayName}'s Contact Profile`,
-          text: profile.bio || `Connect with ${profile.displayName}`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        copyProfileUrl();
-      }
+      navigator.share({
+        title: `${profile?.displayName}'s Contact`,
+        text: profile?.bio || `Connect with ${profile?.displayName}`,
+        url,
+      }).catch(() => {
+        fallbackCopy(url);
+        toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
+      });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).catch(() => fallbackCopy(url));
+      toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
     } else {
-      copyProfileUrl();
+      fallbackCopy(url);
+      toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
     }
   };
-
-  // Log the scan (would normally be done server-side)
-  useEffect(() => {
-    // Get location for analytics
-    const getLocation = async () => {
-      try {
-        // In a real app, this would be done server-side
-        // Logging scan would be part of the initial profile fetch
-      } catch (error) {
-        console.error("Error getting location:", error);
-      }
-    };
-
-    if (profile) {
-      getLocation();
-    }
-  }, [profile]);
 
   if (isLoading) {
     return (
-      <div className="max-w-md mx-auto">
-        <Card className="overflow-hidden">
-          <Skeleton className="h-32 w-full rounded-none" />
-          <CardContent className="relative p-6">
-            <div className="flex flex-col items-center -mt-16 mb-6">
-              <Skeleton className="h-24 w-24 rounded-full" />
-              <Skeleton className="h-6 w-48 mt-4" />
-              <Skeleton className="h-4 w-32 mt-2" />
-            </div>
-            
-            <div className="space-y-4 mt-8">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          </CardContent>
-        </Card>
+      <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+        <Skeleton style={{ height: "280px", borderRadius: "20px 20px 0 0" }} />
+        <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <Skeleton style={{ height: "24px", width: "60%" }} />
+          <Skeleton style={{ height: "16px", width: "40%" }} />
+          <Skeleton style={{ height: "16px", width: "80%" }} />
+          <Skeleton style={{ height: "48px" }} />
+          <Skeleton style={{ height: "48px" }} />
+        </div>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="max-w-md mx-auto text-center p-6">
-        <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
-        <p className="text-muted-foreground mb-6">
-          The profile you're looking for doesn't exist or has been removed.
+      <div style={{ maxWidth: "480px", margin: "0 auto", textAlign: "center", padding: "48px 24px" }}>
+        <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
+        <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#1e293b", marginBottom: "8px" }}>
+          Profile Not Found
+        </h1>
+        <p style={{ color: "#64748b", marginBottom: "24px" }}>
+          This profile doesn't exist or has been removed.
         </p>
         <Link href="/">
-          <Button>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Home
-          </Button>
+          <button style={{
+            background: "#6366f1", color: "white", border: "none",
+            borderRadius: "10px", padding: "10px 20px",
+            fontSize: "14px", fontWeight: 600, cursor: "pointer",
+            display: "inline-flex", alignItems: "center", gap: "6px",
+          }}>
+            <ArrowLeft size={16} /> Go Home
+          </button>
         </Link>
       </div>
     );
   }
 
-  // Determine background color based on profile name
-  const getBgGradient = (name: string) => {
-    switch (name.toLowerCase()) {
-      case 'professional':
-        return 'from-blue-400 to-blue-600';
-      case 'social':
-        return 'from-green-400 to-green-600';
-      case 'personal':
-        return 'from-purple-400 to-purple-600';
-      default:
-        return 'from-primary-light to-primary';
-    }
-  };
+  const accent = getCardAccent(profile.name, profile.cardColor ?? undefined);
+  const avatarSize = Math.min(Math.max(profile.photoSize || 88, 60), 240);
+  const avatarOverlap = Math.round(avatarSize * 0.45);
 
   return (
-    <div className="max-w-md mx-auto mb-10">
-      <Card 
-        className="overflow-hidden shadow-lg"
-        style={{ backgroundColor: profile.cardColor || "#ffffff" }}>
-        {profile.backgroundUrl ? (
-          <div 
-            className="relative h-32 bg-cover bg-center" 
-            style={{ 
-              backgroundImage: `url(${profile.backgroundUrl})`,
-              opacity: profile.backgroundOpacity !== null ? profile.backgroundOpacity / 100 : 1
-            }}
-          />
-        ) : (
-          <div className={`h-32 bg-gradient-to-r ${getBgGradient(profile.name)}`} />
+    <div style={{ maxWidth: "480px", margin: "0 auto", paddingBottom: "48px" }}>
+
+      {/* ── Floating back button (preview mode only) ── */}
+      {isPreview && (
+        <button
+          onClick={() => window.history.back()}
+          style={{
+            position: "fixed", top: "16px", left: "16px", zIndex: 1000,
+            background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)",
+            color: "white", border: "none", borderRadius: "99px",
+            padding: "8px 16px", fontSize: "13px", fontWeight: 600,
+            display: "flex", alignItems: "center", gap: "6px",
+            cursor: "pointer", WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          ← Back to Cards
+        </button>
+      )}
+
+      {/* ── Hero section — matches card visual language ── */}
+      <div style={{
+        height: "280px",
+        position: "relative",
+        background: getDefaultGradient(profile.name),
+        borderRadius: "20px 20px 0 0",
+        overflow: "hidden",
+      }}>
+        {profile.backgroundUrl && (
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `url(${profile.backgroundUrl})`,
+            backgroundSize: "cover", backgroundPosition: "center top",
+            opacity: profile.backgroundOpacity != null ? profile.backgroundOpacity / 100 : 1,
+          }} />
         )}
-        
-        <CardContent 
-          className="relative p-6" 
-          style={{ 
-            backgroundColor: profile.cardColor || "#ffffff" 
+
+        {/* Top overlay */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 55%)",
+        }} />
+
+        {/* Card type badge */}
+        <div style={{
+          position: "absolute", top: isPreview ? "56px" : "16px", left: "50%", transform: "translateX(-50%)",
+          background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)",
+          color: "white", fontSize: "11px", fontWeight: 700,
+          padding: "4px 16px", borderRadius: "6px",
+          letterSpacing: "1px", textTransform: "uppercase", whiteSpace: "nowrap",
+        }}>{profile.name}</div>
+
+        {/* Wave — same as card */}
+        <svg
+          viewBox="0 0 400 48"
+          style={{ position: "absolute", bottom: 0, width: "100%", height: "48px", display: "block" }}
+          preserveAspectRatio="none"
+        >
+          <path d="M0,24 C80,48 200,4 400,28 L400,48 L0,48 Z" fill="white" />
+        </svg>
+      </div>
+
+      {/* ── Avatar — centered, overlapping wave, size driven by photoSize setting ── */}
+      <div style={{
+        display: "flex", justifyContent: "center",
+        marginTop: `-${avatarOverlap}px`, position: "relative", zIndex: 2,
+        marginBottom: "12px",
+      }}>
+        <div style={{
+          width: `${avatarSize}px`, height: `${avatarSize}px`, borderRadius: "50%",
+          border: "4px solid white",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+          background: profile.photoUrl ? undefined : accent,
+          backgroundImage: profile.photoUrl ? `url(${profile.photoUrl})` : undefined,
+          backgroundSize: "cover", backgroundPosition: "center",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          {!profile.photoUrl && (
+            <span style={{ color: "white", fontSize: `${Math.round(avatarSize * 0.36)}px`, fontWeight: 700 }}>
+              {profile.displayName.charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── White content section ── */}
+      <div style={{ background: "white", padding: "0 20px 32px", borderRadius: "0 0 20px 20px" }}>
+
+        {/* Name + title */}
+        <div style={{
+          borderLeft: `4px solid ${accent}`, paddingLeft: "12px",
+          marginBottom: profile.bio ? "14px" : "20px",
+        }}>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#1e293b", lineHeight: 1.2, margin: 0 }}>
+            {profile.displayName}
+          </h1>
+          {profile.title && (
+            <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>{profile.title}</p>
+          )}
+        </div>
+
+        {/* Bio */}
+        {profile.bio && (
+          <p style={{
+            fontSize: "14px", color: "#475569", lineHeight: 1.65,
+            margin: "0 0 20px", padding: "12px 14px",
+            background: "#f8fafc", borderRadius: "10px",
           }}>
-          <div className="flex flex-col items-center -mt-16 mb-6">
-            <Avatar 
-              className="ring-4 ring-background shadow-xl"
-              style={{ 
-                width: `${profile.photoSize || 120}px`, 
-                height: `${profile.photoSize || 120}px` 
-              }}
-            >
-              {profile.photoUrl ? (
-                <AvatarImage src={profile.photoUrl} alt={profile.displayName} />
-              ) : (
-                <AvatarFallback className="bg-muted text-muted-foreground text-xl">
-                  {profile.displayName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <h1 className="text-2xl font-bold mt-4">{profile.displayName}</h1>
-            {profile.title && (
-              <p className="text-muted-foreground">{profile.title}</p>
-            )}
-          </div>
+            {profile.bio}
+          </p>
+        )}
 
-          {profile.bio && (
-            <div className="mb-6">
-              <p className="text-muted-foreground text-center">{profile.bio}</p>
-            </div>
-          )}
+        {/* Action buttons */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "24px" }}>
+          <button
+            onClick={handleSaveContact}
+            style={{
+              flex: 1, background: accent, color: "white",
+              border: "none", borderRadius: "12px", padding: "13px 0",
+              fontSize: "14px", fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
+              cursor: "pointer", WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <UserPlus size={16} /> Save Contact
+          </button>
 
-          {/* Quick Action Buttons */}
-          <div className="flex justify-center gap-3 mb-6">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-md hover:shadow-lg transition-all duration-300"
-                    onClick={handleDownloadVCard}
+          <Sheet open={showContactForm} onOpenChange={setShowContactForm}>
+            <SheetTrigger asChild>
+              <button
+                style={{
+                  flex: 1, background: "#f1f5f9", color: "#1e293b",
+                  border: "none", borderRadius: "12px", padding: "13px 0",
+                  fontSize: "14px", fontWeight: 600,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
+                  cursor: "pointer", WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                <MessageSquare size={16} /> Message
+              </button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Send a Message</SheetTitle>
+                <SheetDescription>
+                  Leave your contact info and a message for {profile.displayName}.
+                </SheetDescription>
+              </SheetHeader>
+              <form onSubmit={handleContactSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "20px" }}>
+                <div>
+                  <label style={{ fontSize: "13px", fontWeight: 500 }}>Your Name</label>
+                  <Input name="name" placeholder="Enter your name" value={contactFormData.name}
+                    onChange={handleContactInputChange} required style={{ marginTop: "6px" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "13px", fontWeight: 500 }}>Your Email</label>
+                  <Input name="email" type="email" placeholder="Enter your email" value={contactFormData.email}
+                    onChange={handleContactInputChange} required style={{ marginTop: "6px" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "13px", fontWeight: 500 }}>Message</label>
+                  <Textarea name="message" placeholder="Enter your message" value={contactFormData.message}
+                    onChange={handleContactInputChange} required style={{ marginTop: "6px", height: "96px" }} />
+                </div>
+                <SheetFooter>
+                  <button
+                    type="submit"
+                    disabled={contactMutation.isPending}
+                    style={{
+                      width: "100%", background: accent, color: "white",
+                      border: "none", borderRadius: "10px", padding: "12px",
+                      fontSize: "14px", fontWeight: 600, cursor: "pointer",
+                      opacity: contactMutation.isPending ? 0.6 : 1,
+                    }}
                   >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Save Contact
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isMobileDevice() ? 
-                    "Add to your device's contacts" : 
-                    "Download contact as vCard (.vcf)"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <Sheet>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <SheetTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-full"
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Contact Me
-                      </Button>
-                    </SheetTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Send a message to {profile.displayName}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Send a Message</SheetTitle>
-                  <SheetDescription>
-                    Leave your contact information and a message for {profile.displayName}.
-                  </SheetDescription>
-                </SheetHeader>
-                
-                <form onSubmit={handleContactSubmit} className="space-y-4 mt-4">
-                  <div>
-                    <label htmlFor="name" className="text-sm font-medium">Your Name</label>
-                    <Input 
-                      id="name"
-                      name="name"
-                      placeholder="Enter your name"
-                      value={contactFormData.name}
-                      onChange={handleContactInputChange}
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="email" className="text-sm font-medium">Your Email</label>
-                    <Input 
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={contactFormData.email}
-                      onChange={handleContactInputChange}
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="message" className="text-sm font-medium">Message</label>
-                    <Textarea 
-                      id="message"
-                      name="message"
-                      placeholder="Enter your message"
-                      value={contactFormData.message}
-                      onChange={handleContactInputChange}
-                      required
-                      className="mt-1 h-24"
-                    />
-                  </div>
-                  
-                  <SheetFooter>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={contactMutation.isPending}
-                    >
-                      {contactMutation.isPending ? (
-                        <>
-                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                          Sending...
-                        </>
-                      ) : "Send Message"}
-                    </Button>
-                  </SheetFooter>
-                </form>
-              </SheetContent>
-            </Sheet>
-          </div>
+                    {contactMutation.isPending ? "Sending…" : "Send Message"}
+                  </button>
+                </SheetFooter>
+              </form>
+            </SheetContent>
+          </Sheet>
 
-          {/* QR Code with actions */}
-          <div className="flex flex-col items-center mb-6 bg-muted/10 p-4 rounded-lg">
-            <QrCodeDisplay
-              value={window.location.href}
-              fgColor={profile.qrColor || "#3B82F6"}
-              size={150}
-              qrStyle={profile.qrStyle || "basic"}
-            />
-            
-            <div className="flex flex-col gap-2 mt-3 w-full">
-              {/* Save Contact Button */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      size="sm"
-                      variant="default" 
-                      className="w-full bg-gradient-to-r from-primary to-primary/80"
-                      onClick={() => {
-                        saveToContacts(profile, profile.socialLinks);
-                        // Launch confetti celebration
-                        celebrateSaveContact();
-                      }}
-                    >
-                      <UserPlus className="h-3 w-3 mr-1" />
-                      Save Contact
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{isMobileDevice() ? 
-                      "Add to your device's contacts" : 
-                      "Download contact as vCard (.vcf)"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <div className="flex justify-center gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowQrWidget(true)}
-                  className="text-xs text-muted-foreground"
+          <button
+            onClick={handleShare}
+            style={{
+              width: "48px", height: "48px", background: "#f1f5f9", color: "#475569",
+              border: "none", borderRadius: "12px", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <Share size={19} />
+          </button>
+        </div>
+
+        {/* Social links — all of them, fully clickable */}
+        {profile.socialLinks && profile.socialLinks.length > 0 && (
+          <div style={{ marginBottom: "24px" }}>
+            <div style={{
+              fontSize: "10px", fontWeight: 700, letterSpacing: "1px",
+              color: "#94a3b8", textTransform: "uppercase", marginBottom: "12px",
+            }}>Connect</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {profile.socialLinks.map((link) => (
+                <a
+                  key={link.id}
+                  href={getLinkHref(link.platform, link.url)}
+                  target={link.platform.toLowerCase() !== "phone" && link.platform.toLowerCase() !== "email" ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "none" }}
                 >
-                  <LayoutGrid className="h-3 w-3 mr-1" />
-                  QR Widget
-                </Button>
-                
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={copyProfileUrl}
-                  className="text-xs text-muted-foreground"
-                >
-                  <Copy className="h-3 w-3 mr-1" />
-                  {isCopied ? "Copied!" : "Copy Link"}
-                </Button>
-                
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={shareProfile}
-                  className="text-xs text-muted-foreground"
-                >
-                  <Share className="h-3 w-3 mr-1" />
-                  Share
-                </Button>
-              </div>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: "12px",
+                    padding: "10px 14px", borderRadius: "12px",
+                    background: "#f8fafc", border: "1px solid #f1f5f9",
+                    transition: "background 0.15s",
+                  }}>
+                    <div style={{
+                      width: "36px", height: "36px", borderRadius: "50%",
+                      background: accent, flexShrink: 0,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <PlatformIcon platform={link.platform} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{
+                        fontSize: "11px", fontWeight: 600, color: "#94a3b8",
+                        textTransform: "capitalize", letterSpacing: "0.3px",
+                      }}>
+                        {link.platform}
+                      </div>
+                      <div style={{
+                        fontSize: "13px", color: "#334155", fontWeight: 500,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }}>
+                        {formatLinkLabel(link.platform, link.url)}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
+        )}
 
-          {/* Social links section */}
-          {profile.socialLinks && profile.socialLinks.length > 0 && (
-            <Card 
-              className="border-none shadow-none" 
-              style={{ backgroundColor: profile.cardColor || "#ffffff" }}
-            >
-              <CardHeader className="px-0 pt-0 pb-2">
-                <CardTitle className="text-base font-medium">Connect with me</CardTitle>
-              </CardHeader>
-              <CardContent className="px-0 py-1 space-y-2">
-                {profile.socialLinks.map((link: any) => (
-                  <SocialLink 
-                    key={link.id}
-                    platform={link.platform}
-                    url={link.url}
-                    className="border-muted/40 hover:bg-muted/20"
-                    style={{ backgroundColor: profile.cardColor || "#ffffff" }}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-          )}
+        {/* Footer */}
+        <div style={{
+          textAlign: "center", paddingTop: "20px",
+          borderTop: "1px solid #f1f5f9",
+        }}>
+          <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 4px" }}>Created with</p>
+          <Link href="/">
+            <span style={{ fontSize: "13px", color: accent, fontWeight: 600, cursor: "pointer" }}>
+              QrMingle
+            </span>
+          </Link>
+        </div>
+      </div>
 
-
-
-          <div className="text-center mt-8 text-xs text-muted-foreground">
-            <p>Created with QrMingle</p>
-            <Link href="/">
-              <span className="text-primary hover:underline">Create your own QR profile</span>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* QR Widget Generator Dialog */}
+      {/* QR Widget Generator (kept for power users) */}
       <QrWidgetGenerator
         profileName={profile.name}
         profileDisplayName={profile.displayName}

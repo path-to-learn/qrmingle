@@ -149,8 +149,8 @@ export default function Analytics() {
 
   const { scanData, deviceData, locationData } = processChartData();
 
-  // Colors for the pie chart
-  const COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'];
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim() || '#6366f1';
+  const COLORS = [accent, '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'];
 
   if (!user) {
     return (
@@ -170,17 +170,13 @@ export default function Analytics() {
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-bold mb-6">QR Code Analytics</h2>
       
-      <div className="bg-blue-50 border border-blue-200 p-4 mb-6 rounded-md flex items-start sm:items-center">
-        <div className="text-blue-600 mr-3 flex-shrink-0 mt-0.5 sm:mt-0">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-sm text-blue-700">
-            Full analytics are available to all users. View insights on scan frequency, device types, and locations for your QR profiles.
-          </p>
-        </div>
+      <div style={{ background: accent + '12', border: `1px solid ${accent}33`, padding: "14px 16px", marginBottom: "24px", borderRadius: "10px", display: "flex", alignItems: "flex-start", gap: "10px" }}>
+        <svg xmlns="http://www.w3.org/2000/svg" style={{ width: "20px", height: "20px", flexShrink: 0, color: accent }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p style={{ fontSize: "13px", color: "#475569", margin: 0 }}>
+          Full analytics are available to all users. View insights on scan frequency, device types, and locations for your QR profiles.
+        </p>
       </div>
 
       <div className="mb-6">
@@ -268,8 +264,8 @@ export default function Analytics() {
                     <AreaChart data={scanData}>
                       <defs>
                         <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
+                          <stop offset="5%" stopColor={accent} stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor={accent} stopOpacity={0.1}/>
                         </linearGradient>
                       </defs>
                       <XAxis 
@@ -286,12 +282,12 @@ export default function Analytics() {
                         formatter={(value) => [`${value} scans`, 'Scans']}
                         labelFormatter={formatDate}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="scans" 
-                        stroke="#3B82F6" 
-                        fillOpacity={1} 
-                        fill="url(#colorScans)" 
+                      <Area
+                        type="monotone"
+                        dataKey="scans"
+                        stroke={accent}
+                        fillOpacity={1}
+                        fill="url(#colorScans)"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -348,9 +344,9 @@ export default function Analytics() {
                         width={100}
                       />
                       <RechartsTooltip formatter={(value) => [`${value} scans`, 'Scans']} />
-                      <Bar 
-                        dataKey="value" 
-                        fill="#8B5CF6"
+                      <Bar
+                        dataKey="value"
+                        fill={accent}
                         background={{ fill: '#eee' }}
                         animationDuration={500}
                         label={{ position: 'right', formatter: (val: number) => val }}
@@ -503,12 +499,12 @@ export default function Analytics() {
                 </div>
                 <div className="flex items-center mt-4">
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full" 
-                      style={{ 
+                    <div
+                      style={{
+                        background: accent, height: "8px", borderRadius: "99px",
                         width: `${Math.min(100, scanData.length * 3)}%`,
-                        transition: 'width 0.5s ease-in-out'
-                      }} 
+                        transition: 'width 0.5s ease-in-out',
+                      }}
                     />
                   </div>
                 </div>

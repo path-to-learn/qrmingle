@@ -28,7 +28,7 @@ export default function Scan() {
     }}>
       <div style={{
         width: "120px", height: "120px", borderRadius: "32px",
-        background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+        background: "var(--app-accent, #6366f1)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         <QrCode size={60} color="white" />
