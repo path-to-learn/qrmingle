@@ -179,7 +179,12 @@ export default function CardsPage() {
         className="mobile-cards-layout"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        style={{ padding: "0 16px 16px" }}
+        style={{
+          padding: "0 16px",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "calc(100vh - 80px)", /* fill main area so nav row sits above tab bar */
+        }}
       >
         {/* Dot indicators */}
         {profiles.length > 1 && (
@@ -227,9 +232,9 @@ export default function CardsPage() {
           />
         )}
 
-        {/* Navigation */}
+        {/* Navigation — marginTop:auto pushes it to the bottom of the flex column */}
         {profiles.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 4px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 4px 16px", marginTop: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <button onClick={goPrev} disabled={currentIndex === 0} style={{
                 background: currentIndex === 0 ? "#e2e8f0" : accent,
@@ -264,7 +269,8 @@ export default function CardsPage() {
 
       {/* Profile Editor */}
       {showEditor && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, background: "white", overflowY: "auto", overflowX: "hidden", paddingBottom: "80px" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, overflow: "hidden" }}>
+        <div style={{ height: "100%", overflowY: "auto", background: "white", paddingBottom: "80px" }}>
           <ProfileEditor
             profileData={editingProfile}
             onSubmit={(data) => {
@@ -275,6 +281,7 @@ export default function CardsPage() {
             isEditing={!!editingProfileId}
             isPremium={isEffectivelyPremium()}
           />
+        </div>
         </div>
       )}
 

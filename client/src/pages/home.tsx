@@ -1,201 +1,315 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Info, Play, Pause, Volume2, VolumeX } from "lucide-react";
-import { VideoUploader } from "@/components/ui/video-uploader";
-import { isAdmin, getTutorialVideo } from "@/lib/video";
-import { useToast } from "@/hooks/use-toast";
-import ReviewsSection from "@/components/reviews/ReviewsSection";
+import { QRCodeSVG } from "qrcode.react";
+import { Linkedin, Mail, Phone, Globe, Instagram, Github, type LucideIcon } from "lucide-react";
+
+type DemoLink = { Icon: LucideIcon; text: string };
+
+type DemoCard = {
+  badge: string;
+  displayName: string;
+  title: string;
+  accent: string;
+  gradient: string;
+  initial: string;
+  qrSlug: string;
+  links: DemoLink[];
+};
+
+const DEMO_CARDS: DemoCard[] = [
+  {
+    badge: "Professional",
+    displayName: "Sarah Chen",
+    title: "Sr. Engineer, Meta",
+    accent: "#2d6a9f",
+    gradient: "linear-gradient(160deg, #1e3a5f 0%, #2d6a9f 100%)",
+    initial: "S",
+    qrSlug: "sarah-chen",
+    links: [
+      { Icon: Linkedin, text: "linkedin.com/in/sarahchen" },
+      { Icon: Github, text: "github.com/sarahchen" },
+    ],
+  },
+  {
+    badge: "Teacher",
+    displayName: "David Okonkwo",
+    title: "High School Math Teacher",
+    accent: "#2d9b5d",
+    gradient: "linear-gradient(160deg, #1a5c38 0%, #2d9b5d 100%)",
+    initial: "D",
+    qrSlug: "david-okonkwo",
+    links: [
+      { Icon: Mail, text: "d.okonkwo@school.edu" },
+      { Icon: Globe, text: "mrokonkwo.com" },
+    ],
+  },
+  {
+    badge: "Contractor",
+    displayName: "Mike Torres",
+    title: "General Contractor",
+    accent: "#c2740a",
+    gradient: "linear-gradient(160deg, #7c3a00 0%, #c2740a 100%)",
+    initial: "M",
+    qrSlug: "mike-torres",
+    links: [
+      { Icon: Phone, text: "+1 (555) 234-5678" },
+      { Icon: Globe, text: "torresbuilds.com" },
+    ],
+  },
+  {
+    badge: "Homemaker",
+    displayName: "Priya Sharma",
+    title: "Food Blogger & Home Chef",
+    accent: "#c026a0",
+    gradient: "linear-gradient(160deg, #6b0f52 0%, #c026a0 100%)",
+    initial: "P",
+    qrSlug: "priya-sharma",
+    links: [
+      { Icon: Instagram, text: "@priyaskitchen" },
+      { Icon: Globe, text: "priyaskitchen.com" },
+    ],
+  },
+  {
+    badge: "Student",
+    displayName: "Jordan Lee",
+    title: "CS Student, Stanford '26",
+    accent: "#0884b4",
+    gradient: "linear-gradient(160deg, #0c4a6e 0%, #0884b4 100%)",
+    initial: "J",
+    qrSlug: "jordan-lee",
+    links: [
+      { Icon: Linkedin, text: "linkedin.com/in/jordanlee" },
+      { Icon: Mail, text: "jordan@stanford.edu" },
+    ],
+  },
+];
+
+function MiniCard({ card }: { card: DemoCard }) {
+  const { badge, displayName, title, accent, gradient, initial, qrSlug, links } = card;
+  return (
+    <div style={{
+      flexShrink: 0,
+      width: "272px",
+      borderRadius: "20px",
+      overflow: "hidden",
+      boxShadow: "0 16px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.1)",
+    }}>
+      {/* Hero section */}
+      <div style={{ height: "136px", background: gradient, position: "relative" }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(circle at 75% 25%, rgba(255,255,255,0.1) 0%, transparent 55%)",
+        }} />
+
+        {/* Badge */}
+        <div style={{
+          position: "absolute", top: "11px", left: "50%", transform: "translateX(-50%)",
+          background: "rgba(0,0,0,0.38)", backdropFilter: "blur(6px)",
+          color: "white", fontSize: "8px", fontWeight: 700,
+          padding: "3px 12px", borderRadius: "5px",
+          letterSpacing: "1.2px", textTransform: "uppercase", whiteSpace: "nowrap",
+        }}>{badge}</div>
+
+        {/* Avatar */}
+        <div style={{
+          position: "absolute", bottom: "9px", left: "13px",
+          width: "38px", height: "38px", borderRadius: "50%",
+          border: "2px solid white",
+          background: gradient,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 2, boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+          fontSize: "14px", fontWeight: 700, color: "white",
+        }}>{initial}</div>
+
+        {/* Wave */}
+        <svg viewBox="0 0 400 48" style={{
+          position: "absolute", bottom: 0, width: "100%", height: "38px", display: "block", zIndex: 1,
+        }} preserveAspectRatio="none">
+          <path d="M0,24 C80,48 200,4 400,28 L400,48 L0,48 Z" fill="white" />
+        </svg>
+      </div>
+
+      {/* Info section */}
+      <div style={{ background: "white", padding: "9px 12px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", paddingLeft: "46px" }}>
+          <div style={{ flex: 1, minWidth: 0, paddingLeft: "9px", borderLeft: `3px solid ${accent}` }}>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
+            <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</div>
+          </div>
+          <div style={{
+            flexShrink: 0, padding: "3px", borderRadius: "7px",
+            border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          }}>
+            <QRCodeSVG value={`https://qrmingle.com/p/${qrSlug}`} size={40} fgColor={accent} bgColor="white" level="L" />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          {links.map(({ Icon, text }, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+              <div style={{
+                width: "22px", height: "22px", borderRadius: "50%",
+                background: accent, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon size={11} color="white" />
+              </div>
+              <span style={{ fontSize: "10px", color: "#475569", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [, navigate] = useLocation();
-  
-  // Redirect logged-in users to profiles dashboard
+
   useEffect(() => {
-    if (user) {
-      navigate('/profiles');
-    }
+    if (user) navigate("/profiles");
   }, [user, navigate]);
 
-  const [tutorialVideoUrl, setTutorialVideoUrl] = useState<string | null>(null);
-  const [isVideoLoading, setIsVideoLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  
-  // Fetch the current tutorial video on component mount
-  useEffect(() => {
-    const fetchTutorialVideo = async () => {
-      setIsVideoLoading(true);
-      try {
-        const videoUrl = await getTutorialVideo();
-        setTutorialVideoUrl(videoUrl);
-      } catch (error) {
-        console.error("Error fetching tutorial video:", error);
-      } finally {
-        setIsVideoLoading(false);
-      }
-    };
-    
-    fetchTutorialVideo();
-  }, []);
-  
-  // Initialize video and make sure it's unmuted on load
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isMuted;
-    }
-  }, [videoRef, isMuted]);
-  
-  // Toggle video play/pause
-  const togglePlayPause = () => {
-    if (!videoRef.current) return;
-    
-    if (isPlaying) {
-      videoRef.current.pause();
-    } else {
-      videoRef.current.play();
-    }
-    
-    setIsPlaying(!isPlaying);
-  };
-  
-  // Toggle mute/unmute
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-    
-    videoRef.current.muted = !videoRef.current.muted;
-    setIsMuted(videoRef.current.muted);
-  };
+  if (user) return null;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Main app info section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          {/* Left column - Video tutorial */}
-          <div className="flex flex-col">
-            <h2 className="text-xl font-semibold mb-3">How QrMingle Works</h2>
-            <div className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 aspect-video mb-4">
-              {isVideoLoading ? (
-                // Loading state
-                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                  <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
-                </div>
-              ) : tutorialVideoUrl ? (
-                // Video player with limited controls - autoplay, muted, and no fullscreen
-                <div className="relative w-full h-full">
-                  <video 
-                    ref={videoRef}
-                    autoPlay
-                    loop
-                    playsInline
-                    muted={isMuted}
-                    controlsList="nodownload nofullscreen noremoteplayback"
-                    disablePictureInPicture
-                    className="w-full h-full object-cover"
-                    poster="/video-thumbnail.svg"
-                  >
-                    <source src={tutorialVideoUrl} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                  
-                  {/* Custom play/pause control */}
-                  <button 
-                    onClick={togglePlayPause}
-                    className="absolute left-4 bottom-4 bg-primary/75 hover:bg-primary p-2 rounded-full text-white transition-colors"
-                    aria-label={isPlaying ? "Pause video" : "Play video"}
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-5 w-5" />
-                    ) : (
-                      <Play className="h-5 w-5" />
-                    )}
-                  </button>
-                  
-                  {/* Custom mute/unmute control */}
-                  <button 
-                    onClick={toggleMute}
-                    className="absolute right-4 bottom-4 bg-primary/75 hover:bg-primary p-2 rounded-full text-white transition-colors"
-                    aria-label={isMuted ? "Unmute video" : "Mute video"}
-                  >
-                    {isMuted ? (
-                      <VolumeX className="h-5 w-5" />
-                    ) : (
-                      <Volume2 className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              ) : (
-                // Message when no video exists
-                <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-6 text-center">
-                  <Info className="h-12 w-12 text-muted-foreground mb-3" />
-                  <h3 className="font-medium text-gray-600 mb-1">Tutorial video coming soon</h3>
-                  <p className="text-sm text-gray-500">
-                    Our team is working on creating a helpful tutorial video.
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">1</div>
-                <p className="ml-3 text-sm">Sign up for a free account</p>
-              </div>
-              <div className="flex items-center">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">2</div>
-                <p className="ml-3 text-sm">Create your personal or professional profile</p>
-              </div>
-              <div className="flex items-center">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">3</div>
-                <p className="ml-3 text-sm">Share your custom QR code with new connections</p>
-              </div>
-              <div className="flex items-center">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">4</div>
-                <p className="ml-3 text-sm">They can instantly save your contact info with one scan</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Right column - Welcome message and buttons */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Welcome to QrMingle</h1>
-            <p className="text-muted-foreground mb-6">
-              The easiest way to share your contact information at networking events, conferences, and meetings
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
-              <a href="/register" className="w-full sm:w-auto">
-                <Button className="w-full">Sign Up</Button>
-              </a>
-              <a href="/login" className="w-full sm:w-auto">
-                <Button variant="outline" className="w-full">Log In</Button>
-              </a>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4 mt-4">
-              <h3 className="font-medium mb-2">Available Features</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>✓ Up to 3 profiles</li>
-                <li>✓ Custom QR code styles</li>
-                <li>✓ Detailed scan analytics</li>
-                <li>✓ VCard generation</li>
-              </ul>
-              <p className="text-xs text-gray-500 mt-2">
-                Premium plans with additional features coming soon!
-              </p>
-            </div>
-          </div>
-        </div>
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      paddingLeft: "24px",
+      paddingRight: "24px",
+      paddingTop: "env(safe-area-inset-top)",
+      paddingBottom: "env(safe-area-inset-bottom)",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+
+      {/* Background glow orbs */}
+      <div style={{
+        position: "absolute", top: "8%", left: "-25%",
+        width: "340px", height: "340px", borderRadius: "50%",
+        background: "rgba(99,102,241,0.22)", filter: "blur(70px)", pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", bottom: "18%", right: "-20%",
+        width: "280px", height: "280px", borderRadius: "50%",
+        background: "rgba(139,92,246,0.18)", filter: "blur(60px)", pointerEvents: "none",
+      }} />
+
+      {/* ── Logo ── */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: "12px",
+        paddingTop: "52px", marginBottom: "24px",
+      }}>
+        <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="512" height="512" rx="256" fill="rgba(255,255,255,0.18)"/>
+          <g opacity="0.95">
+            <rect x="144" y="144" width="80" height="80" rx="16" fill="white"/>
+            <rect x="160" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.3)"/>
+            <rect x="288" y="144" width="80" height="80" rx="16" fill="white"/>
+            <rect x="304" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.3)"/>
+            <rect x="144" y="288" width="80" height="80" rx="16" fill="white"/>
+            <rect x="160" y="304" width="48" height="48" rx="8" fill="rgba(255,255,255,0.3)"/>
+            <rect x="240" y="144" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
+            <rect x="240" y="192" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+            <rect x="240" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
+            <rect x="240" y="288" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+            <rect x="288" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.6)"/>
+            <rect x="336" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.4)"/>
+            <rect x="144" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.6)"/>
+            <rect x="192" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.4)"/>
+            <rect x="288" y="336" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+            <rect x="336" y="336" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
+            <rect x="336" y="288" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)"/>
+          </g>
+        </svg>
+        <span style={{ color: "white", fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px" }}>QrMingle</span>
       </div>
-      
-      {/* User reviews section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 text-center">What Our Users Say</h2>
-        <div className="max-w-3xl mx-auto">
-          <ReviewsSection />
-        </div>
+
+      {/* ── Tagline above carousel ── */}
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <h1 style={{
+          color: "white", fontSize: "24px", fontWeight: 800,
+          lineHeight: 1.25, margin: 0, letterSpacing: "-0.5px",
+        }}>
+          A card for every version of you.
+        </h1>
+        <p style={{ color: "rgba(255,255,255,0.58)", fontSize: "14px", marginTop: "8px", lineHeight: 1.5 }}>
+          One QR scan. No app needed for the receiver.
+        </p>
+      </div>
+
+      {/* ── Scrollable card carousel ── */}
+      <div
+        className="welcome-scroll"
+        style={{
+          width: "100vw",
+          marginLeft: "-24px",
+          overflowX: "auto",
+          overflowY: "hidden",
+          WebkitOverflowScrolling: "touch" as any,
+          scrollSnapType: "x mandatory",
+          display: "flex",
+          gap: "14px",
+          padding: "10px 24px 14px",
+          msOverflowStyle: "none" as any,
+          scrollbarWidth: "none" as any,
+          flex: 1,
+          alignItems: "center",
+        }}
+      >
+        {DEMO_CARDS.map((card) => (
+          <div key={card.qrSlug} style={{ scrollSnapAlign: "start", flexShrink: 0 }}>
+            <MiniCard card={card} />
+          </div>
+        ))}
+      </div>
+
+      {/* Scroll hint dots */}
+      <div style={{ display: "flex", gap: "5px", marginTop: "12px", marginBottom: "20px" }}>
+        {DEMO_CARDS.map((card, i) => (
+          <div key={i} style={{
+            width: i === 0 ? "20px" : "5px", height: "5px", borderRadius: "99px",
+            background: i === 0 ? "white" : "rgba(255,255,255,0.3)",
+            transition: "all 0.3s",
+          }} />
+        ))}
+      </div>
+
+      {/* ── CTA section ── */}
+      <div style={{
+        width: "100%", maxWidth: "380px",
+        textAlign: "center",
+        paddingBottom: "44px",
+      }}>
+        <button
+          onClick={() => navigate("/register")}
+          style={{
+            width: "100%", background: "white", color: "#1e293b",
+            border: "none", borderRadius: "16px", padding: "18px",
+            fontSize: "17px", fontWeight: 700, cursor: "pointer",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            marginBottom: "18px",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          Get Started — It's Free
+        </button>
+
+        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "15px" }}>
+          Already have an account?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            style={{ color: "white", fontWeight: 700, cursor: "pointer" }}
+          >
+            Sign In
+          </span>
+        </p>
       </div>
     </div>
   );

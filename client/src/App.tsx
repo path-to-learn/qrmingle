@@ -36,12 +36,19 @@ function AppRouter() {
   const [location] = useLocation();
   return (
     <div className="min-h-screen flex flex-col">
-      {location !== "/" && (
+      {!["/", "/login", "/register"].includes(location) && (
         location === "/profiles"
           ? <div className="profiles-header-wrap" style={{ display: "none" }}><Header /></div>
           : <Header />
       )}
-      <main className="main-content flex-1 min-h-0 overflow-x-hidden overflow-y-auto max-w-full" style={{ paddingBottom: "80px", paddingTop: "8px", paddingLeft: location === "/profiles" ? "0" : "12px", paddingRight: location === "/profiles" ? "0" : "12px" }}>
+      {/* overflow-y on main, overflow-x on inner div — keeps them separate to avoid iOS WebKit scroll quirk */}
+      <main className="main-content flex-1 min-h-0 overflow-y-auto max-w-full" style={{
+        paddingBottom: ["/", "/login", "/register"].includes(location) ? "0" : "80px",
+        paddingTop: ["/", "/login", "/register"].includes(location) ? "0" : "8px",
+        paddingLeft: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
+        paddingRight: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
+      }}>
+      <div style={{ overflowX: "hidden", width: "100%" }}>
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />
@@ -86,6 +93,7 @@ function AppRouter() {
           <Route path="/scan" component={Scan} />
           <Route component={NotFound} />
         </Switch>
+      </div>
       </main>
       <MobileHidden><Footer /></MobileHidden>
       <BottomTabBar />

@@ -894,7 +894,7 @@ export default function ProfileEditor({
                       </div>
                       
                       {/* QR Code upload option */}
-                      <div className="flex items-center justify-between ml-[calc(25%+0.75rem)]">
+                      <div className="flex items-center justify-between mt-1">
                         <div className="flex items-center gap-2">
                           <QrCodeIcon className="h-4 w-4 text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">
@@ -941,7 +941,7 @@ export default function ProfileEditor({
                       
                       {/* Preview if QR code is uploaded */}
                       {form.watch(`socialLinks.${index}.url`)?.startsWith('qrCodeImage:') && (
-                        <div className="flex gap-2 items-center ml-[calc(25%+0.75rem)]">
+                        <div className="flex gap-2 items-center mt-1">
                           <div className="w-14 h-14 border rounded overflow-hidden flex-shrink-0">
                             <img 
                               src={form.watch(`socialLinks.${index}.url`).replace('qrCodeImage:', '')}
@@ -969,9 +969,11 @@ export default function ProfileEditor({
                     variant="outline"
                     size="sm"
                     className="text-primary"
-                    onClick={() =>
-                      append({ platform: "LinkedIn", url: "" })
-                    }
+                    onClick={() => {
+                      const selected = form.getValues("socialLinks").map((l: any) => l.platform);
+                      const next = allSocialPlatforms.find(p => !selected.includes(p)) ?? allSocialPlatforms[0];
+                      append({ platform: next, url: "" });
+                    }}
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     Add Another Link
