@@ -212,7 +212,7 @@ export default function ProfileEditor({
   };
 
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 w-full overflow-hidden">
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onCancel}>
@@ -848,8 +848,8 @@ export default function ProfileEditor({
                       key={field.id}
                       className="space-y-2 mb-5"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-1/4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-1/4 min-w-0 shrink-0">
                           <Select
                             value={form.watch(`socialLinks.${index}.platform`)}
                             onValueChange={(value) =>
@@ -876,7 +876,7 @@ export default function ProfileEditor({
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <Input
                             placeholder="Enter URL or contact info"
                             {...form.register(`socialLinks.${index}.url`)}
