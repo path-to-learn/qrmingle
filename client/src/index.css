@@ -65,3 +65,31 @@
     animation: float 2s ease infinite, rotate 5s linear infinite;
   }
 }
+
+/* ── Responsive web overrides ─────────────────────────────────────── */
+@media (min-width: 768px) {
+  /* Hide mobile bottom tab bar on desktop */
+  .bottom-tab-bar { display: none !important; }
+
+  /* Remove bottom padding reserved for the tab bar */
+  .main-content { padding-bottom: 24px !important; }
+
+  /* Give the main content area side padding on desktop (overrides inline 0 on /profiles) */
+  .main-content { padding-left: 28px !important; padding-right: 28px !important; }
+
+  /* Show desktop cards grid, hide mobile swipe layout */
+  .desktop-cards-layout { display: block !important; }
+  .mobile-cards-layout  { display: none !important; }
+
+  /* Show the header on /profiles only on desktop */
+  .profiles-header-wrap { display: block !important; }
+}
+
+@media (max-width: 767px) {
+  /* Hide desktop grid, show mobile swipe layout */
+  .desktop-cards-layout { display: none !important; }
+  .mobile-cards-layout  { display: block !important; }
+
+  /* Keep header hidden on /profiles on mobile */
+  .profiles-header-wrap { display: none !important; }
+}

@@ -17,6 +17,7 @@ export default function BottomTabBar() {
 
   return (
     <div
+      className="bottom-tab-bar"
       style={{
         position: "fixed",
         bottom: 0,

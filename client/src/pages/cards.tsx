@@ -103,9 +103,80 @@ export default function CardsPage() {
 
   if (!user) return null;
 
+  const accent = profiles[currentIndex]
+    ? getCardAccent(profiles[currentIndex].name, profiles[currentIndex].cardColor)
+    : "#6366f1";
+
+  const openNewCard = () => { setEditingProfileId(null); setShowEditor(true); };
+
   return (
     <>
+      {/* ── DESKTOP layout ─────────────────────────────────────────── */}
+      <div className="desktop-cards-layout" style={{ display: "none", padding: "8px 0 24px" }}>
+        {/* Page header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+          <div>
+            <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b", margin: 0 }}>My Cards</h1>
+            <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>
+              {isLoading ? "Loading…" : `${profiles.length} of 3 profiles`}
+            </p>
+          </div>
+          {!isLoading && profiles.length < 3 && (
+            <button
+              onClick={openNewCard}
+              style={{
+                background: accent, color: "white", border: "none",
+                borderRadius: "12px", padding: "10px 20px",
+                fontSize: "14px", fontWeight: 600, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "6px",
+              }}
+            >
+              <PlusIcon size={16} /> New Card
+            </button>
+          )}
+        </div>
+
+        {/* Cards grid */}
+        {isLoading ? (
+          <div style={{ color: "#64748b", padding: "40px 0" }}>Loading…</div>
+        ) : profiles.length === 0 ? (
+          <div
+            onClick={openNewCard}
+            style={{
+              width: "380px", background: "linear-gradient(160deg, #6366f1 0%, #8b5cf6 100%)",
+              borderRadius: "20px", minHeight: "280px",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: "16px", cursor: "pointer",
+              boxShadow: "0 8px 32px rgba(99,102,241,0.3)",
+            }}
+          >
+            <div style={{ width: "72px", height: "72px", borderRadius: "20px", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <PlusIcon size={36} color="white" />
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ color: "white", fontSize: "22px", fontWeight: 700 }}>Create Your First Card</div>
+              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", marginTop: "8px" }}>Click to get started</div>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "28px", alignItems: "flex-start" }}>
+            {profiles.map((profile: any) => (
+              <div key={profile.id} style={{ width: "380px", flexShrink: 0 }}>
+                <ProfileCard
+                  {...profile}
+                  onEdit={(id: number) => { setEditingProfileId(id); setShowEditor(true); }}
+                  onDelete={(id: number) => setProfileToDelete(id)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── MOBILE layout ──────────────────────────────────────────── */}
       <div
+        className="mobile-cards-layout"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ padding: "0 16px 16px" }}
@@ -117,7 +188,7 @@ export default function CardsPage() {
               <div key={i} onClick={() => setCurrentIndex(i)} style={{
                 height: "4px", borderRadius: "99px", cursor: "pointer",
                 width: i === currentIndex ? "24px" : "8px",
-                background: i === currentIndex ? "#6366f1" : "#cbd5e1",
+                background: i === currentIndex ? accent : "#cbd5e1",
                 transition: "all 0.3s",
               }} />
             ))}
@@ -129,7 +200,7 @@ export default function CardsPage() {
           <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>Loading...</div>
         ) : profiles.length === 0 ? (
           <div
-            onClick={() => { setEditingProfileId(null); setShowEditor(true); }}
+            onClick={openNewCard}
             style={{
               background: "linear-gradient(160deg, #6366f1 0%, #8b5cf6 100%)",
               borderRadius: "20px", minHeight: "280px",
@@ -161,7 +232,7 @@ export default function CardsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 4px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <button onClick={goPrev} disabled={currentIndex === 0} style={{
-                background: currentIndex === 0 ? "#e2e8f0" : "#6366f1",
+                background: currentIndex === 0 ? "#e2e8f0" : accent,
                 border: "none", borderRadius: "50%", width: "36px", height: "36px",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: currentIndex === 0 ? "default" : "pointer", color: "white",
@@ -172,7 +243,7 @@ export default function CardsPage() {
                 {currentIndex + 1} of {profiles.length}
               </span>
               <button onClick={goNext} disabled={currentIndex >= profiles.length - 1} style={{
-                background: currentIndex >= profiles.length - 1 ? "#e2e8f0" : "#6366f1",
+                background: currentIndex >= profiles.length - 1 ? "#e2e8f0" : accent,
                 border: "none", borderRadius: "50%", width: "36px", height: "36px",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: currentIndex >= profiles.length - 1 ? "default" : "pointer", color: "white",
@@ -180,8 +251,8 @@ export default function CardsPage() {
                 <ChevronRight size={20} />
               </button>
             </div>
-            <button onClick={() => { setEditingProfileId(null); setShowEditor(true); }} style={{
-              background: "#6366f1", border: "none", borderRadius: "99px",
+            <button onClick={openNewCard} style={{
+              background: accent, border: "none", borderRadius: "99px",
               padding: "8px 18px", display: "flex", alignItems: "center", gap: "6px",
               cursor: "pointer", color: "white", fontWeight: 600, fontSize: "13px",
             }}>
