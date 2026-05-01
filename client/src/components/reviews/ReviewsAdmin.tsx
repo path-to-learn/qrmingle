@@ -147,7 +147,7 @@ export default function ReviewsAdmin() {
                   <div>
                     <div className="flex items-center mb-1">
                       <h4 className="font-medium text-sm">{review.name}</h4>
-                      <div className="ml-2">{renderRating(review.rating)}</div>
+                      <div className="ml-2">{renderRating(review.rating ?? 0)}</div>
                     </div>
                     {review.title && (
                       <p className="text-xs text-muted-foreground">{review.title}</p>
@@ -177,7 +177,7 @@ export default function ReviewsAdmin() {
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={() => handleToggleVisibility(review.id, review.isVisible)}
+                      onClick={() => handleToggleVisibility(review.id, review.isVisible ?? false)}
                       title={review.isVisible ? "Hide review" : "Make visible"}
                     >
                       {review.isVisible ? (

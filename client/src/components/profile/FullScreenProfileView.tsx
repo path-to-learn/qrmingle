@@ -49,7 +49,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
 
   const handleSaveContact = async () => {
     try {
-      await saveToContacts(profile);
+      await saveToContacts(profile, profile.socialLinks || []);
       toast({ title: "Contact saved!", description: `${profile.displayName} added to your contacts` });
     } catch (e) {
       toast({ title: "Error", description: "Could not save contact", variant: "destructive" });
@@ -181,7 +181,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
                 <QrCodeDisplay
                   value={profileUrl}
                   size={160}
-                  color={profile.qrColor || "#3B82F6"}
+                  fgColor={profile.qrColor || "#3B82F6"}
                   style={profile.qrStyle || "basic"}
                 />
                 <p style={{ textAlign: "center", fontSize: "11px", color: "#9ca3af", margin: "6px 0 0" }}>

@@ -31,6 +31,30 @@ function MobileHidden({ children }: { children: React.ReactNode }) {
 }
 import { AuthProvider, RequireAuth } from "@/hooks/use-auth";
 
+function OfflineBanner() {
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    setOffline(!navigator.onLine);
+    const on = () => setOffline(false);
+    const off = () => setOffline(true);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
+  }, []);
+  if (!offline) return null;
+  return (
+    <div style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999,
+      background: "#1e293b", color: "white",
+      textAlign: "center", fontSize: "13px", fontWeight: 600,
+      padding: "10px 16px",
+      paddingTop: "calc(10px + env(safe-area-inset-top))",
+    }}>
+      No internet connection — some features may be unavailable
+    </div>
+  );
+}
+
 // Router component
 function AppRouter() {
   const [location] = useLocation();
@@ -106,6 +130,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <OfflineBanner />
         <AppRouter />
         <Toaster />
       </AuthProvider>
