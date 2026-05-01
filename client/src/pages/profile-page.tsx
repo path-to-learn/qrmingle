@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -89,6 +89,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const isPreview = typeof window !== "undefined" && window.location.search.includes("preview=1");
 
+  const lastTapRef = useRef(0);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showQrWidget, setShowQrWidget] = useState(false);
   const [contactFormData, setContactFormData] = useState({ name: "", email: "", message: "" });
@@ -223,8 +224,16 @@ export default function ProfilePage() {
   const avatarSize = Math.min(Math.max(profile.photoSize || 88, 60), 240);
   const avatarOverlap = Math.round(avatarSize * 0.45);
 
+  const handleDoubleTap = (e: React.TouchEvent) => {
+    if (!isPreview) return;
+    if ((e.target as HTMLElement).closest("button, a, input, textarea")) return;
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) window.history.back();
+    lastTapRef.current = now;
+  };
+
   return (
-    <div style={{ maxWidth: "480px", margin: "0 auto", paddingBottom: "48px" }}>
+    <div onTouchEnd={handleDoubleTap} style={{ maxWidth: "480px", margin: "0 auto", paddingBottom: "48px" }}>
 
       {/* ── Floating back button (preview mode only) ── */}
       {isPreview && (
