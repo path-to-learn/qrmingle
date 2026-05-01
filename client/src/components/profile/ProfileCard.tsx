@@ -74,7 +74,7 @@ const formatLinkLabel = (platform: string, url: string) => {
 
 export default function ProfileCard({
   id, name, displayName, title,
-  photoUrl, backgroundUrl, backgroundOpacity = 100,
+  photoUrl, photoSize = 80, backgroundUrl, backgroundOpacity = 100,
   cardColor, qrStyle, qrColor,
   slug, scanCount, socialLinks,
   onEdit, onDelete,
@@ -84,6 +84,8 @@ export default function ProfileCard({
   const [showQr, setShowQr] = useState(false);
   const profileUrl = `${window.location.origin}/p/${slug}`;
   const accent = getCardAccent(name, cardColor);
+  // Scale photoSize (editor range 60-300) to card-appropriate size (44-88px)
+  const cardAvatarSize = Math.min(Math.max(Math.round(photoSize * 0.55), 44), 88);
 
   const handleSaveContact = async () => {
     try {
@@ -137,13 +139,18 @@ export default function ProfileCard({
 
   return (
     <>
-      {/* ── Portrait card — overflow:hidden prevents any horizontal bleed ── */}
-      <div style={{
-        borderRadius: "20px",
-        overflow: "hidden",
-        background: "white",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.13)",
-      }}>
+      {/* ── Portrait card — tap navigates to full preview ── */}
+      <div
+        onClick={() => setLocation(`/p/${slug}?preview=1`)}
+        style={{
+          borderRadius: "20px",
+          overflow: "hidden",
+          background: "white",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.13)",
+          cursor: "pointer",
+          WebkitTapHighlightColor: "transparent",
+        }}
+      >
 
         {/* ── Photo / hero section ── */}
         <div style={{
@@ -195,7 +202,7 @@ export default function ProfileCard({
           {photoUrl && (
             <div style={{
               position: "absolute", bottom: "8px", left: "16px",
-              width: "52px", height: "52px", borderRadius: "50%",
+              width: `${cardAvatarSize}px`, height: `${cardAvatarSize}px`, borderRadius: "50%",
               border: "3px solid white",
               boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
               backgroundImage: `url(${photoUrl})`,
@@ -223,7 +230,7 @@ export default function ProfileCard({
           {/* Name / title + inline QR */}
           <div style={{
             display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px",
-            paddingLeft: photoUrl ? "62px" : "0",
+            paddingLeft: photoUrl ? `${cardAvatarSize + 10}px` : "0",
           }}>
             {/* Name + title with left accent bar */}
             <div style={{
