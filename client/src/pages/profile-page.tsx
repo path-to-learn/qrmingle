@@ -1,22 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useRoute, Link } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { QrWidgetGenerator } from "@/components/profile/QrWidgetGenerator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  MessageSquare, Share, UserPlus,
+  Share, UserPlus,
   Mail, Phone, Globe, Link2, Linkedin, Twitter, Instagram, Facebook,
   ArrowLeft,
 } from "lucide-react";
 import { saveToContacts, isMobileDevice } from "@/lib/vcard";
 import { celebrateSaveContact } from "@/lib/confetti";
-import {
-  Sheet, SheetContent, SheetDescription,
-  SheetFooter, SheetHeader, SheetTitle, SheetTrigger,
-} from "@/components/ui/sheet";
 import { getCardAccent } from "@/components/profile/ProfileCard";
 import { getTeamById, getThemeById } from "@/data/themes";
 
@@ -93,48 +87,12 @@ export default function ProfilePage() {
   const isPreview = typeof window !== "undefined" && window.location.search.includes("preview=1");
 
   const lastTapRef = useRef(0);
-  const [showContactForm, setShowContactForm] = useState(false);
   const [showQrWidget, setShowQrWidget] = useState(false);
-  const [contactFormData, setContactFormData] = useState({ name: "", email: "", message: "" });
 
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
     queryKey: [`/api/p/${slug}`],
     enabled: !!slug,
   });
-
-  const contactMutation = useMutation({
-    mutationFn: async (data: typeof contactFormData) => {
-      if (!profile) throw new Error("Profile not found");
-      const response = await fetch("/api/contact-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profileId: profile.id, ...data }),
-      });
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Failed to send message");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: "Message Sent", description: "Your message has been sent!" });
-      setShowContactForm(false);
-      setContactFormData({ name: "", email: "", message: "" });
-    },
-    onError: (e: Error) => {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    },
-  });
-
-  const handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    contactMutation.mutate(contactFormData);
-  };
-
-  const handleContactInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setContactFormData(prev => ({ ...prev, [name]: value }));
-  };
 
   const handleSaveContact = async () => {
     if (!profile) return;
@@ -395,61 +353,6 @@ export default function ProfilePage() {
           >
             <UserPlus size={16} /> Save Contact
           </button>
-
-          <Sheet open={showContactForm} onOpenChange={setShowContactForm}>
-            <SheetTrigger asChild>
-              <button
-                style={{
-                  flex: 1, background: "#f1f5f9", color: "#1e293b",
-                  border: "none", borderRadius: "12px", padding: "13px 0",
-                  fontSize: "14px", fontWeight: 600,
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
-                  cursor: "pointer", WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                <MessageSquare size={16} /> Message
-              </button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Send a Message</SheetTitle>
-                <SheetDescription>
-                  Leave your contact info and a message for {profile.displayName}.
-                </SheetDescription>
-              </SheetHeader>
-              <form onSubmit={handleContactSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "20px" }}>
-                <div>
-                  <label style={{ fontSize: "13px", fontWeight: 500 }}>Your Name</label>
-                  <Input name="name" placeholder="Enter your name" value={contactFormData.name}
-                    onChange={handleContactInputChange} required style={{ marginTop: "6px" }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: "13px", fontWeight: 500 }}>Your Email</label>
-                  <Input name="email" type="email" placeholder="Enter your email" value={contactFormData.email}
-                    onChange={handleContactInputChange} required style={{ marginTop: "6px" }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: "13px", fontWeight: 500 }}>Message</label>
-                  <Textarea name="message" placeholder="Enter your message" value={contactFormData.message}
-                    onChange={handleContactInputChange} required style={{ marginTop: "6px", height: "96px" }} />
-                </div>
-                <SheetFooter>
-                  <button
-                    type="submit"
-                    disabled={contactMutation.isPending}
-                    style={{
-                      width: "100%", background: accent, color: "white",
-                      border: "none", borderRadius: "10px", padding: "12px",
-                      fontSize: "14px", fontWeight: 600, cursor: "pointer",
-                      opacity: contactMutation.isPending ? 0.6 : 1,
-                    }}
-                  >
-                    {contactMutation.isPending ? "Sending…" : "Send Message"}
-                  </button>
-                </SheetFooter>
-              </form>
-            </SheetContent>
-          </Sheet>
 
           <button
             onClick={handleShare}
