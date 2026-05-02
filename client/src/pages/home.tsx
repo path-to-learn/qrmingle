@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
@@ -165,13 +165,35 @@ function MiniCard({ card }: { card: DemoCard }) {
   );
 }
 
+const TAGLINES = [
+  "Your network starts with a scan.",
+  "Stop typing. Start scanning.",
+  "One scan. Everything about you.",
+  "Meet people. Share instantly.",
+  "Connect across borders. One scan at a time.",
+  "No printer. No paper. No awkward typing.",
+];
+
 export default function Home() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const [taglineIndex, setTaglineIndex] = useState(0);
+  const [taglineVisible, setTaglineVisible] = useState(true);
 
   useEffect(() => {
     if (user) navigate("/profiles");
   }, [user, navigate]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTaglineVisible(false);
+      setTimeout(() => {
+        setTaglineIndex((i: number) => (i + 1) % TAGLINES.length);
+        setTaglineVisible(true);
+      }, 400);
+    }, 3200);
+    return () => clearInterval(interval);
+  }, []);
 
   if (user) return null;
 
@@ -232,13 +254,16 @@ export default function Home() {
         <span style={{ color: "white", fontSize: "28px", fontWeight: 800, letterSpacing: "-0.5px" }}>QrMingle</span>
       </div>
 
-      {/* ── Tagline above carousel ── */}
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+      {/* ── Rotating tagline ── */}
+      <div style={{ textAlign: "center", marginBottom: "20px", minHeight: "64px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
         <h1 style={{
           color: "white", fontSize: "24px", fontWeight: 800,
           lineHeight: 1.25, margin: 0, letterSpacing: "-0.5px",
+          opacity: taglineVisible ? 1 : 0,
+          transform: taglineVisible ? "translateY(0)" : "translateY(6px)",
+          transition: "opacity 0.4s ease, transform 0.4s ease",
         }}>
-          A card for every version of you.
+          {TAGLINES[taglineIndex]}
         </h1>
         <p style={{ color: "rgba(255,255,255,0.58)", fontSize: "14px", marginTop: "8px", lineHeight: 1.5 }}>
           One QR scan. No app needed for the receiver.
