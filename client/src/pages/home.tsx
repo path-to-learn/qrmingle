@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
@@ -195,6 +195,43 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
+
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    let frameId: number;
+    let resumeTimer: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
+      if (!pausedRef.current) {
+        el.scrollLeft += 0.45;
+        // Seamless loop — when we've scrolled through the first copy, jump back
+        if (el.scrollLeft >= el.scrollWidth / 2) {
+          el.scrollLeft -= el.scrollWidth / 2;
+        }
+      }
+      frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+
+    const pause = () => {
+      pausedRef.current = true;
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => { pausedRef.current = false; }, 2500);
+    };
+    el.addEventListener("touchstart", pause, { passive: true });
+    el.addEventListener("mousedown", pause);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(resumeTimer);
+      el.removeEventListener("touchstart", pause);
+      el.removeEventListener("mousedown", pause);
+    };
+  }, []);
+
   if (user) return null;
 
   return (
@@ -270,8 +307,9 @@ export default function Home() {
         </p>
       </div>
 
-      {/* ── Scrollable card carousel ── */}
+      {/* ── Scrollable card carousel — auto-scrolls slowly, pauses on touch ── */}
       <div
+        ref={carouselRef}
         className="welcome-scroll"
         style={{
           width: "100vw",
@@ -279,7 +317,6 @@ export default function Home() {
           overflowX: "auto",
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch" as any,
-          scrollSnapType: "x mandatory",
           display: "flex",
           gap: "14px",
           padding: "10px 24px 14px",
@@ -289,8 +326,9 @@ export default function Home() {
           alignItems: "center",
         }}
       >
-        {DEMO_CARDS.map((card) => (
-          <div key={card.qrSlug} style={{ scrollSnapAlign: "start", flexShrink: 0 }}>
+        {/* Cards duplicated for seamless infinite loop */}
+        {[...DEMO_CARDS, ...DEMO_CARDS].map((card, i) => (
+          <div key={`${card.qrSlug}-${i}`} style={{ flexShrink: 0 }}>
             <MiniCard card={card} />
           </div>
         ))}
