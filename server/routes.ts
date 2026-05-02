@@ -69,16 +69,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication (must happen before routes)
   setupAuth(app);
 
-  // CSRF: reject state-mutating requests from unexpected origins
-  app.use((req, res, next) => {
-    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-      const origin = req.headers.origin;
-      if (origin && !ALLOWED_ORIGINS.has(origin)) {
-        return res.status(403).json({ message: "Forbidden: invalid origin" });
+  // CSRF: only enforce in production — dev uses local IPs that change
+  if (app.get('env') === 'production') {
+    app.use((req, res, next) => {
+      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+        const origin = req.headers.origin;
+        if (origin && !ALLOWED_ORIGINS.has(origin)) {
+          return res.status(403).json({ message: "Forbidden: invalid origin" });
+        }
       }
-    }
-    next();
-  });
+      next();
+    });
+  }
 
   // API routes prefix
   const apiRoutes = express.Router();
