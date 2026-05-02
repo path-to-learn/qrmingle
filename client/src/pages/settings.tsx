@@ -60,6 +60,24 @@ export default function Settings() {
         </div>
       </div>
 
+      {/* Trust strip */}
+      <div style={{
+        margin: "0 16px 16px",
+        padding: "12px 16px",
+        background: "#f0fdf4",
+        border: "1px solid #bbf7d0",
+        borderRadius: "12px",
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+      }}>
+        <span style={{ fontSize: "20px" }}>🔒</span>
+        <div>
+          <div style={{ fontSize: "13px", fontWeight: 600, color: "#15803d" }}>Your data is private</div>
+          <div style={{ fontSize: "12px", color: "#166534", marginTop: "2px" }}>Never sold · No ads · Delete anytime</div>
+        </div>
+      </div>
+
       {/* Menu items */}
       <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
         {menuItems.map((item, i) => {
