@@ -58,11 +58,16 @@ export interface IStorage {
   markContactMessageAsRead(id: number): Promise<import('@shared/schema').ContactMessage>;
   deleteContactMessage(id: number): Promise<boolean>;
   
+  // Password reset token methods
+  createPasswordResetToken(token: string, userId: number, expiresAt: Date): Promise<void>;
+  getPasswordResetToken(token: string): Promise<{ userId: number; expiresAt: Date } | undefined>;
+  deletePasswordResetToken(token: string): Promise<void>;
+
   // Admin analytics methods
   getAllUsers(): Promise<User[]>;
   getAllProfiles(): Promise<Profile[]>;
   getAllScanLogs(): Promise<ScanLog[]>;
-  
+
   // Session store
   sessionStore: session.Store;
 }
@@ -528,6 +533,26 @@ export class DatabaseStorage implements IStorage {
     
     const result = await db.delete(contactMessages).where(eq(contactMessages.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Password reset token methods
+  async createPasswordResetToken(token: string, userId: number, expiresAt: Date): Promise<void> {
+    const { db } = await import('./db');
+    const { passwordResetTokens } = await import('@shared/schema');
+    await db.insert(passwordResetTokens).values({ token, userId, expiresAt });
+  }
+
+  async getPasswordResetToken(token: string): Promise<{ userId: number; expiresAt: Date } | undefined> {
+    const { db, eq } = await import('./db');
+    const { passwordResetTokens } = await import('@shared/schema');
+    const [row] = await db.select().from(passwordResetTokens).where(eq(passwordResetTokens.token, token));
+    return row;
+  }
+
+  async deletePasswordResetToken(token: string): Promise<void> {
+    const { db, eq } = await import('./db');
+    const { passwordResetTokens } = await import('@shared/schema');
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token));
   }
 
   // Admin analytics methods

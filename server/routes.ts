@@ -52,8 +52,6 @@ const videoUpload = multer({
       // MP4 is preferred format
       cb(null, true);
     } else if (file.mimetype.startsWith('video/')) {
-      // Accept other video formats but log for monitoring
-      console.log(`Non-MP4 video uploaded: ${file.mimetype}. MP4 is recommended for optimal compatibility.`);
       cb(null, true);
     } else {
       cb(new Error('Only video files are allowed. MP4 format is recommended.'));
@@ -61,17 +59,31 @@ const videoUpload = multer({
   }
 });
 
+const ALLOWED_ORIGINS = new Set([
+  'https://qrmingle.com',
+  'http://localhost:5000',
+  'capacitor://localhost',
+]);
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication (must happen before routes)
   setupAuth(app);
+
+  // CSRF: reject state-mutating requests from unexpected origins
+  app.use((req, res, next) => {
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+      const origin = req.headers.origin;
+      if (origin && !ALLOWED_ORIGINS.has(origin)) {
+        return res.status(403).json({ message: "Forbidden: invalid origin" });
+      }
+    }
+    next();
+  });
 
   // API routes prefix
   const apiRoutes = express.Router();
   app.use('/api', apiRoutes);
   
-  // Password reset token storage - in a real app this would be in a database
-  const passwordResetTokens = new Map<string, { userId: number, expiresAt: Date }>();
-
   // Forgot password route - generate reset token
   apiRoutes.post('/forgot-password', authLimiter, async (req, res) => {
     try {
@@ -93,16 +105,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate a random token
-      const resetToken = crypto.randomBytes(20).toString('hex');
+      const resetToken = crypto.randomBytes(32).toString('hex');
       
-      // Store token in our map with 1 hour expiration
+      // Store token in DB with 1 hour expiration
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 1);
-      
-      passwordResetTokens.set(resetToken, {
-        userId: user.id,
-        expiresAt
-      });
+      await storage.createPasswordResetToken(resetToken, user.id, expiresAt);
       
       // Never return the token in the response — it must be sent via email only
       return res.json({
@@ -127,30 +135,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if token exists and is valid
-      const tokenData = passwordResetTokens.get(token);
-      
+      const tokenData = await storage.getPasswordResetToken(token);
+
       if (!tokenData) {
         return res.status(400).json({ message: "Invalid or expired token" });
       }
-      
+
       // Check if token is expired
       if (new Date() > tokenData.expiresAt) {
-        passwordResetTokens.delete(token);
+        await storage.deletePasswordResetToken(token);
         return res.status(400).json({ message: "Reset token has expired" });
       }
-      
+
       // Get user
       const user = await storage.getUser(tokenData.userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
-      // Update password - We need to add a method to storage
+
+      // Update password
       const updatedUser = await storage.updateUserPassword(user.id, newPassword);
-      
+
       // Delete the used token
-      passwordResetTokens.delete(token);
+      await storage.deletePasswordResetToken(token);
       
       return res.json({
         success: true,
@@ -193,13 +201,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRoutes.post('/profiles', requireAuth, async (req, res) => {
     try {
-      console.log("Profile creation request received:", JSON.stringify(req.body, null, 2));
-      
       // Validate the profile data
       let profileData;
       try {
         profileData = profileFormSchema.parse(req.body);
-        console.log("Profile data validated successfully");
       } catch (validationError) {
         console.error("Profile validation failed:", validationError);
         if (validationError instanceof z.ZodError) {
@@ -228,37 +233,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has reached the profile limit (3 profiles for all users)
       const userProfiles = await storage.getProfilesByUserId(userId);
       if (userProfiles.length >= 3) {
-        console.log("User tried to create more than 3 profiles");
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: "You can create up to 3 profiles. Premium features coming soon!",
           type: "PROFILE_LIMIT_REACHED"
         });
       }
       
-      // All QR styles and colors are now available to all users
-      console.log("All features are enabled for free users");
-      
       // Generate a slug from the display name
       const baseSlug = profileData.displayName.toLowerCase().replace(/\s+/g, '-');
       const randomSuffix = crypto.randomBytes(4).toString('hex');
       const slug = `${baseSlug}-${randomSuffix}`;
-      console.log("Generated slug:", slug);
-      
+
       // Create the profile
       const { socialLinks, ...profileWithoutLinks } = profileData;
-      console.log("Creating profile with data:", { ...profileWithoutLinks, userId, slug });
-      
+
       const profile = await storage.createProfile({
         ...profileWithoutLinks,
         userId,
         slug,
       });
       
-      console.log("Profile created successfully:", profile);
-      
       // Create the social links
-      console.log("Creating social links:", socialLinks);
-      
       const createdLinks = await Promise.all(
         socialLinks.map((link) => storage.createSocialLink({
           ...link,
@@ -266,12 +261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       );
       
-      console.log("Social links created successfully:", createdLinks);
-      
-      const responseData = { ...profile, socialLinks: createdLinks };
-      console.log("Sending response:", responseData);
-      
-      res.status(201).json(responseData);
+      res.status(201).json({ ...profile, socialLinks: createdLinks });
     } catch (error) {
       console.error("Profile creation error:", error);
       
@@ -410,11 +400,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
       
-      // Get client IP address
-      const ip = req.headers['x-forwarded-for'] || 
-                req.socket.remoteAddress || 
-                'Unknown';
-                
       // Extract device info from user agent
       const userAgent = req.headers['user-agent'] || '';
       let deviceInfo = 'Unknown';
@@ -460,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         browser: browserInfo,
         os: osInfo,
         referrer: req.headers.referer || '',
-        ipAddress: typeof ip === 'string' ? ip : (Array.isArray(ip) ? ip[0] : 'Unknown')
+        ipAddress: req.ip || 'Unknown'
       };
       
       await storage.createScanLog(scanLogData);
@@ -599,11 +584,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "No video file uploaded" });
         }
 
-        // Log video file details for monitoring
-        console.log(`Tutorial video uploaded: ${req.file.filename}`);
-        console.log(`File size: ${(req.file.size / (1024 * 1024)).toFixed(2)} MB`);
-        console.log(`File type: ${req.file.mimetype}`);
-        
         // Ensure the file is accessible through the static file server
         const videoUrl = `/uploads/${req.file.filename}`;
         
@@ -653,7 +633,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // All analytics features are now available to all users
       scanLogs = allScanLogs;
-      console.log("Full analytics available to all users");
       
       // Group logs by date
       const scansByDate: Record<string, number> = {};
@@ -807,29 +786,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
-        console.log(`Processing verified webhook event: ${event.type}`);
-        
         // Handle the event
         if (event.type === 'payment_intent.succeeded') {
           const paymentIntent = event.data.object;
-          
-          // Extract the user ID from the metadata
           const userId = paymentIntent.metadata?.userId;
-          
+
           if (userId) {
-            console.log(`Webhook: Payment succeeded for user ${userId}`);
-            
-            // Update user to premium
             const user = await storage.getUser(parseInt(userId));
-            
             if (user) {
-              console.log(`Webhook: Setting user ${userId} to premium status`);
               await storage.updateUserPremiumStatus(parseInt(userId), true);
-            } else {
-              console.log(`Webhook: User ${userId} not found`);
             }
-          } else {
-            console.log(`Webhook: Payment succeeded but no userId in metadata`);
           }
         }
         
