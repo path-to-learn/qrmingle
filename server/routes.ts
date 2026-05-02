@@ -172,6 +172,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Account deletion — permanently removes user and all associated data
+  apiRoutes.delete('/auth/account', async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    try {
+      const userId = req.user!.id;
+      // Invalidate session first
+      req.logout((err) => {
+        if (err) return next(err);
+      });
+      await storage.deleteUser(userId);
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("Account deletion error:", error);
+      res.status(500).json({ message: "Failed to delete account" });
+    }
+  });
+
   // Authentication middleware for API routes
   const requireAuth = (req: Request, res: Response, next: Function) => {
     if (!req.isAuthenticated()) {

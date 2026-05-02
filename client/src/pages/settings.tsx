@@ -1,11 +1,22 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { LogOut, Crown, Shield, Star, HelpCircle, FileText, Info } from "lucide-react";
+import { LogOut, Crown, Shield, Star, HelpCircle, FileText, Info, Trash2 } from "lucide-react";
 import { isAdmin } from "@/lib/video";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Settings() {
-  const { user, logoutMutation, isEffectivelyPremium } = useAuth();
+  const { user, logoutMutation, deleteAccountMutation, isEffectivelyPremium } = useAuth();
   const [, navigate] = useLocation();
 
   if (!user) return null;
@@ -113,6 +124,54 @@ export default function Settings() {
           </div>
           <span style={{ fontSize: "15px", fontWeight: 500, color: "#ef4444" }}>Logout</span>
         </button>
+
+        {/* Delete Account */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                padding: "14px 16px",
+                background: "white",
+                border: "1px solid #f1f5f9",
+                borderRadius: "12px",
+                cursor: "pointer",
+                width: "100%",
+                textAlign: "left",
+                WebkitTapHighlightColor: "transparent",
+                minHeight: "52px",
+              }}
+            >
+              <div style={{
+                width: "36px", height: "36px", borderRadius: "10px",
+                background: "#f8fafc",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Trash2 size={18} style={{ color: "#94a3b8" }} />
+              </div>
+              <span style={{ fontSize: "15px", fontWeight: 500, color: "#94a3b8" }}>Delete Account</span>
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This permanently deletes your account, all profiles, QR codes, and analytics. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteAccountMutation.mutate()}
+                style={{ background: "#ef4444" }}
+              >
+                Delete permanently
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

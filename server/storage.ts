@@ -63,6 +63,9 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<{ userId: number; expiresAt: Date } | undefined>;
   deletePasswordResetToken(token: string): Promise<void>;
 
+  // Account deletion
+  deleteUser(id: number): Promise<boolean>;
+
   // Admin analytics methods
   getAllUsers(): Promise<User[]>;
   getAllProfiles(): Promise<Profile[]>;
@@ -553,6 +556,26 @@ export class DatabaseStorage implements IStorage {
     const { db, eq } = await import('./db');
     const { passwordResetTokens } = await import('@shared/schema');
     await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token));
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    const { db, eq } = await import('./db');
+    const { users, profiles, socialLinks, scanLogs, contactMessages, passwordResetTokens } = await import('@shared/schema');
+
+    // Delete password reset tokens
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, id));
+
+    // Get all profiles for cascading deletes
+    const userProfiles = await db.select().from(profiles).where(eq(profiles.userId, id));
+    for (const profile of userProfiles) {
+      await db.delete(scanLogs).where(eq(scanLogs.profileId, profile.id));
+      await db.delete(contactMessages).where(eq(contactMessages.profileId, profile.id));
+      await db.delete(socialLinks).where(eq(socialLinks.profileId, profile.id));
+    }
+    await db.delete(profiles).where(eq(profiles.userId, id));
+
+    const result = await db.delete(users).where(eq(users.id, id)).returning();
+    return result.length > 0;
   }
 
   // Admin analytics methods
