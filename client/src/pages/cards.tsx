@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { PlusIcon, ChevronLeft, ChevronRight } from "lucide-react";
@@ -17,6 +17,7 @@ import {
 export default function CardsPage() {
   const { user, isEffectivelyPremium } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
@@ -63,8 +64,12 @@ export default function CardsPage() {
   const updateProfile = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ProfileFormData }) =>
       apiRequest("PUT", `/api/profiles/${id}`, data),
-    onSuccess: () => {
+    onSuccess: (updated: any) => {
       refetch();
+      // Bust the public profile-page cache so Preview shows the latest data
+      if (updated?.slug) {
+        queryClient.invalidateQueries({ queryKey: [`/api/p/${updated.slug}`] });
+      }
       setShowEditor(false);
       setEditingProfileId(null);
       toast({ title: "Profile updated!" });
