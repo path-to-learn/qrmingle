@@ -71,6 +71,7 @@ function AppRouter() {
         paddingTop: ["/", "/login", "/register"].includes(location) ? "0" : "8px",
         paddingLeft: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         paddingRight: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
+        overflowX: "hidden",
       }}>
       <div style={{ overflowX: "hidden", width: "100%" }}>
         <Switch>

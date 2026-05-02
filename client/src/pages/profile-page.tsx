@@ -262,7 +262,7 @@ export default function ProfilePage() {
         height: "280px",
         position: "relative",
         background: themeTeam
-          ? `linear-gradient(160deg, ${themeTeam.primary}ee 0%, ${themeTeam.primary}99 100%)`
+          ? `linear-gradient(160deg, ${themeTeam.primary} 0%, ${themeTeam.primary}cc 100%)`
           : getDefaultGradient(profile.name),
         borderRadius: "20px 20px 0 0",
         overflow: "hidden",
@@ -276,22 +276,37 @@ export default function ProfilePage() {
           }} />
         )}
 
+        {/* Flag watermark — placed early in DOM so it renders behind badges */}
+        {themeTeam && !profile.backgroundUrl && (
+          <div style={{
+            position: "absolute",
+            right: "16px", top: "50%",
+            transform: "translateY(-58%)",
+            fontSize: "120px", lineHeight: 1,
+            opacity: 0.4,
+            userSelect: "none", pointerEvents: "none",
+            filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.2))",
+          }}>
+            {themeTeam.flag}
+          </div>
+        )}
+
         {/* Top overlay */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 55%)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 55%)",
         }} />
 
-        {/* Card type badge */}
+        {/* Card type badge — shows FIFA 2026 when themed */}
         <div style={{
           position: "absolute", top: isPreview ? "56px" : "16px", left: "50%", transform: "translateX(-50%)",
           background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)",
           color: "white", fontSize: "11px", fontWeight: 700,
           padding: "4px 16px", borderRadius: "6px",
           letterSpacing: "1px", textTransform: "uppercase", whiteSpace: "nowrap",
-        }}>{profile.name}</div>
+        }}>{themeTeam ? "⚽ FIFA 2026" : profile.name}</div>
 
-        {/* Theme fan badge */}
+        {/* Team badge — top left */}
         {themeTeam && theme && (
           <div style={{
             position: "absolute", top: isPreview ? "56px" : "16px", left: "12px",

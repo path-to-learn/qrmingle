@@ -162,8 +162,9 @@ export default function ProfileCard({
           height: "230px",
           position: "relative",
           background: themeTeam
-            ? `linear-gradient(160deg, ${themeTeam.primary}ee 0%, ${themeTeam.primary}99 100%)`
+            ? `linear-gradient(160deg, ${themeTeam.primary} 0%, ${themeTeam.primary}cc 100%)`
             : getDefaultGradient(name),
+          overflow: "hidden",
         }}>
           {/* Background image */}
           {backgroundUrl && (
@@ -176,13 +177,28 @@ export default function ProfileCard({
             }} />
           )}
 
+          {/* Flag watermark — placed early in DOM so it renders behind badges */}
+          {themeTeam && !backgroundUrl && (
+            <div style={{
+              position: "absolute",
+              right: "12px", top: "50%",
+              transform: "translateY(-58%)",
+              fontSize: "100px", lineHeight: 1,
+              opacity: 0.45,
+              userSelect: "none", pointerEvents: "none",
+              filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.25))",
+            }}>
+              {themeTeam.flag}
+            </div>
+          )}
+
           {/* Top gradient for badge legibility */}
           <div style={{
             position: "absolute", inset: 0,
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 55%)",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 55%)",
           }} />
 
-          {/* Card name badge — top center */}
+          {/* Card name badge — top center; shows FIFA 2026 when themed */}
           <div style={{
             position: "absolute", top: "14px", left: "50%", transform: "translateX(-50%)",
             background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)",
@@ -190,9 +206,9 @@ export default function ProfileCard({
             padding: "4px 14px", borderRadius: "6px",
             letterSpacing: "1px", textTransform: "uppercase",
             whiteSpace: "nowrap",
-          }}>{name}</div>
+          }}>{themeTeam ? "⚽ FIFA 2026" : name}</div>
 
-          {/* Theme badge — top left */}
+          {/* Team badge — top left */}
           {themeTeam && (
             <div style={{
               position: "absolute", top: "12px", left: "12px",
@@ -273,12 +289,23 @@ export default function ProfileCard({
             </div>
 
             {/* Inline QR — works without internet once rendered */}
-            <div style={{
-              flexShrink: 0, padding: "5px", borderRadius: "10px",
-              background: "white", border: "1px solid #e2e8f0",
-              boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
-            }}>
-              <QRCodeSVG value={profileUrl} size={58} fgColor={accent} bgColor="white" level="L" />
+            <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+              <div style={{
+                padding: "5px", borderRadius: "10px",
+                background: "white", border: "1px solid #e2e8f0",
+                boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
+              }}>
+                <QRCodeSVG value={profileUrl} size={54} fgColor={accent} bgColor="white" level="L" />
+              </div>
+              {themeTeam && (
+                <div style={{
+                  fontSize: "9px", fontWeight: 800, color: accent,
+                  letterSpacing: "0.5px", textTransform: "uppercase",
+                  whiteSpace: "nowrap",
+                }}>
+                  ⚽ FIFA 2026
+                </div>
+              )}
             </div>
           </div>
 
