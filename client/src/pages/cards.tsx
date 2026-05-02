@@ -18,7 +18,10 @@ export default function CardsPage() {
   const { user, isEffectivelyPremium } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const saved = sessionStorage.getItem("cardsCurrentIndex");
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
@@ -86,6 +89,18 @@ export default function CardsPage() {
       toast({ title: "Profile deleted" });
     },
   });
+
+  // Persist currentIndex so returning from preview restores the right card
+  useEffect(() => {
+    sessionStorage.setItem("cardsCurrentIndex", String(currentIndex));
+  }, [currentIndex]);
+
+  // Clamp saved index once profiles are loaded (handles deleted cards)
+  useEffect(() => {
+    if (profiles.length > 0) {
+      setCurrentIndex(i => Math.min(i, profiles.length - 1));
+    }
+  }, [profiles.length]);
 
   // Sync accent color to CSS variable so BottomTabBar + other UI match the active card
   useEffect(() => {
