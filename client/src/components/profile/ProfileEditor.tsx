@@ -33,6 +33,8 @@ import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon, Crop } from "
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ImageCropper from "./ImageCropper";
+import ThemePicker from "./ThemePicker";
+import { getTeamById } from "@/data/themes";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -78,6 +80,8 @@ export default function ProfileEditor({
       qrPosition: profileData?.qrPosition || "bottom",
       photoPosition: profileData?.photoPosition || "top",
       layoutStyle: profileData?.layoutStyle || "standard",
+      themeId: profileData?.themeId ?? null,
+      teamId: profileData?.teamId ?? null,
       socialLinks: profileData?.socialLinks?.length
         ? profileData.socialLinks
         : [{ platform: "LinkedIn", url: "" }],
@@ -334,6 +338,28 @@ export default function ProfileEditor({
                       </div>
                     )}
                   </div>
+                </div>
+
+                <div className="mb-6">
+                  <ThemePicker
+                    themeId={form.watch("themeId") ?? null}
+                    teamId={form.watch("teamId") ?? null}
+                    onChange={(themeId, teamId) => {
+                      form.setValue("themeId", themeId);
+                      form.setValue("teamId", teamId);
+                      // Auto-apply team colours to card
+                      if (themeId && teamId) {
+                        const team = getTeamById(themeId, teamId);
+                        if (team) {
+                          form.setValue("cardColor", team.primary);
+                          form.setValue("qrColor", team.secondary === "#FFFFFF" ? team.primary : team.secondary);
+                        }
+                      } else if (!themeId) {
+                        form.setValue("cardColor", "#ffffff");
+                        form.setValue("qrColor", "#3B82F6");
+                      }
+                    }}
+                  />
                 </div>
 
                 <div className="mb-6">

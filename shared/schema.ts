@@ -39,6 +39,9 @@ export const profiles = pgTable("profiles", {
   arModelUrl: text("ar_model_url"),
   arScale: integer("ar_scale").default(100),
   arAnimationEnabled: boolean("ar_animation_enabled").default(false),
+  // Event theme fields
+  themeId: text("theme_id"),   // e.g. 'fifa-2026', null = no theme
+  teamId: text("team_id"),     // e.g. 'arg', null = no team selected
 });
 
 export const socialLinks = pgTable("social_links", {
@@ -171,7 +174,9 @@ export const profileFormSchema = insertProfileSchema.extend({
   qrPosition: z.enum(["top", "bottom", "left", "right"]).default("bottom"),
   photoPosition: z.enum(["top", "left", "right", "hidden"]).default("top"),
   layoutStyle: z.enum(["standard", "compact", "centered", "minimal"]).default("standard"),
-  
+  themeId: z.string().nullable().default(null),
+  teamId: z.string().nullable().default(null),
+
   // Ensure social links are an array with at least one entry
   socialLinks: z.array(
     z.object({

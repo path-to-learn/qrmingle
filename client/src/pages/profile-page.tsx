@@ -18,6 +18,7 @@ import {
   SheetFooter, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { getCardAccent } from "@/components/profile/ProfileCard";
+import { getTeamById, getThemeById } from "@/data/themes";
 
 type SocialLinkType = {
   id: number;
@@ -46,6 +47,8 @@ type ProfileData = {
   arModelUrl: string | null;
   arScale: number | null;
   arAnimationEnabled: boolean | null;
+  themeId: string | null;
+  teamId: string | null;
 };
 
 const getDefaultGradient = (name: string) => {
@@ -222,6 +225,8 @@ export default function ProfilePage() {
 
   const accent = getCardAccent(profile.name, profile.cardColor ?? undefined);
   const avatarSize = Math.min(Math.max(profile.photoSize || 88, 60), 240);
+  const themeTeam = profile.themeId && profile.teamId ? getTeamById(profile.themeId, profile.teamId) : null;
+  const theme = profile.themeId ? getThemeById(profile.themeId) : null;
   const avatarOverlap = Math.round(avatarSize * 0.45);
 
   const handleDoubleTap = (e: React.TouchEvent) => {
@@ -256,7 +261,9 @@ export default function ProfilePage() {
       <div style={{
         height: "280px",
         position: "relative",
-        background: getDefaultGradient(profile.name),
+        background: themeTeam
+          ? `linear-gradient(160deg, ${themeTeam.primary}ee 0%, ${themeTeam.primary}99 100%)`
+          : getDefaultGradient(profile.name),
         borderRadius: "20px 20px 0 0",
         overflow: "hidden",
       }}>
@@ -283,6 +290,20 @@ export default function ProfilePage() {
           padding: "4px 16px", borderRadius: "6px",
           letterSpacing: "1px", textTransform: "uppercase", whiteSpace: "nowrap",
         }}>{profile.name}</div>
+
+        {/* Theme fan badge */}
+        {themeTeam && theme && (
+          <div style={{
+            position: "absolute", top: isPreview ? "56px" : "16px", left: "12px",
+            background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)",
+            color: "white", fontSize: "12px", fontWeight: 700,
+            padding: "5px 12px", borderRadius: "20px",
+            display: "flex", alignItems: "center", gap: "6px",
+          }}>
+            <span style={{ fontSize: "18px" }}>{themeTeam.flag}</span>
+            <span>{themeTeam.name}</span>
+          </div>
+        )}
 
         {/* Wave — same as card */}
         <svg
@@ -478,17 +499,64 @@ export default function ProfilePage() {
           </div>
         )}
 
+        {/* Theme fan badge in content area */}
+        {themeTeam && theme && (
+          <div style={{
+            margin: "16px 0",
+            padding: "14px 16px",
+            borderRadius: "14px",
+            background: themeTeam.primary + "14",
+            border: `1px solid ${themeTeam.primary}30`,
+            display: "flex", alignItems: "center", gap: "12px",
+          }}>
+            <span style={{ fontSize: "32px" }}>{themeTeam.flag}</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: "14px", color: themeTeam.primary }}>
+                {theme.badge}
+              </div>
+              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>
+                {theme.name}
+              </div>
+              {themeTeam.players.length > 0 && (
+                <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "2px" }}>
+                  {themeTeam.players.map(p => `#${p.number} ${p.name}`).join(" · ")}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         <div style={{
           textAlign: "center", paddingTop: "20px",
           borderTop: "1px solid #f1f5f9",
         }}>
-          <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 4px" }}>Created with</p>
-          <Link href="/">
-            <span style={{ fontSize: "13px", color: accent, fontWeight: 600, cursor: "pointer" }}>
-              QrMingle
-            </span>
-          </Link>
+          {themeTeam ? (
+            <>
+              <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 6px" }}>
+                {theme?.emoji} Share your FIFA 2026 fan card — it's free!
+              </p>
+              <Link href="/">
+                <span style={{
+                  display: "inline-block", padding: "8px 20px",
+                  background: themeTeam.primary, color: "white",
+                  borderRadius: "20px", fontSize: "13px", fontWeight: 700,
+                  cursor: "pointer",
+                }}>
+                  Create yours on QrMingle →
+                </span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 4px" }}>Created with</p>
+              <Link href="/">
+                <span style={{ fontSize: "13px", color: accent, fontWeight: 600, cursor: "pointer" }}>
+                  QrMingle
+                </span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

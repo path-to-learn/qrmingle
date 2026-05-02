@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
 import { Linkedin, Mail, Phone, Globe, Instagram, Github, type LucideIcon } from "lucide-react";
+import { getActiveThemes } from "@/data/themes";
 
 type DemoLink = { Icon: LucideIcon; text: string };
 
@@ -280,6 +281,37 @@ export default function Home() {
           }} />
         ))}
       </div>
+
+      {/* ── World Cup banner (shown only when a theme is active) ── */}
+      {getActiveThemes().length > 0 && (
+        <div
+          onClick={() => navigate("/register")}
+          style={{
+            width: "100%", maxWidth: "380px",
+            background: "linear-gradient(135deg, #92400e 0%, #d97706 50%, #92400e 100%)",
+            borderRadius: "18px",
+            padding: "18px 20px",
+            marginBottom: "20px",
+            cursor: "pointer",
+            boxShadow: "0 8px 32px rgba(217,119,6,0.45)",
+            display: "flex", alignItems: "center", gap: "14px",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          <div style={{ fontSize: "42px", lineHeight: 1, flexShrink: 0 }}>🏆</div>
+          <div>
+            <div style={{ color: "#fef3c7", fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>
+              FIFA World Cup 2026
+            </div>
+            <div style={{ color: "white", fontSize: "16px", fontWeight: 700, lineHeight: 1.3 }}>
+              Rep your team. Share your card.
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", marginTop: "4px" }}>
+              Create a free fan card in seconds →
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── CTA section ── */}
       <div style={{

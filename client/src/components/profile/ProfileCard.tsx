@@ -9,6 +9,7 @@ import { QrCodeDisplay } from "@/components/ui/qr-code";
 import { saveToContacts, isMobileDevice } from "@/lib/vcard";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLink } from "@shared/schema";
+import { getTeamById } from "@/data/themes";
 
 type ProfileCardProps = {
   id: number;
@@ -30,6 +31,8 @@ type ProfileCardProps = {
   slug: string;
   scanCount: number;
   socialLinks: SocialLink[];
+  themeId?: string | null;
+  teamId?: string | null;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 };
@@ -77,6 +80,7 @@ export default function ProfileCard({
   photoUrl, photoSize = 80, backgroundUrl, backgroundOpacity = 100,
   cardColor, qrStyle, qrColor,
   slug, scanCount, socialLinks,
+  themeId, teamId,
   onEdit, onDelete,
 }: ProfileCardProps) {
   const { toast } = useToast();
@@ -84,6 +88,7 @@ export default function ProfileCard({
   const [showQr, setShowQr] = useState(false);
   const profileUrl = `${window.location.origin}/p/${slug}`;
   const accent = getCardAccent(name, cardColor);
+  const themeTeam = themeId && teamId ? getTeamById(themeId, teamId) : null;
   // Scale photoSize (editor range 60-300) to card-appropriate size (44-88px)
   const cardAvatarSize = Math.min(Math.max(Math.round(photoSize * 0.55), 44), 88);
 
@@ -156,7 +161,9 @@ export default function ProfileCard({
         <div style={{
           height: "230px",
           position: "relative",
-          background: getDefaultGradient(name),
+          background: themeTeam
+            ? `linear-gradient(160deg, ${themeTeam.primary}ee 0%, ${themeTeam.primary}99 100%)`
+            : getDefaultGradient(name),
         }}>
           {/* Background image */}
           {backgroundUrl && (
@@ -184,6 +191,21 @@ export default function ProfileCard({
             letterSpacing: "1px", textTransform: "uppercase",
             whiteSpace: "nowrap",
           }}>{name}</div>
+
+          {/* Theme badge — top left */}
+          {themeTeam && (
+            <div style={{
+              position: "absolute", top: "12px", left: "12px",
+              background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)",
+              color: "white", fontSize: "11px", fontWeight: 700,
+              padding: "4px 10px", borderRadius: "20px",
+              display: "flex", alignItems: "center", gap: "5px",
+              whiteSpace: "nowrap",
+            }}>
+              <span style={{ fontSize: "16px" }}>{themeTeam.flag}</span>
+              <span>{themeTeam.name}</span>
+            </div>
+          )}
 
           {/* Scan count — top right */}
           {scanCount > 0 && (
