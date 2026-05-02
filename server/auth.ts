@@ -6,6 +6,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import type { User } from "@shared/schema";
+import { authLimiter } from "./limiters";
 
 declare global {
   namespace Express {
@@ -112,7 +113,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/register", async (req, res, next) => {
+  app.post("/api/auth/register", authLimiter, async (req, res, next) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
@@ -158,7 +159,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
+  app.post("/api/auth/login", authLimiter, passport.authenticate("local"), (req, res) => {
     const { password, ...userWithoutPassword } = req.user as User;
     res.status(200).json(userWithoutPassword);
   });

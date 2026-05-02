@@ -10,6 +10,14 @@ import { setupAuth } from "./auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { authLimiter, contactLimiter } from "./limiters";
+
+const contactFormSchema = z.object({
+  profileId: z.number().int().positive(),
+  name: z.string().min(1).max(100),
+  email: z.string().email().max(200),
+  message: z.string().min(1).max(2000),
+});
 
 // Initialize Stripe if secret key is available
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -65,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const passwordResetTokens = new Map<string, { userId: number, expiresAt: Date }>();
 
   // Forgot password route - generate reset token
-  apiRoutes.post('/forgot-password', async (req, res) => {
+  apiRoutes.post('/forgot-password', authLimiter, async (req, res) => {
     try {
       const { email } = req.body;
       
@@ -105,13 +113,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Forgot password error:", error);
       res.status(500).json({ 
         message: "Failed to process forgot password request", 
-        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
   
   // Reset password route - validate token and update password
-  apiRoutes.post('/reset-password', async (req, res) => {
+  apiRoutes.post('/reset-password', authLimiter, async (req, res) => {
     try {
       const { token, newPassword } = req.body;
       
@@ -153,7 +160,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Reset password error:", error);
       res.status(500).json({ 
         message: "Failed to reset password", 
-        error: error instanceof Error ? error.message : String(error) 
       });
     }
   });
@@ -278,7 +284,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(500).json({ 
         message: "Failed to create profile", 
-        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -468,14 +473,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Handle contact form submissions
-  apiRoutes.post('/contact-form', async (req, res) => {
+  apiRoutes.post('/contact-form', contactLimiter, async (req, res) => {
     try {
-      const { profileId, name, email, message } = req.body;
-      
-      if (!profileId || !name || !email || !message) {
-        return res.status(400).json({ message: "Missing required fields" });
+      let parsed: z.infer<typeof contactFormSchema>;
+      try {
+        parsed = contactFormSchema.parse(req.body);
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid input. Check all fields are filled correctly." });
       }
-      
+      const { profileId, name, email, message } = parsed;
+
       // Get profile to check if it exists
       const profile = await storage.getProfile(profileId);
       
@@ -501,7 +508,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Contact form error:", error);
       res.status(500).json({ 
         message: "Failed to submit contact form", 
-        error: error instanceof Error ? error.message : String(error) 
       });
     }
   });
@@ -535,7 +541,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Get contact messages error:", error);
       res.status(500).json({ 
         message: "Failed to get contact messages", 
-        error: error instanceof Error ? error.message : String(error) 
       });
     }
   });
@@ -572,7 +577,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Mark message as read error:", error);
       res.status(500).json({ 
         message: "Failed to mark message as read", 
-        error: error instanceof Error ? error.message : String(error) 
       });
     }
   });
@@ -613,7 +617,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Video upload error:', error);
       res.status(500).json({ 
         message: "Failed to upload video",
-        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -915,7 +918,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error fetching tutorial video:', error);
       res.status(500).json({ 
         message: "Failed to fetch tutorial video",
-        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -968,7 +970,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error promoting user to admin:', error);
       res.status(500).json({ 
         message: "Failed to promote user to admin",
-        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -999,7 +1000,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error uploading tutorial video:', error);
       res.status(500).json({ 
         message: "Failed to upload tutorial video",
-        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
@@ -1049,7 +1049,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error sending password reset email:', error);
       res.status(500).json({ 
         message: "Failed to send reset email",
-        error: error instanceof Error ? error.message : String(error)
       });
     }
   });

@@ -5,11 +5,12 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+// 10MB allows base64-encoded profile/background photos; keeps headroom without the original 50MB excess
 app.use(express.json({
-  limit: '50mb',
+  limit: '10mb',
   verify: (req: any, _res, buf) => { req.rawBody = buf; },
 }));
-app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
