@@ -161,9 +161,6 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label htmlFor="password" className="text-sm font-medium">Password</label>
-                <Link href="/forgot-password">
-                  <span className="text-xs text-primary hover:underline cursor-pointer">Forgot password?</span>
-                </Link>
               </div>
               <Input id="password" type="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} disabled={loginMutation.isPending} />
             </div>
