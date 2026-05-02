@@ -312,7 +312,7 @@ export default function Home() {
         ref={carouselRef}
         className="welcome-scroll"
         style={{
-          width: "100vw",
+          width: "calc(100vw + 24px)",
           marginLeft: "-24px",
           overflowX: "auto",
           overflowY: "hidden",
