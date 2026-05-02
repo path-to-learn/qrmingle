@@ -96,13 +96,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt
       });
       
-      // Return the token directly to the client
-      // In a production app, we would email this instead of returning directly
-      return res.json({ 
-        success: true, 
-        message: "Password reset token generated successfully.",
-        resetToken: resetToken,
-        expiresAt: expiresAt.toISOString()
+      // Never return the token in the response — it must be sent via email only
+      return res.json({
+        success: true,
+        message: "If your account exists, a password reset link has been sent to your email.",
       });
     } catch (error) {
       console.error("Forgot password error:", error);
@@ -170,18 +167,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Profile routes
-  apiRoutes.get('/profiles', async (req, res) => {
+  apiRoutes.get('/profiles', requireAuth, async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string);
-      
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-      
+      // Always use the authenticated user's ID — ignore userId query param
+      const userId = req.user!.id;
       const profiles = await storage.getProfilesByUserId(userId);
-      
+
       // For each profile, get the social links
-      const profilesWithLinks = await Promise.all(profiles.map(async (profile) => {
+      const profilesWithLinks = await Promise.all(profiles.map(async (profile: any) => {
         const socialLinks = await storage.getSocialLinksByProfileId(profile.id);
         return { ...profile, socialLinks };
       }));
@@ -192,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  apiRoutes.post('/profiles', async (req, res) => {
+  apiRoutes.post('/profiles', requireAuth, async (req, res) => {
     try {
       console.log("Profile creation request received:", JSON.stringify(req.body, null, 2));
       
@@ -212,14 +205,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw validationError;
       }
       
-      const userId = parseInt(req.body.userId);
-      console.log("User ID:", userId);
-      
-      if (isNaN(userId)) {
-        console.error("Invalid user ID:", req.body.userId);
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-      
+      // Take userId from authenticated session — never trust the request body
+      const userId = req.user!.id;
+
       // Get user to check premium status
       const user = await storage.getUser(userId);
       
@@ -317,22 +305,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  apiRoutes.put('/profiles/:id', async (req, res) => {
+  apiRoutes.put('/profiles/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid profile ID" });
       }
-      
+
       const profileData = profileFormSchema.parse(req.body);
-      
-      // Check if profile exists and get its user ID
+
+      // Check if profile exists and verify ownership
       const existingProfile = await storage.getProfile(id);
       if (!existingProfile) {
         return res.status(404).json({ message: "Profile not found" });
       }
-      
+      if (existingProfile.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to update this profile" });
+      }
+
       // Get user to check premium status
       const user = await storage.getUser(existingProfile.userId);
       
@@ -367,16 +358,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  apiRoutes.delete('/profiles/:id', async (req, res) => {
+  apiRoutes.delete('/profiles/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid profile ID" });
       }
-      
+
+      // Verify ownership before deleting
+      const profile = await storage.getProfile(id);
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      if (profile.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to delete this profile" });
+      }
+
       const deleted = await storage.deleteProfile(id);
-      
       if (!deleted) {
         return res.status(404).json({ message: "Profile not found" });
       }
@@ -620,18 +619,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  apiRoutes.get('/analytics/profile/:id', async (req, res) => {
+  apiRoutes.get('/analytics/profile/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid profile ID" });
       }
-      
+
       const profile = await storage.getProfile(id);
-      
+
       if (!profile) {
         return res.status(404).json({ message: "Profile not found" });
+      }
+
+      // Verify ownership
+      if (profile.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to view this profile's analytics" });
       }
       
       // Get all scan logs
@@ -720,14 +724,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Premium trials endpoint
-  apiRoutes.post('/start-premium-trial', async (req, res) => {
+  apiRoutes.post('/start-premium-trial', requireAuth, async (req, res) => {
     try {
-      const { userId, durationDays = 7 } = req.body;
-      
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-      
+      const { durationDays = 7 } = req.body;
+      const userId = req.user!.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -785,20 +785,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // User premium upgrade with Stripe
   if (stripe) {
-    // Stripe webhook handler for asynchronous events
+    // Stripe webhook handler — verifies signature before processing
     apiRoutes.post('/stripe-webhook', async (req, res) => {
+      const sig = req.headers['stripe-signature'] as string;
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      if (!webhookSecret) {
+        console.error('STRIPE_WEBHOOK_SECRET not set — rejecting webhook');
+        return res.status(400).json({ message: "Webhook not configured" });
+      }
+
+      let event: any;
       try {
-        console.log('Received Stripe webhook event');
-        
-        // Extract the event data - in our case, req.body is already parsed as JSON
-        const event = req.body;
-        
-        if (!event || !event.type) {
-          console.log("Invalid webhook payload:", event);
-          return res.status(400).json({ message: "Invalid webhook payload" });
-        }
-        
-        console.log(`Processing webhook event: ${event.type}`);
+        event = stripe.webhooks.constructEvent((req as any).rawBody, sig, webhookSecret);
+      } catch (err) {
+        console.error('Stripe webhook signature verification failed:', err);
+        return res.status(400).json({ message: "Webhook signature verification failed" });
+      }
+
+      try {
+        console.log(`Processing verified webhook event: ${event.type}`);
         
         // Handle the event
         if (event.type === 'payment_intent.succeeded') {
@@ -830,14 +836,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ message: "Webhook error" });
       }
     });
-    apiRoutes.post('/create-payment-intent', async (req, res) => {
+    apiRoutes.post('/create-payment-intent', requireAuth, async (req, res) => {
       try {
-        const { userId } = req.body;
-        
-        if (!userId) {
-          return res.status(400).json({ message: "User ID is required" });
-        }
-        
+        const userId = req.user!.id;
         const user = await storage.getUser(userId);
         
         if (!user) {
@@ -859,27 +860,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
-    apiRoutes.post('/confirm-premium', async (req, res) => {
+    apiRoutes.post('/confirm-premium', requireAuth, async (req, res) => {
       try {
-        const { userId, paymentIntentId } = req.body;
-        
-        if (!userId || !paymentIntentId) {
-          return res.status(400).json({ message: "User ID and payment intent ID are required" });
+        const userId = req.user!.id;
+        const { paymentIntentId } = req.body;
+
+        if (!paymentIntentId) {
+          return res.status(400).json({ message: "Payment intent ID is required" });
         }
-        
+
         const user = await storage.getUser(userId);
-        
         if (!user) {
           return res.status(404).json({ message: "User not found" });
         }
-        
-        // Verify payment intent
+
+        // Verify payment intent belongs to this user via metadata
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-        
         if (paymentIntent.status !== 'succeeded') {
           return res.status(400).json({ message: "Payment not successful" });
         }
-        
+        if (paymentIntent.metadata?.userId !== String(userId)) {
+          return res.status(403).json({ message: "Payment intent does not belong to this user" });
+        }
+
         // Update user to premium
         const updatedUser = await storage.updateUserPremiumStatus(userId, true);
         
@@ -1041,11 +1044,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         success: true,
         message: "Password reset instructions have been sent",
-        // Only include these details in development
-        debug: {
-          resetToken,
-          resetLink
-        }
       });
     } catch (error) {
       console.error('Error sending password reset email:', error);

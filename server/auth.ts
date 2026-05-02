@@ -32,14 +32,21 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret && process.env.NODE_ENV === 'production') {
+    throw new Error('SESSION_SECRET environment variable must be set in production');
+  }
+
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'qrmingle_session_secret',
+    secret: sessionSecret || 'dev_only_secret_not_for_production',
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
       secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax',
     }
   };
 
@@ -82,11 +89,9 @@ export function setupAuth(app: Express) {
             return done(null, false, { message: "Please use JS-created users during migration" });
           }
         } 
-        // 3. Fallback for plain text passwords (not recommended)
+        // 3. Unknown format — reject; user must reset their password
         else {
-          if (password !== user.password) {
-            return done(null, false, { message: "Invalid username or password" });
-          }
+          return done(null, false, { message: "Account requires a password reset. Please use Forgot Password." });
         }
         
         return done(null, user);
