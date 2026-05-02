@@ -65,11 +65,12 @@ export default function CardsPage() {
   });
 
   const updateProfile = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: ProfileFormData }) =>
-      apiRequest("PUT", `/api/profiles/${id}`, data),
+    mutationFn: async ({ id, data }: { id: number; data: ProfileFormData }) => {
+      const res = await apiRequest("PUT", `/api/profiles/${id}`, data);
+      return res.json() as Promise<any>;
+    },
     onSuccess: (updated: any) => {
       refetch();
-      // Bust the public profile-page cache so Preview shows the latest data
       if (updated?.slug) {
         queryClient.invalidateQueries({ queryKey: [`/api/p/${updated.slug}`] });
       }
