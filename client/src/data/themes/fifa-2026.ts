@@ -6,7 +6,7 @@ export const fifa2026: EventTheme = {
   shortName: "FIFA 2026",
   badge: "⚽ FIFA Fan · 2026",
   emoji: "🏆",
-  activeFrom: "2026-06-01",
+  activeFrom: "2026-05-01",
   activeTo: "2026-07-20",
   groups: [
     {
