@@ -86,7 +86,7 @@ export default function ProfileCard({
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [showQr, setShowQr] = useState(false);
-  const [qrPopping, setQrPopping] = useState(false);
+  const [qrExpanded, setQrExpanded] = useState(false);
   const profileUrl = `${window.location.origin}/p/${slug}`;
   const accent = getCardAccent(name, cardColor);
   const themeTeam = themeId && teamId ? getTeamById(themeId, teamId) : null;
@@ -128,10 +128,11 @@ export default function ProfileCard({
   };
 
   const handleShare = () => {
-    // Spring-pop the QR card as a visual cue that the link is being shared
-    setQrPopping(true);
-    setTimeout(() => setQrPopping(false), 380);
-
+    if (qrExpanded) {
+      setQrExpanded(false);
+      return;
+    }
+    setQrExpanded(true);
     if (navigator.share) {
       navigator.share({
         title: `${displayName}'s Contact Card`,
@@ -293,25 +294,14 @@ export default function ProfileCard({
               )}
             </div>
 
-            {/* Inline QR — spring-pops when Share is tapped */}
-            <div style={{
-              flexShrink: 0,
-              display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-              transform: qrPopping ? "scale(1.55)" : "scale(1)",
-              transition: qrPopping
-                ? "transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1)"
-                : "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
-              transformOrigin: "center center",
-              position: "relative", zIndex: qrPopping ? 5 : "auto",
-            }}>
+            {/* Inline QR */}
+            <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
               <div style={{
                 padding: "5px", borderRadius: "10px",
                 background: "white",
-                border: `1.5px solid ${qrPopping ? accent : "#e2e8f0"}`,
-                boxShadow: qrPopping
-                  ? `0 6px 20px ${accent}55, 0 0 0 4px ${accent}18`
-                  : "0 1px 6px rgba(0,0,0,0.08)",
-                transition: "box-shadow 0.25s ease, border-color 0.25s ease",
+                border: `1.5px solid ${qrExpanded ? accent : "#e2e8f0"}`,
+                boxShadow: qrExpanded ? `0 0 0 3px ${accent}22` : "0 1px 6px rgba(0,0,0,0.08)",
+                transition: "border-color 0.2s ease, box-shadow 0.2s ease",
               }}>
                 <QRCodeSVG value={profileUrl} size={54} fgColor={accent} bgColor="white" level="L" />
               </div>
@@ -324,6 +314,38 @@ export default function ProfileCard({
                   ⚽ FIFA 2026
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Expanded QR panel — slides open when Share is tapped */}
+          <div
+            onClick={(e) => { e.stopPropagation(); setQrExpanded(false); }}
+            style={{
+              overflow: "hidden",
+              maxHeight: qrExpanded ? "220px" : "0px",
+              opacity: qrExpanded ? 1 : 0,
+              marginBottom: qrExpanded ? "14px" : "0px",
+              transition: qrExpanded
+                ? "max-height 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease, margin-bottom 0.3s ease"
+                : "max-height 0.25s ease-in, opacity 0.18s ease, margin-bottom 0.25s ease",
+              cursor: "pointer",
+            }}
+          >
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              paddingTop: "12px", gap: "8px",
+            }}>
+              <div style={{
+                padding: "10px", borderRadius: "14px",
+                background: "white",
+                border: `2px solid ${accent}`,
+                boxShadow: `0 6px 24px ${accent}44`,
+              }}>
+                <QRCodeSVG value={profileUrl} size={150} fgColor={accent} bgColor="white" level="L" />
+              </div>
+              <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 500 }}>
+                Tap anywhere to close
+              </div>
             </div>
           </div>
 
