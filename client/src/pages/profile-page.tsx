@@ -129,7 +129,8 @@ export default function ProfilePage() {
         title: `${profile?.displayName}'s Contact`,
         text: profile?.bio || `Connect with ${profile?.displayName}`,
         url,
-      }).catch(() => {
+      }).catch((err) => {
+        if (err?.name === "AbortError") return;
         fallbackCopy(url);
         toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
       });

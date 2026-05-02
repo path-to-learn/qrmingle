@@ -138,7 +138,9 @@ export default function ProfileCard({
         title: `${displayName}'s Contact Card`,
         text: `Connect with ${displayName}`,
         url: profileUrl,
-      }).catch(() => {
+      }).catch((err) => {
+        // AbortError = user dismissed the sheet — don't treat as failure
+        if (err?.name === "AbortError") return;
         copyToClipboard(profileUrl);
         toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
       });
