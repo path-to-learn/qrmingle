@@ -86,6 +86,7 @@ export default function ProfileCard({
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [showQr, setShowQr] = useState(false);
+  const [qrPopping, setQrPopping] = useState(false);
   const profileUrl = `${window.location.origin}/p/${slug}`;
   const accent = getCardAccent(name, cardColor);
   const themeTeam = themeId && teamId ? getTeamById(themeId, teamId) : null;
@@ -127,6 +128,10 @@ export default function ProfileCard({
   };
 
   const handleShare = () => {
+    // Spring-pop the QR card as a visual cue that the link is being shared
+    setQrPopping(true);
+    setTimeout(() => setQrPopping(false), 380);
+
     if (navigator.share) {
       navigator.share({
         title: `${displayName}'s Contact Card`,
@@ -288,12 +293,25 @@ export default function ProfileCard({
               )}
             </div>
 
-            {/* Inline QR — works without internet once rendered */}
-            <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+            {/* Inline QR — spring-pops when Share is tapped */}
+            <div style={{
+              flexShrink: 0,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+              transform: qrPopping ? "scale(1.55)" : "scale(1)",
+              transition: qrPopping
+                ? "transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1)"
+                : "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
+              transformOrigin: "center center",
+              position: "relative", zIndex: qrPopping ? 5 : "auto",
+            }}>
               <div style={{
                 padding: "5px", borderRadius: "10px",
-                background: "white", border: "1px solid #e2e8f0",
-                boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
+                background: "white",
+                border: `1.5px solid ${qrPopping ? accent : "#e2e8f0"}`,
+                boxShadow: qrPopping
+                  ? `0 6px 20px ${accent}55, 0 0 0 4px ${accent}18`
+                  : "0 1px 6px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.25s ease, border-color 0.25s ease",
               }}>
                 <QRCodeSVG value={profileUrl} size={54} fgColor={accent} bgColor="white" level="L" />
               </div>
