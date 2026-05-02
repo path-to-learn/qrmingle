@@ -346,9 +346,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user is a premium user or has an active trial
       const isUserPremium = user?.isPremium || (user && storage.isUserInActiveTrial(user));
       
-      // All QR styles and colors are now available to all users
-      console.log("All features are enabled for free users");
-      
       const { socialLinks, ...profileWithoutLinks } = profileData;
       
       // Update the profile

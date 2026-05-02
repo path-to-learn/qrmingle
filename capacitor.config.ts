@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   appId: 'com.qrmingle.app',
   appName: 'QrMingle',
   webDir: 'dist/public',
-  // DEV ONLY — comment out for demo/release builds:
+  // DEV ONLY — uncomment for local dev, comment out for demo/release builds:
   // server: {
   //   url: 'http://10.0.0.179:5000',
   //   cleartext: true
