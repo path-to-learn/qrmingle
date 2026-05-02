@@ -8,7 +8,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.qrmingle.app',
   appName: 'QrMingle',
-  webDir: 'client/dist',
+  webDir: 'dist/public',
   // DEV ONLY — comment out for demo/release builds:
   // server: {
   //   url: 'http://10.0.0.179:5000',
