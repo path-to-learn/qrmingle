@@ -290,7 +290,7 @@ export default function ProfileEditor({
           onClick={() => setShowAiModal(false)}
         >
           <div
-            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: '540px', display: 'flex', flexDirection: 'column', maxHeight: '80vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: '540px', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Header — always visible */}
@@ -321,8 +321,8 @@ export default function ProfileEditor({
               />
             </div>
 
-            {/* Button — always pinned at bottom */}
-            <div style={{ padding: '12px 20px 20px', flexShrink: 0 }}>
+            {/* Button — always pinned at bottom, clear tab bar + safe area */}
+            <div style={{ padding: '12px 20px', paddingBottom: 'calc(84px + env(safe-area-inset-bottom))', flexShrink: 0 }}>
               <button
                 onClick={handleAiAssist}
                 disabled={aiLoading || !aiPrompt.trim()}
