@@ -5,6 +5,26 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Allow the Capacitor iOS app (standalone/bundled mode) to hit the API cross-origin.
+// In dev mode the WebView loads from the server directly (same origin), so this only
+// matters for the bundled standalone build where the origin is capacitor://localhost.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowed = ["capacitor://localhost", "http://localhost", "ionic://localhost"];
+  if (origin && allowed.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  }
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
+
 // 10MB allows base64-encoded profile/background photos; keeps headroom without the original 50MB excess
 app.use(express.json({
   limit: '10mb',
