@@ -285,37 +285,54 @@ export default function ProfileEditor({
 
       {/* AI Modal */}
       {showAiModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-          onClick={() => setShowAiModal(false)}>
-          <div style={{ background: 'white', borderRadius: '20px 20px 0 0', padding: '24px 20px 32px', width: '100%', maxWidth: '540px' }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <Sparkles size={20} style={{ color: '#6366f1' }} />
-              <span style={{ fontWeight: 700, fontSize: '16px', color: '#1e293b' }}>Build with AI</span>
-              {!isPremium && (
-                <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '99px' }}>
-                  {assistsUsed}/{FREE_LIMIT} free uses
-                </span>
-              )}
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          onClick={() => setShowAiModal(false)}
+        >
+          <div
+            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: '540px', display: 'flex', flexDirection: 'column', maxHeight: '80vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header — always visible */}
+            <div style={{ padding: '20px 20px 0', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                <Sparkles size={20} style={{ color: '#6366f1' }} />
+                <span style={{ fontWeight: 700, fontSize: '16px', color: '#1e293b' }}>Build with AI</span>
+                {!isPremium && (
+                  <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '99px' }}>
+                    {assistsUsed}/{FREE_LIMIT} free uses
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px' }}>
+                Describe yourself — your role, company, and any social links you want included.
+              </p>
             </div>
-            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px' }}>
-              Describe yourself in a few sentences — your role, company, and any social links you want included.
-            </p>
-            <textarea
-              value={aiPrompt}
-              onChange={e => setAiPrompt(e.target.value)}
-              placeholder="e.g. I'm Sarah Chen, a UX designer at Figma. My LinkedIn is linkedin.com/in/sarahchen and my website is sarahchen.design"
-              rows={4}
-              style={{ width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
-              autoFocus
-            />
-            <button
-              onClick={handleAiAssist}
-              disabled={aiLoading || !aiPrompt.trim()}
-              style={{ marginTop: '12px', width: '100%', padding: '13px', background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-            >
-              {aiLoading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</> : '✨ Fill in my profile'}
-            </button>
+
+            {/* Scrollable content */}
+            <div style={{ overflowY: 'auto', padding: '0 20px', flex: 1 }}>
+              <textarea
+                value={aiPrompt}
+                onChange={e => setAiPrompt(e.target.value)}
+                placeholder="e.g. I'm Sarah Chen, a UX designer at Figma. My LinkedIn is linkedin.com/in/sarahchen and my website is sarahchen.design"
+                rows={4}
+                style={{ width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
+                autoFocus
+              />
+            </div>
+
+            {/* Button — always pinned at bottom */}
+            <div style={{ padding: '12px 20px 20px', flexShrink: 0 }}>
+              <button
+                onClick={handleAiAssist}
+                disabled={aiLoading || !aiPrompt.trim()}
+                style={{ width: '100%', padding: '14px', background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                {aiLoading
+                  ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
+                  : '✨ Fill in my profile'}
+              </button>
+            </div>
           </div>
         </div>
       )}
