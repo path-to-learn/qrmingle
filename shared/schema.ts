@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false).notNull(),
   trialExpiresAt: timestamp("trial_expires_at"),
   stripeCustomerId: text("stripe_customer_id"),
+  aiAssistCount: integer("ai_assist_count").default(0).notNull(),
 });
 
 export const profiles = pgTable("profiles", {

@@ -258,14 +258,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Check if user is a premium user or has an active trial
-      const isUserPremium = user.isPremium || storage.isUserInActiveTrial(user);
-      
-      // Check if user has reached the profile limit (3 profiles for all users)
+      // Check if user is premium (paid, admin, or active trial)
+      const isUserPremium = user.isPremium || user.isAdmin || storage.isUserInActiveTrial(user);
+      const profileLimit = isUserPremium ? 5 : 2;
+
+      // Check if user has reached the profile limit
       const userProfiles = await storage.getProfilesByUserId(userId);
-      if (userProfiles.length >= 3) {
+      if (userProfiles.length >= profileLimit) {
         return res.status(403).json({
-          message: "You can create up to 3 profiles. Premium features coming soon!",
+          message: isUserPremium
+            ? "You have reached the maximum of 5 profiles."
+            : "Free accounts can have up to 2 profiles. Upgrade to Premium for up to 5.",
           type: "PROFILE_LIMIT_REACHED"
         });
       }
@@ -653,18 +656,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to view this profile's analytics" });
       }
       
-      // Get all scan logs
-      const allScanLogs = await storage.getScanLogsByProfileId(id);
-      
-      // Check if user is premium or not to filter logs
       const user = await storage.getUser(profile.userId);
-      let scanLogs = allScanLogs;
-      
-      // Check if user is a premium user or has an active trial
-      const isUserPremium = user?.isPremium || (user && storage.isUserInActiveTrial(user));
-      
-      // All analytics features are now available to all users
-      scanLogs = allScanLogs;
+      const isUserPremium = user?.isPremium || user?.isAdmin || (user && storage.isUserInActiveTrial(user));
+
+      // Free users get total count only — no chart data
+      if (!isUserPremium) {
+        return res.json({
+          totalScans: profile.scanCount,
+          scansByDate: {},
+          deviceDistribution: {},
+          locationDistribution: {},
+          countryDistribution: {},
+          countryData: [],
+          isLimited: true,
+        });
+      }
+
+      const allScanLogs = await storage.getScanLogsByProfileId(id);
+      const scanLogs = allScanLogs;
       
       // Group logs by date
       const scansByDate: Record<string, number> = {};

@@ -77,7 +77,8 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
-  const { user } = useAuth();
+  const { user, isEffectivelyPremium } = useAuth();
+  const isPremium = isEffectivelyPremium();
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState("7days");
 
@@ -170,14 +171,18 @@ export default function Analytics() {
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-bold mb-6">QR Code Analytics</h2>
       
-      <div style={{ background: accent + '12', border: `1px solid ${accent}33`, padding: "14px 16px", marginBottom: "24px", borderRadius: "10px", display: "flex", alignItems: "flex-start", gap: "10px" }}>
-        <svg xmlns="http://www.w3.org/2000/svg" style={{ width: "20px", height: "20px", flexShrink: 0, color: accent }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <p style={{ fontSize: "13px", color: "#475569", margin: 0 }}>
-          Full analytics are available to all users. View insights on scan frequency, device types, and locations for your QR profiles.
-        </p>
-      </div>
+      {!isPremium && (
+        <div style={{ background: "#fffbeb", border: "1px solid #fde68a", padding: "14px 16px", marginBottom: "24px", borderRadius: "10px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "20px" }}>👑</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: "#92400e" }}>Premium feature</div>
+            <div style={{ fontSize: "12px", color: "#78350f", marginTop: "2px" }}>Upgrade to see scan activity charts, device breakdown, and country insights.</div>
+          </div>
+          <Link to="/premium">
+            <Button size="sm" style={{ background: "#f59e0b", color: "white", border: "none", fontSize: "12px" }}>Upgrade</Button>
+          </Link>
+        </div>
+      )}
 
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -245,6 +250,19 @@ export default function Analytics() {
         ) : isLoadingAnalytics ? (
           <div className="h-64 bg-muted/20 rounded-lg p-4 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : !isPremium ? (
+          <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden" }}>
+            {/* Blurred placeholder */}
+            <div style={{ filter: "blur(4px)", pointerEvents: "none", opacity: 0.4, height: "200px", background: "linear-gradient(135deg, #e0e7ff 0%, #f0fdf4 100%)", borderRadius: "12px" }} />
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>
+              <span style={{ fontSize: "32px" }}>🔒</span>
+              <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "15px" }}>Charts locked</div>
+              <div style={{ fontSize: "13px", color: "#64748b", textAlign: "center", maxWidth: "220px" }}>Upgrade to Premium to unlock scan activity, device, and country charts.</div>
+              <Link to="/premium">
+                <Button size="sm" style={{ background: "#f59e0b", color: "white", border: "none" }}>Upgrade to Premium</Button>
+              </Link>
+            </div>
           </div>
         ) : (
           <Tabs defaultValue="activity" className="w-full">
@@ -480,8 +498,8 @@ export default function Analytics() {
         </Card>
       </div>
 
-      {/* Growth summary section */}
-      {selectedProfile && !isLoadingAnalytics && (
+      {/* Growth summary section — premium only */}
+      {selectedProfile && !isLoadingAnalytics && isPremium && (
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-4">Growth Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

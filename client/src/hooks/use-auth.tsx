@@ -12,8 +12,10 @@ export type User = {
   id: number;
   username: string;
   isPremium: boolean;
+  isAdmin: boolean;
   stripeCustomerId?: string | null;
   trialExpiresAt?: string | null;
+  aiAssistCount: number;
 };
 
 type LoginData = {
@@ -192,9 +194,8 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   
-  // All users effectively have premium features now
   const isEffectivelyPremium = () => {
-    return !!context.user; // Return true for any logged-in user
+    return !!context.user && (context.user.isPremium || context.user.isAdmin);
   };
   
   return {
