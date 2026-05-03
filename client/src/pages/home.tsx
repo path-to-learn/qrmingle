@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
 import { Linkedin, Mail, Phone, Globe, Instagram, Github, type LucideIcon } from "lucide-react";
 import { getActiveThemes } from "@/data/themes";
+import { useTranslation } from "react-i18next";
 
 type DemoLink = { Icon: LucideIcon; text: string };
 
@@ -165,20 +166,13 @@ function MiniCard({ card }: { card: DemoCard }) {
   );
 }
 
-const TAGLINES = [
-  "Your network starts with a scan.",
-  "Stop typing. Start scanning.",
-  "One scan. Everything about you.",
-  "Meet people. Share instantly.",
-  "Connect across borders. One scan at a time.",
-  "No printer. No paper. No awkward typing.",
-];
-
 export default function Home() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [, navigate] = useLocation();
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [taglineVisible, setTaglineVisible] = useState(true);
+  const TAGLINES = t('home.taglines', { returnObjects: true }) as string[];
 
   useEffect(() => {
     if (user) navigate("/profiles");
@@ -303,7 +297,7 @@ export default function Home() {
           {TAGLINES[taglineIndex]}
         </h1>
         <p style={{ color: "rgba(255,255,255,0.58)", fontSize: "14px", marginTop: "8px", lineHeight: 1.5 }}>
-          One QR scan. No app needed for the receiver.
+          {t('home.subtitle')}
         </p>
       </div>
 
@@ -364,13 +358,13 @@ export default function Home() {
           <div style={{ fontSize: "42px", lineHeight: 1, flexShrink: 0 }}>🏆</div>
           <div>
             <div style={{ color: "#fef3c7", fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>
-              FIFA World Cup 2026
+              {t('home.fifa.eyebrow')}
             </div>
             <div style={{ color: "white", fontSize: "16px", fontWeight: 700, lineHeight: 1.3 }}>
-              Rep your team. Share your card.
+              {t('home.fifa.headline')}
             </div>
             <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", marginTop: "4px" }}>
-              Create a free fan card in seconds →
+              {t('home.fifa.sub')}
             </div>
           </div>
         </div>
@@ -393,16 +387,16 @@ export default function Home() {
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          Get Started — It's Free
+          {t('home.getStarted')}
         </button>
 
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "15px" }}>
-          Already have an account?{" "}
+          {t('home.alreadyHaveAccount')}{" "}
           <span
             onClick={() => navigate("/login")}
             style={{ color: "white", fontWeight: 700, cursor: "pointer" }}
           >
-            Sign In
+            {t('home.signIn')}
           </span>
         </p>
       </div>

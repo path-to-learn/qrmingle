@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ChevronLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const GRADIENT = "linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%)";
 
@@ -17,6 +18,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const isCapacitor = !!(window as any).Capacitor;
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (user) navigate("/profiles");
@@ -25,11 +27,11 @@ export default function Register() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password || !confirmPassword) {
-      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
+      toast({ title: "Error", description: t('register.error.fillAll'), variant: "destructive" });
       return;
     }
     if (password !== confirmPassword) {
-      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
+      toast({ title: "Error", description: t('register.error.passwordMismatch'), variant: "destructive" });
       return;
     }
     registerMutation.mutate({ username, password });
@@ -72,7 +74,7 @@ export default function Register() {
             onClick={() => navigate("/")}
             style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "15px", padding: "8px 0", WebkitTapHighlightColor: "transparent" }}
           >
-            <ChevronLeft size={20} /> Back
+            <ChevronLeft size={20} /> {t('register.back')}
           </button>
         </div>
 
@@ -95,24 +97,24 @@ export default function Register() {
 
         {/* Heading */}
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <h1 style={{ color: "white", fontSize: "26px", fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>Create your account</h1>
-          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "8px" }}>Your digital cards await</p>
+          <h1 style={{ color: "white", fontSize: "26px", fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>{t('register.title')}</h1>
+          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "8px" }}>{t('register.subtitle')}</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleRegister} style={{ width: "100%", maxWidth: "380px" }}>
           <div style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", borderRadius: "24px", padding: "24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
             <div style={{ marginBottom: "14px" }}>
-              <label style={labelStyle}>Username</label>
-              <input type="text" placeholder="Choose a username" value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
+              <label style={labelStyle}>{t('register.username')}</label>
+              <input type="text" placeholder={t('register.usernamePlaceholder')} value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
             </div>
             <div style={{ marginBottom: "14px" }}>
-              <label style={labelStyle}>Password</label>
-              <input type="password" placeholder="Choose a password" value={password} onChange={e => setPassword(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
+              <label style={labelStyle}>{t('register.password')}</label>
+              <input type="password" placeholder={t('register.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Confirm Password</label>
-              <input type="password" placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
+              <label style={labelStyle}>{t('register.confirmPassword')}</label>
+              <input type="password" placeholder={t('register.confirmPlaceholder')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
             </div>
           </div>
 
@@ -128,14 +130,14 @@ export default function Register() {
               opacity: registerMutation.isPending ? 0.7 : 1,
             }}
           >
-            {registerMutation.isPending ? "Creating account…" : "Create Account"}
+            {registerMutation.isPending ? t('register.submitting') : t('register.submit')}
           </button>
         </form>
 
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "15px", marginTop: "24px", textAlign: "center" }}>
-          Already have an account?{" "}
+          {t('register.haveAccount')}{" "}
           <span onClick={() => navigate("/login")} style={{ color: "white", fontWeight: 700, cursor: "pointer" }}>
-            Sign In
+            {t('register.signIn')}
           </span>
         </p>
       </div>

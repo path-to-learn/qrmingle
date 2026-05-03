@@ -1,0 +1,125 @@
+{
+  "nav": {
+    "cards": "Cartes",
+    "scan": "Scanner",
+    "analytics": "Statistiques",
+    "settings": "Paramètres"
+  },
+  "home": {
+    "taglines": [
+      "Votre réseau commence par un scan.",
+      "Fini de taper. Commencez à scanner.",
+      "Un scan. Tout sur vous.",
+      "Rencontrez des gens. Partagez instantanément.",
+      "Connectez au-delà des frontières. Un scan à la fois.",
+      "Sans imprimante. Sans papier. Sans saisie gênante."
+    ],
+    "subtitle": "Un scan QR. Pas d'app requise pour le destinataire.",
+    "getStarted": "Commencer — C'est gratuit",
+    "alreadyHaveAccount": "Déjà un compte ?",
+    "signIn": "Se connecter",
+    "fifa": {
+      "eyebrow": "Coupe du Monde FIFA 2026",
+      "headline": "Soutenez votre équipe. Partagez votre carte.",
+      "sub": "Créez une carte fan gratuite en quelques secondes →"
+    }
+  },
+  "login": {
+    "title": "Bon retour",
+    "subtitle": "Connectez-vous à votre compte",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "submit": "Se connecter",
+    "submitting": "Connexion…",
+    "noAccount": "Pas encore de compte ?",
+    "signUp": "S'inscrire",
+    "back": "Retour",
+    "error": {
+      "fillAll": "Veuillez remplir tous les champs"
+    }
+  },
+  "register": {
+    "title": "Créez votre compte",
+    "subtitle": "Vos cartes digitales vous attendent",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "usernamePlaceholder": "Choisissez un nom d'utilisateur",
+    "passwordPlaceholder": "Choisissez un mot de passe",
+    "confirmPlaceholder": "Confirmez votre mot de passe",
+    "submit": "Créer un compte",
+    "submitting": "Création du compte…",
+    "haveAccount": "Déjà un compte ?",
+    "signIn": "Se connecter",
+    "back": "Retour",
+    "error": {
+      "fillAll": "Veuillez remplir tous les champs",
+      "passwordMismatch": "Les mots de passe ne correspondent pas"
+    }
+  },
+  "settings": {
+    "freeAccount": "Compte gratuit",
+    "premiumMember": "✓ Membre Premium",
+    "language": "Langue",
+    "privacy": {
+      "title": "Vos données sont privées",
+      "sub": "Jamais vendues · Sans pub · Supprimez quand vous voulez"
+    },
+    "menu": {
+      "upgrade": "Passer à Premium",
+      "admin": "Panneau d'administration",
+      "reviews": "Avis",
+      "help": "Centre d'aide",
+      "privacy": "Politique de confidentialité",
+      "about": "À propos"
+    },
+    "logout": "Déconnexion",
+    "deleteAccount": "Supprimer le compte",
+    "deleteDialog": {
+      "title": "Supprimer votre compte ?",
+      "description": "Cela supprime définitivement votre compte, tous les profils, les QR codes et les statistiques. Cette action est irréversible.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer définitivement"
+    }
+  },
+  "cards": {
+    "title": "Mes Cartes",
+    "subtitle": "{{count}} sur 3 profils",
+    "loading": "Chargement…",
+    "newCard": "Nouvelle carte",
+    "createFirst": "Créez votre première carte",
+    "clickToStart": "Cliquez pour commencer",
+    "tapToStart": "Appuyez pour commencer",
+    "of": "sur"
+  },
+  "card": {
+    "share": "Partager",
+    "edit": "Modifier",
+    "qrCode": "QR Code",
+    "preview": "Aperçu",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "tapToClose": "Appuyez n'importe où pour fermer",
+    "fifaBadge": "⚽ FIFA 2026"
+  },
+  "profile": {
+    "notFound": "Profil introuvable",
+    "notFoundDesc": "Ce profil n'existe pas ou a été supprimé.",
+    "goHome": "Accueil",
+    "backToCards": "← Retour aux cartes",
+    "connect": "Connecter",
+    "saveContact": "Enregistrer le contact",
+    "addingContact": "Ajout du contact",
+    "contactDownloaded": "Contact téléchargé",
+    "contactMobileSub": "Votre app Contacts devrait s'ouvrir pour enregistrer ce contact.",
+    "contactDesktopSub": "Les informations de contact ont été enregistrées sur votre appareil.",
+    "contactError": "Un problème est survenu lors de l'enregistrement du contact.",
+    "linkCopied": "Lien copié",
+    "linkCopiedSub": "Lien du profil copié dans le presse-papier !",
+    "fifaShareText": "{{emoji}} Partagez votre carte fan FIFA 2026 — c'est gratuit !",
+    "createYours": "Créez la vôtre sur QrMingle →",
+    "createdWith": "Créé avec"
+  }
+}

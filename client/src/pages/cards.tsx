@@ -8,6 +8,7 @@ import { ProfileFormData } from "@shared/schema";
 import ProfileCard, { getCardAccent } from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { celebrateCreation } from "@/lib/confetti";
+import { useTranslation } from "react-i18next";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
@@ -17,6 +18,7 @@ import {
 export default function CardsPage() {
   const { user, isEffectivelyPremium } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(() => {
     const saved = sessionStorage.getItem("cardsCurrentIndex");
@@ -137,9 +139,9 @@ export default function CardsPage() {
         {/* Page header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b", margin: 0 }}>My Cards</h1>
+            <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b", margin: 0 }}>{t('cards.title')}</h1>
             <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>
-              {isLoading ? "Loading…" : `${profiles.length} of 3 profiles`}
+              {isLoading ? t('cards.loading') : t('cards.subtitle', { count: profiles.length })}
             </p>
           </div>
           {!isLoading && profiles.length < 3 && (
@@ -152,7 +154,7 @@ export default function CardsPage() {
                 display: "flex", alignItems: "center", gap: "6px",
               }}
             >
-              <PlusIcon size={16} /> New Card
+              <PlusIcon size={16} /> {t('cards.newCard')}
             </button>
           )}
         </div>
@@ -176,8 +178,8 @@ export default function CardsPage() {
               <PlusIcon size={36} color="white" />
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ color: "white", fontSize: "22px", fontWeight: 700 }}>Create Your First Card</div>
-              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", marginTop: "8px" }}>Click to get started</div>
+              <div style={{ color: "white", fontSize: "22px", fontWeight: 700 }}>{t('cards.createFirst')}</div>
+              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", marginTop: "8px" }}>{t('cards.clickToStart')}</div>
             </div>
           </div>
         ) : (
@@ -240,8 +242,8 @@ export default function CardsPage() {
               <PlusIcon size={36} color="white" />
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ color: "white", fontSize: "22px", fontWeight: 700 }}>Create Your First Card</div>
-              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", marginTop: "8px" }}>Tap to get started</div>
+              <div style={{ color: "white", fontSize: "22px", fontWeight: 700 }}>{t('cards.createFirst')}</div>
+              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", marginTop: "8px" }}>{t('cards.tapToStart')}</div>
             </div>
           </div>
         ) : (
@@ -266,7 +268,7 @@ export default function CardsPage() {
                 <ChevronLeft size={20} />
               </button>
               <span style={{ fontSize: "13px", color: "#94a3b8", fontWeight: 500 }}>
-                {currentIndex + 1} of {profiles.length}
+                {currentIndex + 1} {t('cards.of')} {profiles.length}
               </span>
               <button onClick={goNext} disabled={currentIndex >= profiles.length - 1} style={{
                 background: currentIndex >= profiles.length - 1 ? "#e2e8f0" : accent,
@@ -282,7 +284,7 @@ export default function CardsPage() {
               padding: "8px 18px", display: "flex", alignItems: "center", gap: "6px",
               cursor: "pointer", color: "white", fontWeight: 600, fontSize: "13px",
             }}>
-              <PlusIcon size={16} /> New Card
+              <PlusIcon size={16} /> {t('cards.newCard')}
             </button>
           </div>
         )}

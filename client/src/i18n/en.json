@@ -1,0 +1,125 @@
+{
+  "nav": {
+    "cards": "Cards",
+    "scan": "Scan",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "home": {
+    "taglines": [
+      "Your network starts with a scan.",
+      "Stop typing. Start scanning.",
+      "One scan. Everything about you.",
+      "Meet people. Share instantly.",
+      "Connect across borders. One scan at a time.",
+      "No printer. No paper. No awkward typing."
+    ],
+    "subtitle": "One QR scan. No app needed for the receiver.",
+    "getStarted": "Get Started — It's Free",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign In",
+    "fifa": {
+      "eyebrow": "FIFA World Cup 2026",
+      "headline": "Rep your team. Share your card.",
+      "sub": "Create a free fan card in seconds →"
+    }
+  },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to your account",
+    "username": "Username",
+    "password": "Password",
+    "usernamePlaceholder": "Enter your username",
+    "passwordPlaceholder": "Enter your password",
+    "submit": "Sign In",
+    "submitting": "Signing in…",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "back": "Back",
+    "error": {
+      "fillAll": "Please fill in all fields"
+    }
+  },
+  "register": {
+    "title": "Create your account",
+    "subtitle": "Your digital cards await",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "usernamePlaceholder": "Choose a username",
+    "passwordPlaceholder": "Choose a password",
+    "confirmPlaceholder": "Confirm your password",
+    "submit": "Create Account",
+    "submitting": "Creating account…",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign In",
+    "back": "Back",
+    "error": {
+      "fillAll": "Please fill in all fields",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "settings": {
+    "freeAccount": "Free account",
+    "premiumMember": "✓ Premium member",
+    "language": "Language",
+    "privacy": {
+      "title": "Your data is private",
+      "sub": "Never sold · No ads · Delete anytime"
+    },
+    "menu": {
+      "upgrade": "Upgrade to Premium",
+      "admin": "Admin Panel",
+      "reviews": "Reviews",
+      "help": "Help Center",
+      "privacy": "Privacy Policy",
+      "about": "About"
+    },
+    "logout": "Logout",
+    "deleteAccount": "Delete Account",
+    "deleteDialog": {
+      "title": "Delete your account?",
+      "description": "This permanently deletes your account, all profiles, QR codes, and analytics. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete permanently"
+    }
+  },
+  "cards": {
+    "title": "My Cards",
+    "subtitle": "{{count}} of 3 profiles",
+    "loading": "Loading…",
+    "newCard": "New Card",
+    "createFirst": "Create Your First Card",
+    "clickToStart": "Click to get started",
+    "tapToStart": "Tap to get started",
+    "of": "of"
+  },
+  "card": {
+    "share": "Share",
+    "edit": "Edit",
+    "qrCode": "QR Code",
+    "preview": "Preview",
+    "save": "Save",
+    "delete": "Delete",
+    "tapToClose": "Tap anywhere to close",
+    "fifaBadge": "⚽ FIFA 2026"
+  },
+  "profile": {
+    "notFound": "Profile Not Found",
+    "notFoundDesc": "This profile doesn't exist or has been removed.",
+    "goHome": "Go Home",
+    "backToCards": "← Back to Cards",
+    "connect": "Connect",
+    "saveContact": "Save Contact",
+    "addingContact": "Adding Contact",
+    "contactDownloaded": "Contact Downloaded",
+    "contactMobileSub": "Your contacts app should open to save this contact.",
+    "contactDesktopSub": "Contact information has been saved to your device.",
+    "contactError": "There was a problem saving this contact.",
+    "linkCopied": "Link Copied",
+    "linkCopiedSub": "Profile link copied to clipboard!",
+    "fifaShareText": "{{emoji}} Share your FIFA 2026 fan card — it's free!",
+    "createYours": "Create yours on QrMingle →",
+    "createdWith": "Created with"
+  }
+}

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ChevronLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const GRADIENT = "linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%)";
 
@@ -16,6 +17,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const isCapacitor = !!(window as any).Capacitor;
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (user) navigate("/profiles");
@@ -24,7 +26,7 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
-      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
+      toast({ title: "Error", description: t('login.error.fillAll'), variant: "destructive" });
       return;
     }
     loginMutation.mutate({ username, password });
@@ -56,7 +58,7 @@ export default function Login() {
             onClick={() => navigate("/")}
             style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "15px", padding: "8px 0", WebkitTapHighlightColor: "transparent" }}
           >
-            <ChevronLeft size={20} /> Back
+            <ChevronLeft size={20} /> {t('login.back')}
           </button>
         </div>
 
@@ -79,18 +81,18 @@ export default function Login() {
 
         {/* Heading */}
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <h1 style={{ color: "white", fontSize: "26px", fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>Welcome back</h1>
-          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "8px" }}>Sign in to your account</p>
+          <h1 style={{ color: "white", fontSize: "26px", fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>{t('login.title')}</h1>
+          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "8px" }}>{t('login.subtitle')}</p>
         </div>
 
         {/* Form card */}
         <form onSubmit={handleLogin} style={{ width: "100%", maxWidth: "380px" }}>
           <div style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", borderRadius: "24px", padding: "28px 24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
             <div style={{ marginBottom: "16px" }}>
-              <label style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>Username</label>
+              <label style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>{t('login.username')}</label>
               <input
                 type="text"
-                placeholder="Enter your username"
+                placeholder={t('login.usernamePlaceholder')}
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 disabled={loginMutation.isPending}
@@ -102,10 +104,10 @@ export default function Login() {
               />
             </div>
             <div style={{ marginBottom: "8px" }}>
-              <label style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>Password</label>
+              <label style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>{t('login.password')}</label>
               <input
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t('login.passwordPlaceholder')}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 disabled={loginMutation.isPending}
@@ -130,14 +132,14 @@ export default function Login() {
               opacity: loginMutation.isPending ? 0.7 : 1,
             }}
           >
-            {loginMutation.isPending ? "Signing in…" : "Sign In"}
+            {loginMutation.isPending ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
 
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "15px", marginTop: "24px", textAlign: "center" }}>
-          Don't have an account?{" "}
+          {t('login.noAccount')}{" "}
           <span onClick={() => navigate("/register")} style={{ color: "white", fontWeight: 700, cursor: "pointer" }}>
-            Sign Up
+            {t('login.signUp')}
           </span>
         </p>
       </div>

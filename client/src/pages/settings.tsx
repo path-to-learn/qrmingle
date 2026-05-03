@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { LogOut, Crown, Shield, Star, HelpCircle, FileText, Info, Trash2 } from "lucide-react";
+import { LogOut, Crown, Shield, Star, HelpCircle, FileText, Info, Trash2, Languages } from "lucide-react";
 import { isAdmin } from "@/lib/video";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -14,20 +14,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
+
+const LANGUAGES = [
+  { code: "en", label: "English", flag: "🇺🇸" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "pt", label: "Português", flag: "🇧🇷" },
+];
 
 export default function Settings() {
   const { user, logoutMutation, deleteAccountMutation, isEffectivelyPremium } = useAuth();
   const [, navigate] = useLocation();
+  const { t } = useTranslation();
 
   if (!user) return null;
 
   const menuItems = [
-    ...(!user.isPremium ? [{ icon: Crown, label: "Upgrade to Premium", path: "/premium", color: "#f59e0b" }] : []),
-    ...(isAdmin(user) ? [{ icon: Shield, label: "Admin Panel", path: "/admin", color: "#6366f1" }] : []),
-    { icon: Star, label: "Reviews", path: "/reviews", color: "#10b981" },
-    { icon: HelpCircle, label: "Help Center", path: "/help", color: "#3b82f6" },
-    { icon: FileText, label: "Privacy Policy", path: "/privacy", color: "#64748b" },
-    { icon: Info, label: "About", path: "/about", color: "#64748b" },
+    ...(!user.isPremium ? [{ icon: Crown, label: t('settings.menu.upgrade'), path: "/premium", color: "#f59e0b" }] : []),
+    ...(isAdmin(user) ? [{ icon: Shield, label: t('settings.menu.admin'), path: "/admin", color: "#6366f1" }] : []),
+    { icon: Star, label: t('settings.menu.reviews'), path: "/reviews", color: "#10b981" },
+    { icon: HelpCircle, label: t('settings.menu.help'), path: "/help", color: "#3b82f6" },
+    { icon: FileText, label: t('settings.menu.privacy'), path: "/privacy", color: "#64748b" },
+    { icon: Info, label: t('settings.menu.about'), path: "/about", color: "#64748b" },
   ];
 
   return (
@@ -55,7 +65,7 @@ export default function Settings() {
         <div>
           <div style={{ color: "white", fontWeight: 700, fontSize: "18px" }}>{user.username}</div>
           <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px" }}>
-            {user.isPremium ? "✓ Premium member" : "Free account"}
+            {user.isPremium ? t('settings.premiumMember') : t('settings.freeAccount')}
           </div>
         </div>
       </div>
@@ -73,8 +83,59 @@ export default function Settings() {
       }}>
         <span style={{ fontSize: "20px" }}>🔒</span>
         <div>
-          <div style={{ fontSize: "13px", fontWeight: 600, color: "#15803d" }}>Your data is private</div>
-          <div style={{ fontSize: "12px", color: "#166534", marginTop: "2px" }}>Never sold · No ads · Delete anytime</div>
+          <div style={{ fontSize: "13px", fontWeight: 600, color: "#15803d" }}>{t('settings.privacy.title')}</div>
+          <div style={{ fontSize: "12px", color: "#166534", marginTop: "2px" }}>{t('settings.privacy.sub')}</div>
+        </div>
+      </div>
+
+      {/* Language picker */}
+      <div style={{
+        margin: "0 16px 16px",
+        padding: "14px 16px",
+        background: "white",
+        border: "1px solid #f1f5f9",
+        borderRadius: "12px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+          <div style={{
+            width: "36px", height: "36px", borderRadius: "10px",
+            background: "#6366f118",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Languages size={18} style={{ color: "#6366f1" }} />
+          </div>
+          <span style={{ fontSize: "15px", fontWeight: 500, color: "#1e293b" }}>{t('settings.language')}</span>
+        </div>
+        <div style={{ display: "flex", gap: "8px" }}>
+          {LANGUAGES.map((lang) => {
+            const isActive = i18n.language?.startsWith(lang.code);
+            return (
+              <button
+                key={lang.code}
+                onClick={() => i18n.changeLanguage(lang.code)}
+                style={{
+                  flex: 1,
+                  padding: "8px 4px",
+                  borderRadius: "10px",
+                  border: isActive ? "2px solid var(--app-accent, #6366f1)" : "2px solid #f1f5f9",
+                  background: isActive ? "var(--app-accent, #6366f1)" + "14" : "#f8fafc",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "3px",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                <span style={{ fontSize: "20px" }}>{lang.flag}</span>
+                <span style={{
+                  fontSize: "10px",
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? "var(--app-accent, #6366f1)" : "#64748b",
+                }}>{lang.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -140,7 +201,7 @@ export default function Settings() {
           }}>
             <LogOut size={18} style={{ color: "#ef4444" }} />
           </div>
-          <span style={{ fontSize: "15px", fontWeight: 500, color: "#ef4444" }}>Logout</span>
+          <span style={{ fontSize: "15px", fontWeight: 500, color: "#ef4444" }}>{t('settings.logout')}</span>
         </button>
 
         {/* Delete Account */}
@@ -169,23 +230,23 @@ export default function Settings() {
               }}>
                 <Trash2 size={18} style={{ color: "#94a3b8" }} />
               </div>
-              <span style={{ fontSize: "15px", fontWeight: 500, color: "#94a3b8" }}>Delete Account</span>
+              <span style={{ fontSize: "15px", fontWeight: 500, color: "#94a3b8" }}>{t('settings.deleteAccount')}</span>
             </button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+              <AlertDialogTitle>{t('settings.deleteDialog.title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This permanently deletes your account, all profiles, QR codes, and analytics. This action cannot be undone.
+                {t('settings.deleteDialog.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('settings.deleteDialog.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => deleteAccountMutation.mutate()}
                 style={{ background: "#ef4444" }}
               >
-                Delete permanently
+                {t('settings.deleteDialog.confirm')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

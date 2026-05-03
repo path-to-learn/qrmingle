@@ -1,0 +1,125 @@
+{
+  "nav": {
+    "cards": "Tarjetas",
+    "scan": "Escanear",
+    "analytics": "Estadísticas",
+    "settings": "Ajustes"
+  },
+  "home": {
+    "taglines": [
+      "Tu red comienza con un escaneo.",
+      "Deja de escribir. Empieza a escanear.",
+      "Un escaneo. Todo sobre ti.",
+      "Conoce gente. Comparte al instante.",
+      "Conecta a través de fronteras. Un escaneo a la vez.",
+      "Sin impresora. Sin papel. Sin escribir."
+    ],
+    "subtitle": "Un escaneo QR. El receptor no necesita app.",
+    "getStarted": "Comenzar — Es Gratis",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Iniciar sesión",
+    "fifa": {
+      "eyebrow": "Copa Mundial FIFA 2026",
+      "headline": "Representa a tu equipo. Comparte tu tarjeta.",
+      "sub": "Crea una tarjeta de fan gratis en segundos →"
+    }
+  },
+  "login": {
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Inicia sesión en tu cuenta",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "usernamePlaceholder": "Ingresa tu usuario",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "submit": "Iniciar sesión",
+    "submitting": "Iniciando sesión…",
+    "noAccount": "¿No tienes una cuenta?",
+    "signUp": "Regístrate",
+    "back": "Volver",
+    "error": {
+      "fillAll": "Por favor completa todos los campos"
+    }
+  },
+  "register": {
+    "title": "Crea tu cuenta",
+    "subtitle": "Tus tarjetas digitales te esperan",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "usernamePlaceholder": "Elige un usuario",
+    "passwordPlaceholder": "Elige una contraseña",
+    "confirmPlaceholder": "Confirma tu contraseña",
+    "submit": "Crear cuenta",
+    "submitting": "Creando cuenta…",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Iniciar sesión",
+    "back": "Volver",
+    "error": {
+      "fillAll": "Por favor completa todos los campos",
+      "passwordMismatch": "Las contraseñas no coinciden"
+    }
+  },
+  "settings": {
+    "freeAccount": "Cuenta gratuita",
+    "premiumMember": "✓ Miembro Premium",
+    "language": "Idioma",
+    "privacy": {
+      "title": "Tus datos son privados",
+      "sub": "Nunca vendidos · Sin anuncios · Elimina cuando quieras"
+    },
+    "menu": {
+      "upgrade": "Mejorar a Premium",
+      "admin": "Panel de administración",
+      "reviews": "Reseñas",
+      "help": "Centro de ayuda",
+      "privacy": "Política de privacidad",
+      "about": "Acerca de"
+    },
+    "logout": "Cerrar sesión",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteDialog": {
+      "title": "¿Eliminar tu cuenta?",
+      "description": "Esto elimina permanentemente tu cuenta, todos los perfiles, códigos QR y estadísticas. Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar permanentemente"
+    }
+  },
+  "cards": {
+    "title": "Mis Tarjetas",
+    "subtitle": "{{count}} de 3 perfiles",
+    "loading": "Cargando…",
+    "newCard": "Nueva tarjeta",
+    "createFirst": "Crea tu primera tarjeta",
+    "clickToStart": "Haz clic para comenzar",
+    "tapToStart": "Toca para comenzar",
+    "of": "de"
+  },
+  "card": {
+    "share": "Compartir",
+    "edit": "Editar",
+    "qrCode": "QR Code",
+    "preview": "Vista previa",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "tapToClose": "Toca en cualquier lugar para cerrar",
+    "fifaBadge": "⚽ FIFA 2026"
+  },
+  "profile": {
+    "notFound": "Perfil no encontrado",
+    "notFoundDesc": "Este perfil no existe o ha sido eliminado.",
+    "goHome": "Ir al inicio",
+    "backToCards": "← Volver a tarjetas",
+    "connect": "Conectar",
+    "saveContact": "Guardar contacto",
+    "addingContact": "Agregando contacto",
+    "contactDownloaded": "Contacto descargado",
+    "contactMobileSub": "Tu app de contactos debería abrirse para guardar este contacto.",
+    "contactDesktopSub": "La información de contacto se guardó en tu dispositivo.",
+    "contactError": "Hubo un problema al guardar este contacto.",
+    "linkCopied": "Enlace copiado",
+    "linkCopiedSub": "¡Enlace del perfil copiado al portapapeles!",
+    "fifaShareText": "{{emoji}} ¡Comparte tu tarjeta de fan FIFA 2026, es gratis!",
+    "createYours": "Crea la tuya en QrMingle →",
+    "createdWith": "Creado con"
+  }
+}

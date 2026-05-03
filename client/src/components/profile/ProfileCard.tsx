@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
+import { useTranslation } from "react-i18next";
 import {
   Share, UserPlus, Pencil, Trash2, QrCode,
   Mail, Phone, Globe, Link2, Linkedin, Twitter, Instagram, Facebook,
@@ -84,6 +85,7 @@ export default function ProfileCard({
   onEdit, onDelete,
 }: ProfileCardProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [showQr, setShowQr] = useState(false);
   const [qrExpanded, setQrExpanded] = useState(false);
@@ -220,7 +222,7 @@ export default function ProfileCard({
             padding: "4px 14px", borderRadius: "6px",
             letterSpacing: "1px", textTransform: "uppercase",
             whiteSpace: "nowrap",
-          }}>{themeTeam ? "⚽ FIFA 2026" : name}</div>
+          }}>{themeTeam ? t('card.fifaBadge') : name}</div>
 
           {/* Team badge — top left */}
           {themeTeam && (
@@ -319,7 +321,7 @@ export default function ProfileCard({
                   letterSpacing: "0.5px", textTransform: "uppercase",
                   whiteSpace: "nowrap",
                 }}>
-                  ⚽ FIFA 2026
+                  {t('card.fifaBadge')}
                 </div>
               )}
             </div>
@@ -352,7 +354,7 @@ export default function ProfileCard({
                 <QRCodeSVG value={profileUrl} size={150} fgColor={accent} bgColor="white" level="L" />
               </div>
               <div style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 500 }}>
-                Tap anywhere to close
+                {t('card.tapToClose')}
               </div>
             </div>
           </div>
@@ -396,7 +398,7 @@ export default function ProfileCard({
               cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
             }}
           >
-            <Share size={17} /> Share
+            <Share size={17} /> {t('card.share')}
           </button>
           <button
             onClick={() => onEdit(id)}
@@ -408,18 +410,18 @@ export default function ProfileCard({
               cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
             }}
           >
-            <Pencil size={16} /> Edit
+            <Pencil size={16} /> {t('card.edit')}
           </button>
         </div>
 
         {/* Secondary: QR fullscreen · Preview (web) · Save · Delete */}
         <div style={{ display: "flex", gap: "10px" }}>
           {([
-            { icon: <QrCode size={19} color="#475569" />, label: "QR Code", onClick: () => setShowQr(true), bg: "#f1f5f9", color: "#64748b" },
-            { icon: <Globe size={19} color="#475569" />, label: "Preview", onClick: () => setLocation(`/p/${slug}?preview=1`), bg: "#f1f5f9", color: "#64748b" },
-            { icon: <UserPlus size={19} color="#475569" />, label: "Save", onClick: handleSaveContact, bg: "#f1f5f9", color: "#64748b" },
-            { icon: <Trash2 size={17} color="#ef4444" />, label: "Delete", onClick: () => onDelete(id), bg: "#fff0f0", color: "#ef4444" },
-          ] as const).map(({ icon, label, onClick, bg, color }) => (
+            { icon: <QrCode size={19} color="#475569" />, label: t('card.qrCode'), onClick: () => setShowQr(true), bg: "#f1f5f9", color: "#64748b" },
+            { icon: <Globe size={19} color="#475569" />, label: t('card.preview'), onClick: () => setLocation(`/p/${slug}?preview=1`), bg: "#f1f5f9", color: "#64748b" },
+            { icon: <UserPlus size={19} color="#475569" />, label: t('card.save'), onClick: handleSaveContact, bg: "#f1f5f9", color: "#64748b" },
+            { icon: <Trash2 size={17} color="#ef4444" />, label: t('card.delete'), onClick: () => onDelete(id), bg: "#fff0f0", color: "#ef4444" },
+          ]).map(({ icon, label, onClick, bg, color }) => (
             <button
               key={label}
               onClick={onClick}
@@ -466,7 +468,7 @@ export default function ProfileCard({
               <div style={{ color: "rgba(255,255,255,0.65)", fontSize: "13px", marginTop: "4px" }}>{title}</div>
             )}
           </div>
-          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>Tap anywhere to close</div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>{t('card.tapToClose')}</div>
         </div>
       )}
     </>

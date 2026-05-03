@@ -1,17 +1,19 @@
 import { useLocation } from "wouter";
 import { CreditCard, QrCode, BarChart2, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-
-const tabs = [
-  { path: "/profiles", icon: CreditCard, label: "Cards" },
-  { path: "/scan", icon: QrCode, label: "Scan" },
-  { path: "/analytics", icon: BarChart2, label: "Analytics" },
-  { path: "/settings", icon: Settings, label: "Settings" },
-];
+import { useTranslation } from "react-i18next";
 
 export default function BottomTabBar() {
   const [location, navigate] = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
+
+  const tabs = [
+    { path: "/profiles", icon: CreditCard, label: t('nav.cards') },
+    { path: "/scan", icon: QrCode, label: t('nav.scan') },
+    { path: "/analytics", icon: BarChart2, label: t('nav.analytics') },
+    { path: "/settings", icon: Settings, label: t('nav.settings') },
+  ];
 
   if (!user) return null;
 

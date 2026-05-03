@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 import { QrWidgetGenerator } from "@/components/profile/QrWidgetGenerator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -86,6 +87,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const isPreview = typeof window !== "undefined" && window.location.search.includes("preview=1");
 
+  const { t } = useTranslation();
   const lastTapRef = useRef(0);
   const [showQrWidget, setShowQrWidget] = useState(false);
 
@@ -99,14 +101,14 @@ export default function ProfilePage() {
     try {
       await saveToContacts(profile, profile.socialLinks);
       toast({
-        title: isMobileDevice() ? "Adding Contact" : "Contact Downloaded",
+        title: isMobileDevice() ? t('profile.addingContact') : t('profile.contactDownloaded'),
         description: isMobileDevice()
-          ? "Your contacts app should open to save this contact."
-          : "Contact information has been saved to your device.",
+          ? t('profile.contactMobileSub')
+          : t('profile.contactDesktopSub'),
       });
       celebrateSaveContact();
     } catch {
-      toast({ title: "Error", description: "There was a problem saving this contact.", variant: "destructive" });
+      toast({ title: "Error", description: t('profile.contactError'), variant: "destructive" });
     }
   };
 
@@ -132,14 +134,14 @@ export default function ProfilePage() {
       }).catch((err) => {
         if (err?.name === "AbortError") return;
         fallbackCopy(url);
-        toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
+        toast({ title: t('profile.linkCopied'), description: t('profile.linkCopiedSub') });
       });
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(url).catch(() => fallbackCopy(url));
-      toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
+      toast({ title: t('profile.linkCopied'), description: t('profile.linkCopiedSub') });
     } else {
       fallbackCopy(url);
-      toast({ title: "Link Copied", description: "Profile link copied to clipboard!" });
+      toast({ title: t('profile.linkCopied'), description: t('profile.linkCopiedSub') });
     }
   };
 
@@ -163,10 +165,10 @@ export default function ProfilePage() {
       <div style={{ maxWidth: "480px", margin: "0 auto", textAlign: "center", padding: "48px 24px" }}>
         <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
         <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#1e293b", marginBottom: "8px" }}>
-          Profile Not Found
+          {t('profile.notFound')}
         </h1>
         <p style={{ color: "#64748b", marginBottom: "24px" }}>
-          This profile doesn't exist or has been removed.
+          {t('profile.notFoundDesc')}
         </p>
         <Link href="/">
           <button style={{
@@ -175,7 +177,7 @@ export default function ProfilePage() {
             fontSize: "14px", fontWeight: 600, cursor: "pointer",
             display: "inline-flex", alignItems: "center", gap: "6px",
           }}>
-            <ArrowLeft size={16} /> Go Home
+            <ArrowLeft size={16} /> {t('profile.goHome')}
           </button>
         </Link>
       </div>
@@ -212,7 +214,7 @@ export default function ProfilePage() {
             cursor: "pointer", WebkitTapHighlightColor: "transparent",
           }}
         >
-          ← Back to Cards
+          {t('profile.backToCards')}
         </button>
       )}
 
@@ -263,7 +265,7 @@ export default function ProfilePage() {
           color: "white", fontSize: "11px", fontWeight: 700,
           padding: "4px 16px", borderRadius: "6px",
           letterSpacing: "1px", textTransform: "uppercase", whiteSpace: "nowrap",
-        }}>{themeTeam ? "⚽ FIFA 2026" : profile.name}</div>
+        }}>{themeTeam ? t('card.fifaBadge') : profile.name}</div>
 
         {/* Team badge — top left */}
         {themeTeam && theme && (
@@ -352,7 +354,7 @@ export default function ProfilePage() {
               cursor: "pointer", WebkitTapHighlightColor: "transparent",
             }}
           >
-            <UserPlus size={16} /> Save Contact
+            <UserPlus size={16} /> {t('profile.saveContact')}
           </button>
 
           <button
@@ -374,7 +376,7 @@ export default function ProfilePage() {
             <div style={{
               fontSize: "10px", fontWeight: 700, letterSpacing: "1px",
               color: "#94a3b8", textTransform: "uppercase", marginBottom: "12px",
-            }}>Connect</div>
+            }}>{t('profile.connect')}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {profile.socialLinks.map((link) => (
                 <a
@@ -453,7 +455,7 @@ export default function ProfilePage() {
           {themeTeam ? (
             <>
               <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 6px" }}>
-                {theme?.emoji} Share your FIFA 2026 fan card — it's free!
+                {t('profile.fifaShareText', { emoji: theme?.emoji })}
               </p>
               <Link href="/">
                 <span style={{
@@ -462,13 +464,13 @@ export default function ProfilePage() {
                   borderRadius: "20px", fontSize: "13px", fontWeight: 700,
                   cursor: "pointer",
                 }}>
-                  Create yours on QrMingle →
+                  {t('profile.createYours')}
                 </span>
               </Link>
             </>
           ) : (
             <>
-              <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 4px" }}>Created with</p>
+              <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 4px" }}>{t('profile.createdWith')}</p>
               <Link href="/">
                 <span style={{ fontSize: "13px", color: accent, fontWeight: 600, cursor: "pointer" }}>
                   QrMingle
