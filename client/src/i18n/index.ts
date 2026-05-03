@@ -6,6 +6,8 @@ import en from './en.json';
 import es from './es.json';
 import fr from './fr.json';
 import pt from './pt.json';
+import ar from './ar.json';
+import ja from './ja.json';
 
 i18n
   .use(LanguageDetector)
@@ -16,9 +18,11 @@ i18n
       es: { translation: es },
       fr: { translation: fr },
       pt: { translation: pt },
+      ar: { translation: ar },
+      ja: { translation: ja },
     },
     fallbackLng: 'en',
-    supportedLngs: ['en', 'es', 'fr', 'pt'],
+    supportedLngs: ['en', 'es', 'fr', 'pt', 'ar', 'ja'],
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],

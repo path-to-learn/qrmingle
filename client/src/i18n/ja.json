@@ -1,0 +1,125 @@
+{
+  "nav": {
+    "cards": "カード",
+    "scan": "スキャン",
+    "analytics": "分析",
+    "settings": "設定"
+  },
+  "home": {
+    "taglines": [
+      "スキャンでネットワークを広げよう。",
+      "入力をやめて、スキャンしよう。",
+      "1回のスキャンで、あなたのすべてを。",
+      "人と出会い、すぐに共有。",
+      "国境を越えてつながろう。1スキャンで。",
+      "プリンター不要。紙不要。面倒な入力も不要。"
+    ],
+    "subtitle": "QRを1回スキャン。受け取る側にアプリは不要。",
+    "getStarted": "無料で始める",
+    "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
+    "signIn": "ログイン",
+    "fifa": {
+      "eyebrow": "FIFAワールドカップ2026",
+      "headline": "チームを応援。カードをシェア。",
+      "sub": "無料のファンカードを数秒で作成 →"
+    }
+  },
+  "login": {
+    "title": "おかえりなさい",
+    "subtitle": "アカウントにログイン",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "usernamePlaceholder": "ユーザー名を入力",
+    "passwordPlaceholder": "パスワードを入力",
+    "submit": "ログイン",
+    "submitting": "ログイン中…",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "signUp": "登録する",
+    "back": "戻る",
+    "error": {
+      "fillAll": "すべての項目を入力してください"
+    }
+  },
+  "register": {
+    "title": "アカウントを作成",
+    "subtitle": "デジタルカードがあなたを待っています",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "confirmPassword": "パスワードを確認",
+    "usernamePlaceholder": "ユーザー名を選択",
+    "passwordPlaceholder": "パスワードを選択",
+    "confirmPlaceholder": "パスワードを確認入力",
+    "submit": "アカウントを作成",
+    "submitting": "作成中…",
+    "haveAccount": "すでにアカウントをお持ちですか？",
+    "signIn": "ログイン",
+    "back": "戻る",
+    "error": {
+      "fillAll": "すべての項目を入力してください",
+      "passwordMismatch": "パスワードが一致しません"
+    }
+  },
+  "settings": {
+    "freeAccount": "無料アカウント",
+    "premiumMember": "✓ プレミアム会員",
+    "language": "言語",
+    "privacy": {
+      "title": "データは安全に保護されています",
+      "sub": "販売なし · 広告なし · いつでも削除可能"
+    },
+    "menu": {
+      "upgrade": "プレミアムにアップグレード",
+      "admin": "管理パネル",
+      "reviews": "レビュー",
+      "help": "ヘルプセンター",
+      "privacy": "プライバシーポリシー",
+      "about": "アプリについて"
+    },
+    "logout": "ログアウト",
+    "deleteAccount": "アカウントを削除",
+    "deleteDialog": {
+      "title": "アカウントを削除しますか？",
+      "description": "アカウント、すべてのプロフィール、QRコード、分析データが完全に削除されます。この操作は元に戻せません。",
+      "cancel": "キャンセル",
+      "confirm": "完全に削除"
+    }
+  },
+  "cards": {
+    "title": "マイカード",
+    "subtitle": "3件中 {{count}} 件",
+    "loading": "読み込み中…",
+    "newCard": "新しいカード",
+    "createFirst": "最初のカードを作成",
+    "clickToStart": "クリックして始める",
+    "tapToStart": "タップして始める",
+    "of": "/"
+  },
+  "card": {
+    "share": "シェア",
+    "edit": "編集",
+    "qrCode": "QRコード",
+    "preview": "プレビュー",
+    "save": "保存",
+    "delete": "削除",
+    "tapToClose": "どこかをタップして閉じる",
+    "fifaBadge": "⚽ FIFA 2026"
+  },
+  "profile": {
+    "notFound": "プロフィールが見つかりません",
+    "notFoundDesc": "このプロフィールは存在しないか、削除されています。",
+    "goHome": "ホームへ",
+    "backToCards": "← カードに戻る",
+    "connect": "つながる",
+    "saveContact": "連絡先を保存",
+    "addingContact": "連絡先を追加中",
+    "contactDownloaded": "連絡先をダウンロード",
+    "contactMobileSub": "連絡先アプリが開いてこの連絡先を保存します。",
+    "contactDesktopSub": "連絡先情報がデバイスに保存されました。",
+    "contactError": "連絡先の保存中に問題が発生しました。",
+    "linkCopied": "リンクをコピーしました",
+    "linkCopiedSub": "プロフィールリンクをクリップボードにコピーしました！",
+    "fifaShareText": "{{emoji}} FIFA 2026ファンカードをシェアしよう — 無料！",
+    "createYours": "QrMingleで作成する →",
+    "createdWith": "作成："
+  }
+}

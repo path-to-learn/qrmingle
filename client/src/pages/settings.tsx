@@ -18,10 +18,12 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 
 const LANGUAGES = [
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "en", label: "English",   flag: "🇺🇸" },
+  { code: "es", label: "Español",   flag: "🇪🇸" },
+  { code: "fr", label: "Français",  flag: "🇫🇷" },
   { code: "pt", label: "Português", flag: "🇧🇷" },
+  { code: "ar", label: "العربية",   flag: "🇸🇦" },
+  { code: "ja", label: "日本語",     flag: "🇯🇵" },
 ];
 
 export default function Settings() {
@@ -106,13 +108,16 @@ export default function Settings() {
           </div>
           <span style={{ fontSize: "15px", fontWeight: 500, color: "#1e293b" }}>{t('settings.language')}</span>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           {LANGUAGES.map((lang) => {
             const isActive = i18n.language?.startsWith(lang.code);
             return (
               <button
                 key={lang.code}
-                onClick={() => i18n.changeLanguage(lang.code)}
+                onClick={() => {
+                i18n.changeLanguage(lang.code);
+                document.documentElement.dir = lang.code === "ar" ? "rtl" : "ltr";
+              }}
                 style={{
                   flex: 1,
                   padding: "8px 4px",
