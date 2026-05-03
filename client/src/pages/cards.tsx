@@ -181,9 +181,9 @@ export default function CardsPage() {
             </div>
           </div>
         ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "28px", alignItems: "flex-start" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "28px" }}>
             {profiles.map((profile: any) => (
-              <div key={profile.id} style={{ width: "380px", flexShrink: 0 }}>
+              <div key={profile.id} style={{ width: "380px", flexShrink: 0, display: "flex" }}>
                 <ProfileCard
                   {...profile}
                   onEdit={(id: number) => { setEditingProfileId(id); setShowEditor(true); }}

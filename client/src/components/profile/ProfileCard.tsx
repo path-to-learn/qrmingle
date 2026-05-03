@@ -152,10 +152,16 @@ export default function ProfileCard({
 
   return (
     <>
+      {/* Outer wrapper stretches to parent height so action buttons align across cards */}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+
       {/* ── Portrait card — tap navigates to full preview ── */}
       <div
         onClick={() => setLocation(`/p/${slug}?preview=1`)}
         style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
           borderRadius: "20px",
           overflow: "hidden",
           background: "white",
@@ -271,7 +277,7 @@ export default function ProfileCard({
         </div>
 
         {/* ── Info section ── */}
-        <div style={{ padding: "12px 16px 18px" }}>
+        <div style={{ flex: 1, padding: "12px 16px 18px" }}>
 
           {/* Name / title + inline QR */}
           <div style={{
@@ -430,6 +436,8 @@ export default function ProfileCard({
           ))}
         </div>
       </div>
+
+      </div>{/* end outer flex wrapper */}
 
       {/* ── QR full-screen modal ── */}
       {showQr && (
