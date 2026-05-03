@@ -66,6 +66,9 @@ export interface IStorage {
   // Account deletion
   deleteUser(id: number): Promise<boolean>;
 
+  // AI assist tracking
+  incrementAiAssistCount(userId: number): Promise<void>;
+
   // Admin analytics methods
   getAllUsers(): Promise<User[]>;
   getAllProfiles(): Promise<Profile[]>;
@@ -576,6 +579,16 @@ export class DatabaseStorage implements IStorage {
 
     const result = await db.delete(users).where(eq(users.id, id)).returning();
     return result.length > 0;
+  }
+
+  // AI assist tracking
+  async incrementAiAssistCount(userId: number): Promise<void> {
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+    const { sql } = await import('drizzle-orm');
+    await db.update(users)
+      .set({ aiAssistCount: sql`${users.aiAssistCount} + 1` })
+      .where(eq(users.id, userId));
   }
 
   // Admin analytics methods

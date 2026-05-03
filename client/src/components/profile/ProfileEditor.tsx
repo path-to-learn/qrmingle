@@ -29,12 +29,14 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { ProfileFormData, profileFormSchema } from "@shared/schema";
-import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon, Crop } from "lucide-react";
+import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon, Crop, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ImageCropper from "./ImageCropper";
 import ThemePicker from "./ThemePicker";
 import { getTeamById } from "@/data/themes";
+import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -52,9 +54,44 @@ export default function ProfileEditor({
   isPremium = false,
 }: ProfileEditorProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [previewUrl, setPreviewUrl] = useState<string>(
     profileData?.photoUrl || ""
   );
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const assistsUsed = user?.aiAssistCount ?? 0;
+  const FREE_LIMIT = 2;
+  const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
+
+  const handleAiAssist = async () => {
+    if (!aiPrompt.trim()) return;
+    setAiLoading(true);
+    try {
+      const res = await apiRequest('POST', '/api/ai/card-assist', { mode: 'writer', prompt: aiPrompt });
+      if (!res.ok) {
+        const err = await res.json();
+        toast({ title: err.type === 'AI_LIMIT_REACHED' ? 'Free limit reached' : 'AI error', description: err.message, variant: 'destructive' });
+        return;
+      }
+      const { result } = await res.json();
+      if (result.name) form.setValue('name', result.name);
+      if (result.name) form.setValue('displayName', result.name);
+      if (result.title) form.setValue('title', result.title);
+      if (result.bio) form.setValue('bio', result.bio);
+      if (Array.isArray(result.suggestedLinks) && result.suggestedLinks.length > 0) {
+        form.setValue('socialLinks', result.suggestedLinks);
+      }
+      setShowAiModal(false);
+      setAiPrompt("");
+      toast({ title: '✨ Profile filled in!', description: 'Review the details and save when ready.' });
+    } catch {
+      toast({ title: 'Something went wrong', description: 'Please try again.', variant: 'destructive' });
+    } finally {
+      setAiLoading(false);
+    }
+  };
   const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<string>(
     profileData?.backgroundUrl || ""
   );
@@ -219,11 +256,69 @@ export default function ProfileEditor({
     <Card className="mb-6 w-full overflow-hidden">
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
-        <Button variant="ghost" size="icon" onClick={onCancel}>
-          <X className="h-5 w-5" />
-          <span className="sr-only">Close</span>
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {canUseAi ? (
+            <button
+              type="button"
+              onClick={() => setShowAiModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}
+            >
+              <Sparkles size={13} />
+              Build with AI
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', background: '#f1f5f9', color: '#94a3b8', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+            >
+              <Sparkles size={13} />
+              Build with AI
+            </button>
+          )}
+          <Button variant="ghost" size="icon" onClick={onCancel}>
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </Button>
+        </div>
       </CardHeader>
+
+      {/* AI Modal */}
+      {showAiModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          onClick={() => setShowAiModal(false)}>
+          <div style={{ background: 'white', borderRadius: '20px 20px 0 0', padding: '24px 20px 32px', width: '100%', maxWidth: '540px' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <Sparkles size={20} style={{ color: '#6366f1' }} />
+              <span style={{ fontWeight: 700, fontSize: '16px', color: '#1e293b' }}>Build with AI</span>
+              {!isPremium && (
+                <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '99px' }}>
+                  {assistsUsed}/{FREE_LIMIT} free uses
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px' }}>
+              Describe yourself in a few sentences — your role, company, and any social links you want included.
+            </p>
+            <textarea
+              value={aiPrompt}
+              onChange={e => setAiPrompt(e.target.value)}
+              placeholder="e.g. I'm Sarah Chen, a UX designer at Figma. My LinkedIn is linkedin.com/in/sarahchen and my website is sarahchen.design"
+              rows={4}
+              style={{ width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
+              autoFocus
+            />
+            <button
+              onClick={handleAiAssist}
+              disabled={aiLoading || !aiPrompt.trim()}
+              style={{ marginTop: '12px', width: '100%', padding: '13px', background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              {aiLoading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</> : '✨ Fill in my profile'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
