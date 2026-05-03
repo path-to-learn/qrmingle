@@ -6,6 +6,9 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Trust the first proxy (Railway, Render, Nginx, etc.) so req.ip is the real visitor IP
+app.set('trust proxy', 1);
+
 // Allow the Capacitor iOS app (standalone/bundled mode) to hit the API cross-origin.
 // In dev mode the WebView loads from the server directly (same origin), so this only
 // matters for the bundled standalone build where the origin is capacitor://localhost.

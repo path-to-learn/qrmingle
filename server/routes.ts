@@ -11,6 +11,16 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { authLimiter, contactLimiter } from "./limiters";
+import geoip from "geoip-lite";
+
+function getVisitorIp(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    const first = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0];
+    return first.trim();
+  }
+  return req.ip || 'Unknown';
+}
 
 const contactFormSchema = z.object({
   profileId: z.number().int().positive(),
@@ -452,18 +462,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         else if (userAgent.includes('iOS')) osInfo = 'iOS';
       }
       
+      // Resolve real visitor IP and geolocate it
+      const visitorIp = getVisitorIp(req);
+      const geo = geoip.lookup(visitorIp);
+
       // Log the scan with enhanced information
       const scanLogData = {
         profileId: profile.id,
         location: req.query.location as string,
-        country: req.query.country as string || 'Unknown',
-        countryCode: req.query.countryCode as string || '',
-        city: req.query.city as string || '',
+        country: geo?.country || req.query.country as string || 'Unknown',
+        countryCode: geo?.country || req.query.countryCode as string || '',
+        city: geo?.city || req.query.city as string || '',
         device: deviceInfo,
         browser: browserInfo,
         os: osInfo,
         referrer: req.headers.referer || '',
-        ipAddress: req.ip || 'Unknown'
+        ipAddress: visitorIp,
       };
       
       await storage.createScanLog(scanLogData);
@@ -955,6 +969,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Failed to promote user to admin",
       });
+    }
+  });
+
+  // Global analytics for admin
+  adminRoutes.get('/analytics', async (req, res) => {
+    try {
+      const [allLogs, allProfiles, allUsers] = await Promise.all([
+        storage.getAllScanLogs(),
+        storage.getAllProfiles(),
+        storage.getAllUsers(),
+      ]);
+
+      // Total scans
+      const totalScans = allLogs.length;
+      const totalUsers = allUsers.length;
+      const totalProfiles = allProfiles.length;
+
+      // Scans per day (last 30 days)
+      const scansByDate: Record<string, number> = {};
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 30);
+      allLogs.forEach((log) => {
+        if (log.timestamp && log.timestamp >= cutoff) {
+          const date = log.timestamp.toISOString().split('T')[0];
+          scansByDate[date] = (scansByDate[date] || 0) + 1;
+        }
+      });
+
+      // Country distribution
+      const countryCounts: Record<string, number> = {};
+      const countryCodeMap: Record<string, string> = {};
+      allLogs.forEach((log) => {
+        const country = log.country || 'Unknown';
+        countryCounts[country] = (countryCounts[country] || 0) + 1;
+        if (log.countryCode && log.country) countryCodeMap[log.country] = log.countryCode;
+      });
+      const countryData = Object.entries(countryCounts)
+        .map(([country, count]) => ({ country, countryCode: countryCodeMap[country] || '', count }))
+        .sort((a, b) => b.count - a.count);
+
+      // Device distribution
+      const deviceCounts: Record<string, number> = {};
+      allLogs.forEach((log) => {
+        let deviceType = 'Unknown';
+        if (log.device?.includes('Android')) deviceType = 'Android';
+        else if (log.device?.includes('iPhone') || log.device?.includes('iPad')) deviceType = 'iOS';
+        else if (log.device?.includes('Windows')) deviceType = 'Windows';
+        else if (log.device?.includes('Mac')) deviceType = 'Mac';
+        deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
+      });
+
+      // Top profiles by scan count
+      const profileScanMap: Record<number, number> = {};
+      allLogs.forEach((log) => {
+        profileScanMap[log.profileId] = (profileScanMap[log.profileId] || 0) + 1;
+      });
+      const topProfiles = Object.entries(profileScanMap)
+        .map(([profileId, count]) => {
+          const profile = allProfiles.find((p) => p.id === Number(profileId));
+          return { name: profile?.name || `Profile ${profileId}`, slug: profile?.slug || '', count };
+        })
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      res.json({ totalScans, totalUsers, totalProfiles, scansByDate, countryData, deviceDistribution: deviceCounts, topProfiles });
+    } catch (error) {
+      console.error('Admin analytics error:', error);
+      res.status(500).json({ message: 'Failed to get admin analytics' });
     }
   });
 
