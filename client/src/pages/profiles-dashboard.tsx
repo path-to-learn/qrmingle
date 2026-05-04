@@ -39,13 +39,8 @@ export default function ProfilesDashboard() {
     queryKey: ['/api/profiles', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      console.log("Fetching profiles for user ID:", user.id);
       const response = await fetch(`/api/profiles?userId=${user.id}`);
-      
-      // Log the response for debugging
-      console.log("Profile API response status:", response.status);
       const data = await response.json();
-      console.log("Profiles data received:", data);
       
       if (!response.ok) throw new Error('Failed to fetch profiles');
       return data;
@@ -56,32 +51,17 @@ export default function ProfilesDashboard() {
   // Create profile mutation
   const createProfile = useMutation({
     mutationFn: async (data: ProfileFormData) => {
-      console.log("Starting create profile mutation with data:", data);
-      
-      if (!user) {
-        console.error("User not authenticated");
-        throw new Error("User not authenticated");
-      }
-      
+      if (!user) throw new Error("User not authenticated");
+
       try {
-        const requestData = {
-          ...data,
-          userId: user.id,
-        };
-        console.log("Sending profile create request with:", requestData);
-        
+        const requestData = { ...data, userId: user.id };
         const response = await fetch("/api/profiles", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestData),
         });
-        
-        console.log("Profile creation API response status:", response.status);
-        
+
         const responseData = await response.json();
-        console.log("Profile creation API response data:", responseData);
         
         if (!response.ok) {
           // Check if this is a profile limit error
@@ -98,7 +78,6 @@ export default function ProfilesDashboard() {
       }
     },
     onSuccess: () => {
-      console.log("Profile created successfully");
       // Trigger confetti celebration
       celebrateCreation();
       toast({

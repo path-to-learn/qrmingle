@@ -86,7 +86,6 @@ export function setupAuth(app: Express) {
             return done(null, user);
           } else {
             // For real implementation, we would need to port the Python verification code
-            console.log('Password stored in pbkdf2 format that requires Python verification');
             return done(null, false, { message: "Please use JS-created users during migration" });
           }
         } 

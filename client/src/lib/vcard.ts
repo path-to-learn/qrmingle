@@ -225,7 +225,6 @@ export async function saveToContacts(profile: ProfileLike, socialLinks: SocialLi
           return;
         } catch (error) {
           // Fall back to direct URL approach if share fails
-          console.log('Falling back to direct URL approach', error);
         }
       }
       

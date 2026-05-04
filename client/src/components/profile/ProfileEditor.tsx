@@ -182,7 +182,6 @@ export default function ProfileEditor({
   };
 
   const handleSubmit = (data: ProfileFormData) => {
-    console.log("Form submission attempt with data:", data);
     
     // Make sure non-premium users can't use premium QR styles
     const premiumStyles = ['bordered', 'gradient', 'rounded', 'shadow'];
@@ -210,7 +209,6 @@ export default function ProfileEditor({
       return;
     }
     
-    console.log("Submitting profile data:", data);
     onSubmit(data);
   };
 

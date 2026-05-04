@@ -63,18 +63,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userData) {
       setUser(userData as User);
-      console.log("Auth context: User authenticated via session:", userData);
     } else if (userData === null && !isUserLoading) {
       setUser(null);
-      console.log("Auth context: No user session found");
     }
   }, [userData, isUserLoading]);
 
   // Login function to update state when session is established
   const login = useCallback((userData: User) => {
-    console.log("Login function called with:", userData);
     setUser(userData);
-    console.log("User state after login:", userData);
   }, []);
 
   // Logout function to clear state when session ends
@@ -211,7 +207,6 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) {
-      console.log("User not authenticated, redirecting to login");
       navigate("/login");
     }
   }, [user, navigate]);
