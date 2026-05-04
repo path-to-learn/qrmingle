@@ -22,6 +22,12 @@ function getVisitorIp(req: Request): string {
   return req.ip || 'Unknown';
 }
 
+const ADMIN_USERNAME = 'dathwal@qrmingle#2025';
+
+function checkIsPremium(user: { isPremium: boolean; isAdmin: boolean; username: string; trialExpiresAt?: Date | null; [key: string]: any }): boolean {
+  return user.isPremium || user.isAdmin || user.username === ADMIN_USERNAME || storage.isUserInActiveTrial(user as any);
+}
+
 const contactFormSchema = z.object({
   profileId: z.number().int().positive(),
   name: z.string().min(1).max(100),
@@ -259,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user is premium (paid, admin, or active trial)
-      const isUserPremium = user.isPremium || user.isAdmin || storage.isUserInActiveTrial(user);
+      const isUserPremium = checkIsPremium(user);
       const profileLimit = isUserPremium ? 5 : 2;
 
       // Check if user has reached the profile limit
@@ -356,8 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user to check premium status
       const user = await storage.getUser(existingProfile.userId);
       
-      // Check if user is a premium user or has an active trial
-      const isUserPremium = user?.isPremium || (user && storage.isUserInActiveTrial(user));
+      const isUserPremium = user ? checkIsPremium(user) : false;
       
       const { socialLinks, ...profileWithoutLinks } = profileData;
       
@@ -657,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const user = await storage.getUser(profile.userId);
-      const isUserPremium = user?.isPremium || user?.isAdmin || (user && storage.isUserInActiveTrial(user));
+      const isUserPremium = user ? checkIsPremium(user) : false;
 
       // Free users get total count only — no chart data
       if (!isUserPremium) {
@@ -753,7 +758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       if (!user) return res.status(404).json({ message: 'User not found' });
 
-      const isPremium = user.isPremium || user.isAdmin || storage.isUserInActiveTrial(user);
+      const isPremium = checkIsPremium(user);
       const FREE_ASSIST_LIMIT = 2;
 
       if (!isPremium && (user.aiAssistCount ?? 0) >= FREE_ASSIST_LIMIT) {
