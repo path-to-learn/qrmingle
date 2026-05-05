@@ -139,8 +139,8 @@ profilesRouter.delete("/:id", requireAuth, async (req, res) => {
   }
 });
 
-// Public profile by slug — logs the scan
-profilesRouter.get("/p/:slug", async (req, res) => {
+// Exported so routes.ts can mount it at /api/p/:slug (the client-facing path)
+export async function handlePublicProfile(req: any, res: any) {
   try {
     const { slug } = req.params;
     const profile = await storage.getProfileBySlug(slug);
@@ -197,4 +197,6 @@ profilesRouter.get("/p/:slug", async (req, res) => {
     console.error("Failed to get profile:", error);
     res.status(500).json({ message: "Failed to get profile" });
   }
-});
+}
+
+profilesRouter.get("/p/:slug", handlePublicProfile);

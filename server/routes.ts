@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import path from "path";
 import fs from "fs";
 import { setupAuth } from "./auth";
-import { profilesRouter } from "./routes/profiles";
+import { profilesRouter, handlePublicProfile } from "./routes/profiles";
 import { analyticsRouter } from "./routes/analytics";
 import { aiRouter } from "./routes/ai";
 import { reviewsRouter } from "./routes/reviews";
@@ -47,6 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const api = express.Router();
   app.use("/api", api);
 
+  api.get("/p/:slug", handlePublicProfile);
   api.use("/profiles", profilesRouter);
   api.use("/analytics", analyticsRouter);
   api.use("/ai", aiRouter);
