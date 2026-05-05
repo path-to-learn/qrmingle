@@ -64,6 +64,7 @@ export default function ProfileEditor({
   const assistsUsed = user?.aiAssistCount ?? 0;
   const FREE_LIMIT = 2;
   const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
+  const isNativeApp = !!(window as any).Capacitor;
 
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
@@ -255,7 +256,7 @@ export default function ProfileEditor({
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {canUseAi ? (
+          {isNativeApp && canUseAi ? (
             <button
               type="button"
               onClick={() => setShowAiModal(true)}
@@ -264,7 +265,7 @@ export default function ProfileEditor({
               <Sparkles size={13} />
               Build with AI
             </button>
-          ) : (
+          ) : isNativeApp ? (
             <button
               type="button"
               onClick={() => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
@@ -273,7 +274,7 @@ export default function ProfileEditor({
               <Sparkles size={13} />
               Build with AI
             </button>
-          )}
+          ) : null}
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="h-5 w-5" />
             <span className="sr-only">Close</span>
