@@ -14,6 +14,7 @@ import { miscRouter } from "./routes/misc";
 
 const ALLOWED_ORIGINS = new Set([
   "https://qrmingle.com",
+  "https://www.qrmingle.com",
   "http://localhost:5000",
   "capacitor://localhost",
 ]);
