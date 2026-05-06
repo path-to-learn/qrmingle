@@ -24,10 +24,16 @@ export default function Register() {
     if (user) navigate("/profiles");
   }, [user, navigate]);
 
+  const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password || !confirmPassword) {
       toast({ title: "Error", description: t('register.error.fillAll'), variant: "destructive" });
+      return;
+    }
+    if (!isValidEmail(username)) {
+      toast({ title: "Error", description: "Please enter a valid email address as your username.", variant: "destructive" });
       return;
     }
     if (password !== confirmPassword) {
@@ -106,7 +112,7 @@ export default function Register() {
           <div style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", borderRadius: "24px", padding: "24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
             <div style={{ marginBottom: "14px" }}>
               <label style={labelStyle}>{t('register.username')}</label>
-              <input type="text" placeholder={t('register.usernamePlaceholder')} value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
+              <input type="email" placeholder={t('register.usernamePlaceholder')} value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
             </div>
             <div style={{ marginBottom: "14px" }}>
               <label style={labelStyle}>{t('register.password')}</label>
@@ -155,8 +161,8 @@ export default function Register() {
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">Username</label>
-              <Input id="username" type="text" placeholder="Choose a username" value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} />
+              <label htmlFor="username" className="text-sm font-medium">Email</label>
+              <Input id="username" type="email" placeholder="Enter your email" value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} />
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">Password</label>

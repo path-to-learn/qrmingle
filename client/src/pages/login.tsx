@@ -91,7 +91,7 @@ export default function Login() {
             <div style={{ marginBottom: "16px" }}>
               <label style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>{t('login.username')}</label>
               <input
-                type="text"
+                type="email"
                 placeholder={t('login.usernamePlaceholder')}
                 value={username}
                 onChange={e => setUsername(e.target.value)}
@@ -163,8 +163,8 @@ export default function Login() {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">Username</label>
-              <Input id="username" type="text" placeholder="Enter your username" value={username} onChange={e => setUsername(e.target.value)} disabled={loginMutation.isPending} />
+              <label htmlFor="username" className="text-sm font-medium">Email</label>
+              <Input id="username" type="email" placeholder="Enter your email" value={username} onChange={e => setUsername(e.target.value)} disabled={loginMutation.isPending} />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">

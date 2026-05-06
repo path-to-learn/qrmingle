@@ -119,6 +119,12 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
+      const isSpecialAccount = ['demo', 'dathwal@qrmingle#2025'].includes(req.body.username);
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!isSpecialAccount && !emailRegex.test(req.body.username)) {
+        return res.status(400).json({ message: "Username must be a valid email address" });
+      }
+
       // For demo user, use simple password storage
       let password = req.body.password;
       if (req.body.username !== 'demo') {
