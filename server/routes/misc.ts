@@ -6,6 +6,14 @@ import fs from "fs";
 import { storage } from "../storage";
 import { requireAuth } from "../middleware";
 import { authLimiter, contactLimiter } from "../limiters";
+import sgMail from "@sendgrid/mail";
+
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+const APP_URL = process.env.APP_URL || "https://www.qrmingle.com";
+const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || "noreply@qrmingle.com";
 
 export const miscRouter = express.Router();
 
@@ -32,6 +40,37 @@ miscRouter.post("/forgot-password", authLimiter, async (req, res) => {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 1);
     await storage.createPasswordResetToken(resetToken, user.id, expiresAt);
+
+    const resetLink = `${APP_URL}/forgot-password?token=${resetToken}`;
+
+    if (process.env.SENDGRID_API_KEY) {
+      await sgMail.send({
+        to: user.username,
+        from: FROM_EMAIL,
+        subject: "Reset your QrMingle password",
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+            <h2 style="color:#6366f1;margin-bottom:8px">Reset your password</h2>
+            <p style="color:#475569;margin-bottom:24px">
+              We received a request to reset your QrMingle password.
+              Click the button below — the link expires in 1 hour.
+            </p>
+            <a href="${resetLink}"
+               style="display:inline-block;background:#6366f1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">
+              Reset Password
+            </a>
+            <p style="color:#94a3b8;font-size:13px;margin-top:24px">
+              If you didn't request this, you can safely ignore this email.
+            </p>
+            <p style="color:#cbd5e1;font-size:12px;margin-top:8px">
+              Or copy this link: ${resetLink}
+            </p>
+          </div>
+        `,
+      });
+    } else {
+      console.warn("SENDGRID_API_KEY not set — skipping email. Reset token:", resetToken);
+    }
 
     return res.json({
       success: true,

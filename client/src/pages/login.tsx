@@ -136,7 +136,13 @@ export default function Login() {
           </button>
         </form>
 
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "15px", marginTop: "24px", textAlign: "center" }}>
+        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "16px", textAlign: "center" }}>
+          <span onClick={() => navigate("/forgot-password")} style={{ color: "rgba(255,255,255,0.75)", cursor: "pointer", textDecoration: "underline" }}>
+            Forgot password?
+          </span>
+        </p>
+
+        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "15px", marginTop: "16px", textAlign: "center" }}>
           {t('login.noAccount')}{" "}
           <span onClick={() => navigate("/register")} style={{ color: "white", fontWeight: 700, cursor: "pointer" }}>
             {t('login.signUp')}
