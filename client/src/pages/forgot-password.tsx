@@ -226,7 +226,7 @@ export default function ForgotPassword() {
   const renderResetPasswordForm = () => (
     <form onSubmit={handleResetPassword}>
       <CardContent className="space-y-4">
-        {!resetToken && (
+        {!resetToken && !searchParams.get("token") && (
           <div className="space-y-2">
             <label htmlFor="token" className="text-sm font-medium">
               Reset Token
