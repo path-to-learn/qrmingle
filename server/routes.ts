@@ -40,6 +40,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files
   app.use("/uploads", express.static(uploadsDir));
 
+  // Apple Universal Links — must be served at this exact path over HTTPS with no redirect
+  app.get("/.well-known/apple-app-site-association", (_req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.json({
+      applinks: {
+        details: [
+          {
+            appIDs: ["9989T6ZMB9.com.qrmingle.app"],
+            components: [
+              { "/": "/forgot-password*" },
+              { "/": "/p/*" },
+            ],
+          },
+        ],
+      },
+    });
+  });
+
   // Public QR landing page — handled by the frontend router
   app.get("/p/:slug", (_req, res) => {
     res.sendFile("index.html", { root: "./dist/public" });
