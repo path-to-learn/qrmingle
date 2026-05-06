@@ -77,8 +77,9 @@ miscRouter.post("/forgot-password", authLimiter, async (req, res) => {
       message: "If your account exists, a password reset link has been sent to your email.",
     });
   } catch (error: any) {
-    const sgBody = error?.response?.body;
-    console.error("Forgot password error:", sgBody ? JSON.stringify(sgBody) : error);
+    console.error("Forgot password error code:", error?.code);
+    console.error("Forgot password error message:", error?.message);
+    console.error("Forgot password SG body:", JSON.stringify(error?.response?.body ?? null));
     res.status(500).json({ message: "Failed to process forgot password request" });
   }
 });
