@@ -51,11 +51,14 @@ aiRouter.post("/card-assist", requireAuth, async (req, res) => {
       messages: [{ role: "user", content: prompt }],
     });
 
-    const text = message.content[0].type === "text" ? message.content[0].text.trim() : "{}";
+    const raw = message.content[0].type === "text" ? message.content[0].text.trim() : "{}";
+    // Strip markdown code fences if present (e.g. ```json ... ```)
+    const text = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
     let result: any;
     try {
       result = JSON.parse(text);
     } catch {
+      console.error("AI JSON parse failed. Raw response:", raw);
       return res.status(500).json({ message: "AI returned an unexpected response. Please try again." });
     }
 
