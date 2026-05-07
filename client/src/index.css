@@ -77,6 +77,10 @@
   }
 }
 
+/* Prevent any element from causing horizontal scroll on iOS */
+* { max-width: 100%; }
+img, video, canvas, input[type="range"] { max-width: 100%; }
+
 /* Hide scrollbar on welcome card carousel */
 .welcome-scroll::-webkit-scrollbar { display: none; }
 

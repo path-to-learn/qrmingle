@@ -292,8 +292,8 @@ export default function CardsPage() {
 
       {/* Profile Editor */}
       {showEditor && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, overflow: "hidden" }}>
-        <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", background: "white", paddingBottom: "80px" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, overflow: "hidden", width: "100vw", maxWidth: "100vw" }}>
+        <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", background: "white", paddingBottom: "80px", width: "100%", maxWidth: "100vw", boxSizing: "border-box" }}>
           <ProfileEditor
             profileData={editingProfile}
             onSubmit={(data) => {
