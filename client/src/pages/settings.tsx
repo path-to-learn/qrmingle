@@ -43,7 +43,7 @@ export default function Settings() {
   ];
 
   return (
-    <div style={{ paddingBottom: "80px" }}>
+    <div style={{ paddingBottom: "80px", overflowX: "hidden", width: "100%" }}>
       {/* Profile header */}
       <div style={{
         background: "var(--app-accent, #6366f1)",
@@ -64,8 +64,8 @@ export default function Settings() {
             {user.username.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <div style={{ color: "white", fontWeight: 700, fontSize: "18px" }}>{user.username}</div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ color: "white", fontWeight: 700, fontSize: "18px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.username}</div>
           <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px" }}>
             {user.isPremium ? t('settings.premiumMember') : t('settings.freeAccount')}
           </div>
