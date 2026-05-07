@@ -64,7 +64,7 @@ function OfflineBanner() {
 function AppRouter() {
   const [location] = useLocation();
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ overflowX: "hidden", width: "100%", maxWidth: "100vw" }}>
       {!["/", "/login", "/register"].includes(location) && (
         location === "/profiles"
           ? <div className="profiles-header-wrap" style={{ display: "none" }}><Header /></div>

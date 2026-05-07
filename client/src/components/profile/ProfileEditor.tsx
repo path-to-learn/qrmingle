@@ -252,7 +252,7 @@ export default function ProfileEditor({
   };
 
   return (
-    <Card className="mb-6 w-full overflow-hidden">
+    <Card className="mb-6 w-full overflow-hidden" style={{ maxWidth: "100%", boxSizing: "border-box" }}>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -285,11 +285,11 @@ export default function ProfileEditor({
       {/* AI Modal */}
       {showAiModal && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', overflow: 'hidden' }}
           onClick={() => setShowAiModal(false)}
         >
           <div
-            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: '540px', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}
+            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100vw', maxWidth: '100vw', display: 'flex', flexDirection: 'column', maxHeight: '80vh', overflowX: 'hidden', boxSizing: 'border-box' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Header — always visible */}
