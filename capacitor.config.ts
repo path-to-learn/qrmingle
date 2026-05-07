@@ -10,10 +10,10 @@ const config: CapacitorConfig = {
   appName: 'QrMingle',
   webDir: 'dist/public',
   // DEV ONLY — uncomment for local dev, comment out for demo/release builds:
-  // server: {
-  //   url: 'http://10.0.0.179:5000',
-  //   cleartext: true
-  // },
+  server: {
+    url: 'http://10.0.0.179:5000',
+    cleartext: true
+  },
   ios: {
     contentInset: 'always',
     scrollEnabled: true,

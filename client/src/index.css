@@ -81,6 +81,9 @@
 * { max-width: 100%; }
 img, video, canvas, input[type="range"] { max-width: 100%; }
 
+/* flex-col containers shrink-wrap on iOS WebKit — always give them full width */
+.flex-col { width: 100%; }
+
 /* Hide scrollbar on welcome card carousel */
 .welcome-scroll::-webkit-scrollbar { display: none; }
 

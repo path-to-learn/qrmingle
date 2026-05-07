@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -255,41 +256,48 @@ export default function ProfileEditor({
     <Card className="mb-6 w-full overflow-hidden" style={{ maxWidth: "100%", boxSizing: "border-box" }}>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {isNativeApp && canUseAi ? (
-            <button
-              type="button"
-              onClick={() => setShowAiModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}
-            >
-              <Sparkles size={13} />
-              Build with AI
-            </button>
-          ) : isNativeApp ? (
-            <button
-              type="button"
-              onClick={() => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
-              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', background: '#f1f5f9', color: '#94a3b8', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-            >
-              <Sparkles size={13} />
-              Build with AI
-            </button>
-          ) : null}
-          <Button variant="ghost" size="icon" onClick={onCancel}>
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
-          </Button>
-        </div>
+        <Button variant="ghost" size="icon" onClick={onCancel}>
+          <X className="h-5 w-5" />
+          <span className="sr-only">Close</span>
+        </Button>
       </CardHeader>
 
-      {/* AI Modal */}
-      {showAiModal && (
+      {/* AI Banner — full-width, prominent, easy to tap */}
+      {isNativeApp && (
+        <div style={{ padding: '0 24px 16px' }}>
+          <button
+            type="button"
+            onClick={canUseAi ? () => setShowAiModal(true) : () => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
+            style={{
+              width: '100%', padding: '13px 16px',
+              background: canUseAi ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : '#f1f5f9',
+              color: canUseAi ? 'white' : '#94a3b8',
+              border: 'none', borderRadius: '12px',
+              fontSize: '15px', fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              WebkitTapHighlightColor: 'transparent',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Sparkles size={17} />
+            Fill profile with AI
+            {!isPremium && (
+              <span style={{ fontSize: '12px', fontWeight: 500, opacity: 0.75, marginLeft: '4px' }}>
+                · {assistsUsed}/{FREE_LIMIT} free
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* AI Modal — rendered in a Portal at document.body to avoid iOS fixed-inside-overflow-hidden bug */}
+      {showAiModal && createPortal(
         <div
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', overflow: 'hidden' }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end' }}
           onClick={() => setShowAiModal(false)}
         >
           <div
-            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100vw', maxWidth: '100vw', display: 'flex', flexDirection: 'column', maxHeight: '80vh', overflowX: 'hidden', boxSizing: 'border-box' }}
+            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100%', display: 'flex', flexDirection: 'column', maxHeight: '80vh', overflowX: 'hidden', boxSizing: 'border-box' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Header — always visible */}
@@ -333,17 +341,18 @@ export default function ProfileEditor({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-8">
-              <div className="w-full md:w-1/3">
+          <CardContent style={{ overflowX: 'hidden' }}>
+            <div className="flex flex-col md:flex-row gap-8" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+              <div className="w-full md:w-1/3" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                 <div className="mb-6">
                   <FormLabel className="block mb-2">Profile Photo</FormLabel>
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center w-full">
                     <Avatar 
                       className="mb-3" 
                       style={{ 
@@ -500,7 +509,7 @@ export default function ProfileEditor({
 
                 <div className="mb-6">
                   <FormLabel className="block mb-2">Background Image</FormLabel>
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center w-full">
                     <div className="relative w-full h-32 mb-3 bg-muted rounded-md overflow-hidden">
                       {backgroundPreviewUrl ? (
                         <img
@@ -904,7 +913,7 @@ export default function ProfileEditor({
                 </div>
               </div>
 
-              <div className="w-full md:w-2/3">
+              <div className="w-full md:w-2/3" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <FormField
                     control={form.control}

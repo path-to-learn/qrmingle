@@ -68,3 +68,13 @@ Single source of truth for DB schema and Zod validation, imported by both server
 
 ### Profile limit
 Users can create up to 3 profiles. This is enforced server-side in `POST /api/profiles`. The `PROFILE_LIMIT_REACHED` error type is used client-side to show a specific dialog.
+
+### iOS / WebKit horizontal overflow — known gotcha
+iOS WebKit has a recurring horizontal overflow bug. The global CSS in `index.css` already applies `* { max-width: 100% }`, `overflow-x: hidden` on html/body, and `.flex-col { width: 100% }`.
+
+**Rules to follow when writing layout code:**
+- Never write `flex flex-col items-center` without also adding `w-full`. Without it, the container shrink-wraps and any child with `width: 100%` (sliders, inputs) overflows.
+- Fixed/absolute overlays must always set `width: 100vw; max-width: 100vw; overflow-x: hidden` — not just `right: 0`.
+- Scrollable panels inside overlays need both `overflow-y: auto` AND `overflow-x: hidden` explicitly.
+- Never rely on a single parent's `overflow-x: hidden` to contain a deeply nested overflow — set it at each scrollable boundary.
+- NEVER wrap a scroll container with both `overflow-y: auto` AND `overflow-x: hidden` on the SAME element inside a fixed overlay. iOS WebKit expands the scroll-width for `overflow-y: auto`, then `width: 100%` children calculate against that expanded scroll-width instead of the viewport width. Instead, make the `position: fixed; left: 0; right: 0` element itself the scroll container — its width is definitively viewport width, so `width: 100%` always resolves correctly.
