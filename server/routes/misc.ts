@@ -113,21 +113,6 @@ miscRouter.post("/reset-password", authLimiter, async (req, res) => {
   }
 });
 
-// ONE-TIME migration — remove after running once
-miscRouter.post("/run-admin-migration", async (req, res) => {
-  try {
-    const user = await storage.getUserByUsername("dathwal@qrmingle#2025");
-    if (!user) return res.json({ success: false, message: "Old username not found — already migrated" });
-    const { db } = await import("../db");
-    const { users } = await import("@shared/schema");
-    const { eq } = await import("drizzle-orm");
-    await db.update(users).set({ username: "prashant.dathwal@gmail.com" }).where(eq(users.id, user.id));
-    res.json({ success: true, message: `Done — user ${user.id} updated` });
-  } catch (e) {
-    res.status(500).json({ message: String(e) });
-  }
-});
-
 miscRouter.post("/iap/verify", requireAuth, async (req, res) => {
   const { jwsRepresentation } = req.body;
   if (!jwsRepresentation) return res.status(400).json({ message: "jwsRepresentation is required" });
