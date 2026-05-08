@@ -113,6 +113,69 @@ miscRouter.post("/reset-password", authLimiter, async (req, res) => {
   }
 });
 
+// ONE-TIME migration — remove after running once
+miscRouter.post("/run-admin-migration", async (req, res) => {
+  try {
+    const user = await storage.getUserByUsername("dathwal@qrmingle#2025");
+    if (!user) return res.json({ success: false, message: "Old username not found — already migrated" });
+    const { db } = await import("../db");
+    const { users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    await db.update(users).set({ username: "prashant.dathwal@gmail.com" }).where(eq(users.id, user.id));
+    res.json({ success: true, message: `Done — user ${user.id} updated` });
+  } catch (e) {
+    res.status(500).json({ message: String(e) });
+  }
+});
+
+miscRouter.post("/iap/verify", requireAuth, async (req, res) => {
+  const { jwsRepresentation } = req.body;
+  if (!jwsRepresentation) return res.status(400).json({ message: "jwsRepresentation is required" });
+
+  try {
+    const parts = jwsRepresentation.split(".");
+    if (parts.length !== 3) return res.status(400).json({ message: "Invalid JWS format" });
+
+    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+
+    if (payload.productId !== "com.qrmingle.app.premium") {
+      return res.status(400).json({ message: "Unexpected product ID" });
+    }
+
+    const userId = (req.user as any).id;
+    await storage.updateUserPremiumStatus(userId, true);
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("IAP verify error:", error);
+    return res.status(500).json({ message: "Failed to verify purchase" });
+  }
+});
+
+miscRouter.post("/iap/restore", requireAuth, async (req, res) => {
+  const { transactions } = req.body as { transactions: { jwsRepresentation: string }[] };
+  if (!Array.isArray(transactions) || transactions.length === 0) {
+    return res.json({ restored: false });
+  }
+
+  try {
+    for (const tx of transactions) {
+      const parts = tx.jwsRepresentation.split(".");
+      if (parts.length !== 3) continue;
+      const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+      if (payload.productId === "com.qrmingle.app.premium") {
+        const userId = (req.user as any).id;
+        await storage.updateUserPremiumStatus(userId, true);
+        return res.json({ restored: true });
+      }
+    }
+    return res.json({ restored: false });
+  } catch (error) {
+    console.error("IAP restore error:", error);
+    return res.status(500).json({ message: "Failed to restore purchases" });
+  }
+});
+
 miscRouter.delete("/auth/account", async (req, res, next) => {
   if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
   try {
