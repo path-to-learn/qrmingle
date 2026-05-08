@@ -8,7 +8,7 @@
  */
 export function isAdmin(user: any): boolean {
   // Only the dedicated admin user has admin privileges
-  return !!user && user.username === 'dathwal@qrmingle#2025';
+  return !!user && user.username === 'prashant.dathwal@gmail.com';
 }
 
 /**

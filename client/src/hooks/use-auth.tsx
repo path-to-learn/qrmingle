@@ -38,6 +38,7 @@ type AuthContextType = {
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<User, Error, RegisterData>;
   deleteAccountMutation: UseMutationResult<void, Error, void>;
+  refetchUser: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -165,6 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const refetchUser = useCallback(() => {
+    return queryClient.invalidateQueries({ queryKey: ['/api/auth/validate'] });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -177,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutMutation,
         registerMutation,
         deleteAccountMutation,
+        refetchUser,
       }}
     >
       {children}
@@ -192,7 +198,7 @@ export function useAuth() {
   
   const isEffectivelyPremium = () => {
     if (!context.user) return false;
-    return context.user.isPremium || context.user.isAdmin || context.user.username === 'dathwal@qrmingle#2025';
+    return context.user.isPremium || context.user.isAdmin || context.user.username === 'prashant.dathwal@gmail.com';
   };
   
   return {

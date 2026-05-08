@@ -1,7 +1,7 @@
 import type { Request } from "express";
 import { storage } from "../storage";
 
-export const ADMIN_USERNAME = "dathwal@qrmingle#2025";
+export const ADMIN_USERNAME = "prashant.dathwal@gmail.com";
 
 export function checkIsPremium(user: {
   isPremium: boolean;

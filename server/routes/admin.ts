@@ -169,3 +169,19 @@ adminRouter.post("/send-reset-email", async (req, res) => {
     res.status(500).json({ message: "Failed to send reset email" });
   }
 });
+
+// ONE-TIME migration endpoint — remove after use
+adminRouter.post("/migrate-admin-username", async (req, res) => {
+  try {
+    const user = await storage.getUserByUsername("dathwal@qrmingle#2025");
+    if (!user) return res.status(404).json({ message: "Old username not found — already migrated?" });
+    const { db } = await import("../db");
+    const { users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    await db.update(users).set({ username: "prashant.dathwal@gmail.com" }).where(eq(users.id, user.id));
+    res.json({ success: true, message: `Updated user ${user.id} username to prashant.dathwal@gmail.com` });
+  } catch (error) {
+    console.error("Migration error:", error);
+    res.status(500).json({ message: String(error) });
+  }
+});

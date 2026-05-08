@@ -119,7 +119,7 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const isSpecialAccount = ['demo', 'dathwal@qrmingle#2025'].includes(req.body.username);
+      const isSpecialAccount = ['demo', 'prashant.dathwal@gmail.com'].includes(req.body.username);
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!isSpecialAccount && !emailRegex.test(req.body.username)) {
         return res.status(400).json({ message: "Username must be a valid email address" });
@@ -131,8 +131,8 @@ export function setupAuth(app: Express) {
         password = await hashPassword(password);
       }
 
-      // Check if this is the admin user (dathwal@qrmingle#2025)
-      const isAdmin = req.body.username === 'dathwal@qrmingle#2025';
+      // Check if this is the admin user (prashant.dathwal@gmail.com)
+      const isAdmin = req.body.username === 'prashant.dathwal@gmail.com';
 
       const user = await storage.createUser({
         ...req.body,
@@ -167,7 +167,7 @@ export function setupAuth(app: Express) {
   app.post("/api/auth/login", authLimiter, passport.authenticate("local"), async (req, res) => {
     const user = req.user as User;
     // Ensure admin flag is always correct regardless of when account was created
-    if (user.username === 'dathwal@qrmingle#2025' && !user.isAdmin) {
+    if (user.username === 'prashant.dathwal@gmail.com' && !user.isAdmin) {
       await storage.updateUserAdminStatus(user.id, true);
       user.isAdmin = true;
     }
