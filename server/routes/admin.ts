@@ -5,6 +5,11 @@ import fs from "fs";
 import crypto from "crypto";
 import { storage } from "../storage";
 import { requireAdmin } from "../middleware";
+import sgMail from "@sendgrid/mail";
+
+if (process.env.SENDGRID_API_KEY) sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const APP_URL = process.env.APP_URL || "https://www.qrmingle.com";
+const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || "noreply@qrmingle.com";
 
 export const adminRouter = express.Router();
 
@@ -139,9 +144,25 @@ adminRouter.post("/send-reset-email", async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetLink = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}&username=${encodeURIComponent(username)}`;
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+    await storage.createPasswordResetToken(resetToken, user.id, expiresAt);
 
-    // TODO(F3): send via SendGrid when SENDGRID_API_KEY is set
+    const resetLink = `${APP_URL}/forgot-password?token=${resetToken}`;
+    await sgMail.send({
+      to: username,
+      from: FROM_EMAIL,
+      subject: "Reset your QrMingle password",
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+          <h2 style="color:#6366f1;margin-bottom:8px">Reset your password</h2>
+          <p style="color:#475569;margin-bottom:24px">An admin has triggered a password reset for your account. Click the button below — the link expires in 1 hour.</p>
+          <a href="${resetLink}" style="display:inline-block;background:#6366f1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Reset Password</a>
+          <p style="color:#cbd5e1;font-size:12px;margin-top:24px">Or copy this link: ${resetLink}</p>
+        </div>
+      `,
+    });
+
     res.json({ success: true, message: "Password reset instructions have been sent" });
   } catch (error) {
     console.error("Error sending password reset email:", error);

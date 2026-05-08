@@ -30,6 +30,7 @@ import Settings from "@/pages/settings";
 import Scan from "@/pages/scan";
 import Footer from "./components/layout/Footer";
 import { useState, useEffect } from "react";
+import { App as CapApp } from "@capacitor/app";
 
 function MobileHidden({ children }: { children: React.ReactNode }) {
   return null; // Hidden on mobile app - re-enable for web if needed
@@ -62,7 +63,19 @@ function OfflineBanner() {
 
 // Router component
 function AppRouter() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+
+  // Handle Universal Links (iOS deep links) — navigate to the path when app opens via URL
+  useEffect(() => {
+    const listener = CapApp.addListener("appUrlOpen", (event) => {
+      try {
+        const url = new URL(event.url);
+        const path = url.pathname + url.search;
+        if (path && path !== "/") navigate(path);
+      } catch {}
+    });
+    return () => { listener.then(h => h.remove()); };
+  }, [navigate]);
   return (
     <div className="min-h-screen flex flex-col" style={{ overflowX: "hidden", width: "100%", maxWidth: "100vw" }}>
       {!["/", "/login", "/register"].includes(location) && (

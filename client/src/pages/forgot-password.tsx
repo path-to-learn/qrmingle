@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,18 +10,28 @@ import { ArrowLeftIcon, MailIcon, KeyIcon, LockIcon, CheckCircleIcon } from "luc
 
 export default function ForgotPassword() {
   const [location, setLocation] = useLocation();
-  const [searchParams] = useState(new URLSearchParams(window.location.search));
+  const search = useSearch(); // reactive — updates when wouter navigates (e.g. Universal Link deep link)
+  const urlToken = new URLSearchParams(search).get("token") || "";
   const { toast } = useToast();
   const [email, setEmail] = useState("");
-  const [token, setToken] = useState(searchParams.get("token") || "");
+  const [token, setToken] = useState(urlToken);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isResetMode, setIsResetMode] = useState(!!token);
+  const [isResetMode, setIsResetMode] = useState(!!urlToken);
   const [resetComplete, setResetComplete] = useState(false);
   const [resetToken, setResetToken] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+
+  // Sync token from URL when navigated via Universal Link after app is already open
+  useEffect(() => {
+    const t = new URLSearchParams(search).get("token");
+    if (t) {
+      setToken(t);
+      setIsResetMode(true);
+    }
+  }, [search]);
 
   // Handle token requests
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -226,7 +236,12 @@ export default function ForgotPassword() {
   const renderResetPasswordForm = () => (
     <form onSubmit={handleResetPassword}>
       <CardContent className="space-y-4">
-        {!resetToken && !searchParams.get("token") && (
+        {(urlToken || token) && !resetToken ? (
+          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center gap-2 text-sm text-green-700">
+            <CheckCircleIcon className="h-4 w-4 flex-shrink-0" />
+            Reset link verified — enter your new password below
+          </div>
+        ) : !resetToken && !urlToken ? (
           <div className="space-y-2">
             <label htmlFor="token" className="text-sm font-medium">
               Reset Token
@@ -241,7 +256,7 @@ export default function ForgotPassword() {
               required
             />
           </div>
-        )}
+        ) : null}
         <div className="space-y-2">
           <label htmlFor="newPassword" className="text-sm font-medium">
             New Password
