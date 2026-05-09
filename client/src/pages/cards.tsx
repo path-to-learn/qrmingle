@@ -31,13 +31,7 @@ export default function CardsPage() {
   const [touchStartX, setTouchStartX] = useState(0);
 
   const { data: profiles = [], isLoading, refetch } = useQuery<any[]>({
-    queryKey: ['/api/profiles', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const response = await fetch(`/api/profiles?userId=${user.id}`);
-      if (!response.ok) throw new Error('Failed to fetch profiles');
-      return response.json();
-    },
+    queryKey: ['/api/profiles'],
     enabled: !!user,
   });
 
