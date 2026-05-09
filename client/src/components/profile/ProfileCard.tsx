@@ -155,7 +155,7 @@ export default function ProfileCard({
   return (
     <>
       {/* Outer wrapper stretches to parent height so action buttons align across cards */}
-      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%", minWidth: 0, overflowX: "hidden" }}>
 
       {/* ── Portrait card — tap navigates to full preview ── */}
       <div

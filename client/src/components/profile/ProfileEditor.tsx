@@ -119,7 +119,6 @@ export default function ProfileEditor({
   );
   const [showCropper, setShowCropper] = useState(false);
   const [imageToProcess, setImageToProcess] = useState<string>("");
-  const [tempImageData, setTempImageData] = useState<string>("");
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),

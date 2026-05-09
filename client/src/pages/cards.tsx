@@ -207,6 +207,9 @@ export default function CardsPage() {
           display: "flex",
           flexDirection: "column",
           minHeight: "calc(100vh - 80px)", /* fill main area so nav row sits above tab bar */
+          width: "100%",
+          boxSizing: "border-box",
+          overflowX: "hidden",
         }}
       >
         {/* Dot indicators */}
@@ -290,11 +293,12 @@ export default function CardsPage() {
         )}
       </div>
 
-      {/* Profile Editor */}
+      {/* Profile Editor — outer fixed div IS the scroll container (CLAUDE.md pattern) */}
       {showEditor && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
-          overflowY: "auto", background: "white",
+          overflowY: "auto", overflowX: "hidden",
+          background: "white",
           paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
           boxSizing: "border-box",
         }}>

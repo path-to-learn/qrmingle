@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, BarChart2, Crown, Clock, Shield, ChevronDown, X } from "lucide-react";
 import { isAdmin } from "@/lib/video";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Capacitor } from "@capacitor/core";
 
 export default function Header() {

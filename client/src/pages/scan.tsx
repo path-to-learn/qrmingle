@@ -1,12 +1,13 @@
 import { QrCode, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Capacitor } from "@capacitor/core";
 
 export default function Scan() {
 
   const handleScan = () => {
     // On iOS, opening camera:// or using the native share will trigger QR scanning
     // The simplest approach is to direct users to use the native camera
-    const isCapacitor = !!(window as any).Capacitor;
+    const isCapacitor = Capacitor.isNativePlatform();
     if (isCapacitor) {
       // On native app, user can use iPhone's built-in camera which auto-detects QR
       alert("To scan a QR code, open your iPhone's Camera app and point it at the QR code. It will automatically detect and open the QRMingle profile.");

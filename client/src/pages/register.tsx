@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Capacitor } from "@capacitor/core";
 
 const GRADIENT = "linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%)";
 
@@ -17,7 +18,7 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const isCapacitor = !!(window as any).Capacitor;
+  const isCapacitor = Capacitor.isNativePlatform();
   const { t } = useTranslation();
 
   useEffect(() => {

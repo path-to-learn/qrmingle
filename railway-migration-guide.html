@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QrMingle — Railway Migration Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      background: #f9f9f9;
+      padding: 40px 20px;
+    }
+
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 52px 60px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+
+    /* Header */
+    .doc-header {
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 28px;
+      margin-bottom: 40px;
+    }
+    .doc-header .label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .doc-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 10px;
+    }
+    .doc-header .meta {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    /* Section headings */
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+      margin: 44px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #374151;
+      margin: 24px 0 10px;
+    }
+
+    p { margin-bottom: 14px; }
+    p:last-child { margin-bottom: 0; }
+
+    /* Callout boxes */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .callout.green {
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      color: #166534;
+    }
+    .callout.blue {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      color: #1e40af;
+    }
+    .callout.amber {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      color: #92400e;
+    }
+    .callout.red {
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+    }
+    .callout strong { display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 16px 0 24px;
+    }
+    th {
+      background: #f3f4f6;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+    td {
+      padding: 10px 14px;
+      border: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #fafafa; }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .badge.green { background: #dcfce7; color: #166534; }
+    .badge.red { background: #fee2e2; color: #991b1b; }
+    .badge.amber { background: #fef3c7; color: #92400e; }
+    .badge.gray { background: #f3f4f6; color: #4b5563; }
+
+    /* Steps */
+    .steps { list-style: none; margin: 16px 0; }
+    .steps li {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #111;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { display: block; margin-bottom: 4px; }
+
+    /* Code blocks */
+    pre, code {
+      font-family: "SF Mono", "Fira Code", "Menlo", monospace;
+      font-size: 13px;
+    }
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+    code {
+      background: #f1f5f9;
+      color: #be185d;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+    .comment { color: #6272a4; }
+    .key { color: #8be9fd; }
+    .val { color: #f1fa8c; }
+
+    /* Phase diagram */
+    .phases {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .phase {
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 14px;
+    }
+    .phase.current { background: #eff6ff; border: 1px solid #bfdbfe; }
+    .phase.test    { background: #fefce8; border: 1px solid #fde68a; }
+    .phase.live    { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .phase.done    { background: #f9fafb; border: 1px solid #e5e7eb; }
+    .phase-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 4px;
+      color: #6b7280;
+    }
+    .phase-desc { color: #374151; }
+    .arrow {
+      text-align: center;
+      color: #9ca3af;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* Checklist */
+    .checklist { list-style: none; margin: 12px 0; }
+    .checklist li {
+      padding: 6px 0 6px 28px;
+      position: relative;
+      font-size: 14px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .checklist li:before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: #9ca3af;
+      font-size: 16px;
+    }
+
+    /* Footer */
+    .doc-footer {
+      margin-top: 52px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 40px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div class="label">QrMingle Infrastructure</div>
+    <h1>Replit → Railway Migration Guide</h1>
+    <div class="meta">Prepared May 2026 &nbsp;·&nbsp; Estimated effort: 30–45 minutes &nbsp;·&nbsp; Risk level: Low</div>
+  </div>
+
+  <!-- Why migrate -->
+  <h2>Why Migrate</h2>
+  <p>Replit costs $20/month and requires a manual <code>git pull</code> in the shell to deploy. Railway costs ~$5–8/month and auto-deploys every time you push to GitHub — nothing else to do.</p>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Replit (current)</th>
+      <th>Railway (new)</th>
+    </tr>
+    <tr>
+      <td>Monthly cost</td>
+      <td>$20/month</td>
+      <td>~$5–8/month</td>
+    </tr>
+    <tr>
+      <td>Deployment</td>
+      <td>Manual — SSH into shell, <code>git pull</code></td>
+      <td>Automatic on every <code>git push</code></td>
+    </tr>
+    <tr>
+      <td>SSL / HTTPS</td>
+      <td>Included</td>
+      <td>Included (Let's Encrypt)</td>
+    </tr>
+    <tr>
+      <td>Custom domain</td>
+      <td>qrmingle.com ✓</td>
+      <td>qrmingle.com ✓</td>
+    </tr>
+    <tr>
+      <td>Auto-scaling</td>
+      <td>Limited</td>
+      <td>Usage-based</td>
+    </tr>
+    <tr>
+      <td><strong>Monthly saving</strong></td>
+      <td colspan="2"><strong>~$12–15/month from day one</strong></td>
+    </tr>
+  </table>
+
+  <!-- The big question: database -->
+  <h2>Is Your Database Tied to Replit?</h2>
+
+  <div class="callout green">
+    <strong>No — you are safe.</strong>
+    Your production database is already on <strong>Neon</strong> (neon.tech), which is fully external and independent of Replit. Your code reads <code>NEON_DATABASE_URL</code> first, which contains a <code>neon.tech</code> connection string. Replit's internal Postgres (<code>DATABASE_URL</code>, <code>PGHOST</code>, etc.) was never used in production.
+  </div>
+
+  <p>This means <strong>zero data migration</strong>. Same database, same users, same profiles. Railway simply points at the same Neon URL that Replit already uses.</p>
+
+  <h3>Your Replit secrets — what to keep and what to leave behind</h3>
+  <table>
+    <tr>
+      <th>Variable</th>
+      <th>What it is</th>
+      <th>Action</th>
+    </tr>
+    <tr>
+      <td><code>NEON_DATABASE_URL</code></td>
+      <td>Your real production database on neon.tech</td>
+      <td><span class="badge green">Copy to Railway</span></td>
+    </tr>
+    <tr>
+      <td><code>SESSION_SECRET</code></td>
+      <td>Signs user sessions</td>
+      <td><span class="badge green">Copy to Railway</span></td>
+    </tr>
+    <tr>
+      <td><code>STRIPE_SECRET_KEY</code></td>
+      <td>Stripe payments backend key</td>
+      <td><span class="badge green">Copy to Railway</span></td>
+    </tr>
+    <tr>
+      <td><code>VITE_STRIPE_PUBLIC_KEY</code></td>
+      <td>Stripe frontend key (used at build time)</td>
+      <td><span class="badge green">Copy to Railway</span></td>
+    </tr>
+    <tr>
+      <td><code>VITE_GA_MEASUREMENT_ID</code></td>
+      <td>Google Analytics (used at build time)</td>
+      <td><span class="badge green">Copy to Railway</span></td>
+    </tr>
+    <tr>
+      <td><code>DATABASE_URL</code></td>
+      <td>Replit's internal Postgres — not reachable outside Replit</td>
+      <td><span class="badge red">Leave behind</span></td>
+    </tr>
+    <tr>
+      <td><code>PGDATABASE</code>, <code>PGHOST</code>, <code>PGPORT</code>, <code>PGUSER</code>, <code>PGPASSWORD</code></td>
+      <td>Replit auto-injects these for its internal DB — not used by your app</td>
+      <td><span class="badge red">Leave behind</span></td>
+    </tr>
+    <tr>
+      <td><code>NODE_ENV</code></td>
+      <td>Must be set to <code>production</code></td>
+      <td><span class="badge amber">Add new on Railway</span></td>
+    </tr>
+    <tr>
+      <td><code>ANTHROPIC_API_KEY</code></td>
+      <td>Required for AI Card Builder — get from console.anthropic.com</td>
+      <td><span class="badge amber">Add new on Railway</span></td>
+    </tr>
+  </table>
+
+  <!-- How dual deployment works -->
+  <h2>How Dual Deployment Works</h2>
+  <p>During migration you will briefly have two servers running, but they never serve the same domain simultaneously. DNS is the single switch that controls which server handles <code>qrmingle.com</code>.</p>
+
+  <div class="phases">
+    <div class="phase current">
+      <div class="phase-label">Phase 1 — Today</div>
+      <div class="phase-desc"><strong>qrmingle.com → Replit → Neon DB</strong><br>Everything as normal. No changes yet.</div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="phase test">
+      <div class="phase-label">Phase 2 — Testing (a day or two)</div>
+      <div class="phase-desc">
+        <strong>qrmingle.com → Replit → Neon DB</strong> &nbsp;← real users, untouched<br>
+        <strong>qrmingle-xyz.railway.app → Railway → same Neon DB</strong> &nbsp;← you testing here<br>
+        <br>Both servers share the same database safely. Any test account you create on the Railway URL appears in the live database — that is expected and fine.
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="phase live">
+      <div class="phase-label">Phase 3 — DNS cutover (5 minutes)</div>
+      <div class="phase-desc"><strong>qrmingle.com → Railway → Neon DB</strong><br>One DNS record change at your domain registrar. Replit still runs but receives zero traffic. Monitor for 48 hours.</div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="phase done">
+      <div class="phase-label">Phase 4 — Done</div>
+      <div class="phase-desc"><strong>Cancel Replit subscription.</strong> Railway is your only server from here on.</div>
+    </div>
+  </div>
+
+  <!-- Registration -->
+  <h2>Railway Registration &amp; Payment</h2>
+  <ul style="padding-left:20px; margin-bottom:14px;">
+    <li style="margin-bottom:8px;">Go to <strong>railway.app</strong> → sign up with your GitHub account (one click, no forms)</li>
+    <li style="margin-bottom:8px;">Railway gives you ~$5 free trial credit — enough to test for a few days with no card needed</li>
+    <li style="margin-bottom:8px;">To go live: add a credit/debit card → Hobby plan (~$5/month base, usage on top)</li>
+    <li style="margin-bottom:8px;">No annual commitment — monthly billing, cancel anytime</li>
+    <li>Expected bill at your traffic level: <strong>$5–8/month total</strong></li>
+  </ul>
+
+  <!-- Step by step -->
+  <h2>Step-by-Step Migration</h2>
+
+  <h3>Phase 1 — Set up Railway (30 minutes)</h3>
+  <ol class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Create Railway account</strong>
+        Go to railway.app → Continue with GitHub → authorise access to your repos.
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>New Project → Deploy from GitHub</strong>
+        Select the <code>qrmingle</code> repository. Railway detects Node.js automatically.
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Set build and start commands</strong>
+        In Railway dashboard → Settings → Build &amp; Deploy:
+        <pre><span class="key">Build command:</span>  <span class="val">npm run build</span>
+<span class="key">Start command:</span>  <span class="val">npm run start</span></pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Add environment variables</strong>
+        Railway dashboard → Variables → add each one:
+        <pre><span class="comment"># Copy from Replit</span>
+<span class="key">NEON_DATABASE_URL</span>=<span class="val">your_neon_connection_string</span>
+<span class="key">SESSION_SECRET</span>=<span class="val">your_session_secret</span>
+<span class="key">STRIPE_SECRET_KEY</span>=<span class="val">sk_live_...</span>
+<span class="key">VITE_STRIPE_PUBLIC_KEY</span>=<span class="val">pk_live_...</span>
+<span class="key">VITE_GA_MEASUREMENT_ID</span>=<span class="val">G-XXXXXXX</span>
+
+<span class="comment"># Add new</span>
+<span class="key">NODE_ENV</span>=<span class="val">production</span>
+<span class="key">ANTHROPIC_API_KEY</span>=<span class="val">sk-ant-...</span>   <span class="comment"># from console.anthropic.com</span></pre>
+        <div class="callout amber" style="margin-top:10px;">
+          <strong>Note on VITE_ variables</strong>
+          Variables starting with <code>VITE_</code> are embedded into the frontend at build time — not runtime. They must be present in Railway's env vars <em>before</em> the first build runs. Set them before clicking Deploy.
+        </div>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>Deploy and wait (~2 minutes)</strong>
+        Railway builds your app. Watch the build log for errors. When complete, Railway gives you a URL like <code>qrmingle-production.up.railway.app</code>.
+      </div>
+    </li>
+  </ol>
+
+  <h3>Phase 2 — Test on the Railway URL (1–2 days)</h3>
+  <p>Use the <code>*.railway.app</code> URL to verify everything works before touching your domain. Go through this checklist:</p>
+  <ul class="checklist">
+    <li>Home page loads correctly</li>
+    <li>Register a new account</li>
+    <li>Log in / log out</li>
+    <li>Create a profile and add social links</li>
+    <li>QR code generates and scans correctly</li>
+    <li>Public profile page (<code>/p/slug</code>) loads for a visitor</li>
+    <li>AI Card Builder works (requires ANTHROPIC_API_KEY to be set)</li>
+    <li>Analytics page loads for a profile</li>
+    <li>Admin panel loads (log in as admin user)</li>
+    <li>Stripe payment flow (if active — can test with Stripe test mode)</li>
+    <li>No errors in Railway's log viewer</li>
+  </ul>
+
+  <h3>Phase 3 — DNS Cutover (5 minutes + propagation)</h3>
+  <ol class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Add custom domain in Railway</strong>
+        Railway dashboard → Settings → Custom Domain → add <code>qrmingle.com</code> and <code>www.qrmingle.com</code>. Railway shows you a CNAME target (e.g. <code>qrmingle.up.railway.app</code>).
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Update DNS at your domain registrar</strong>
+        Log into wherever you bought <code>qrmingle.com</code> → DNS settings → update the CNAME record for <code>@</code> (root) and <code>www</code> to point to the Railway CNAME target.
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Wait for propagation</strong>
+        Usually 5–30 minutes. Railway handles SSL automatically once the domain resolves. You can check propagation at <code>dnschecker.org</code>.
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Verify qrmingle.com loads from Railway</strong>
+        Visit the site, check the Railway log for incoming requests. Replit is now idle.
+      </div>
+    </li>
+  </ol>
+
+  <h3>Phase 4 — Update Stripe Webhook (5 minutes)</h3>
+  <div class="callout amber">
+    <strong>Only needed if Stripe payments are active</strong>
+    Your Stripe webhook endpoint is currently registered to the Replit URL. After the DNS switch it resolves correctly through <code>qrmingle.com</code> so this may self-correct — but verify in the Stripe dashboard.
+  </div>
+  <p>Stripe dashboard → Developers → Webhooks → confirm the endpoint URL is <code>https://qrmingle.com/api/stripe-webhook</code>. If it still shows a Replit URL, update it.</p>
+
+  <h3>Phase 5 — Monitor then cancel Replit</h3>
+  <ol class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Monitor for 48 hours</strong>
+        Watch Railway's log viewer. Check that users can sign up, log in, and use all features. Keep Replit running as a fallback (you can revert DNS in minutes if anything is wrong).
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Cancel Replit subscription</strong>
+        Once confident: Replit dashboard → Account → Billing → cancel plan. You save $12–15/month from this point.
+      </div>
+    </li>
+  </ol>
+
+  <!-- Uploaded files note -->
+  <h2>One Thing to Know: Uploaded Files</h2>
+  <p>Tutorial videos are currently stored on Replit's local filesystem at <code>/uploads/</code>. Railway's filesystem is <strong>ephemeral</strong> — files are wiped on every deploy.</p>
+
+  <div class="callout blue">
+    <strong>Recommended action (simple)</strong>
+    There are very few admin-uploaded tutorial videos. After migration, simply re-upload them once through the admin panel. This takes 2 minutes and requires no code changes.
+  </div>
+
+  <p>If this becomes a recurring pain (many uploads, frequent deploys), the proper fix is to store uploads in Cloudflare R2 or AWS S3. That is a ~2 hour dev task for later.</p>
+
+  <!-- New deployment workflow -->
+  <h2>New Deployment Workflow After Migration</h2>
+  <p>This is the biggest quality-of-life improvement. Today you SSH into Replit and run <code>git pull</code>. After Railway:</p>
+
+  <pre><span class="comment"># That's it. Just push your code as normal.</span>
+git add .
+git commit -m "your message"
+git push origin main
+<span class="comment">
+# Railway detects the push, builds, and deploys automatically.
+# Build takes ~90 seconds. Watch it live in the Railway dashboard.
+# No shell access needed. No manual steps.</span></pre>
+
+  <p>Every push to <code>main</code> is a production deploy. If you want to test before deploying to production, create a separate branch — Railway can be configured to only deploy from <code>main</code>.</p>
+
+  <!-- Cost summary -->
+  <h2>Cost Summary</h2>
+  <table>
+    <tr>
+      <th>Service</th>
+      <th>Current (Replit)</th>
+      <th>After Migration</th>
+    </tr>
+    <tr>
+      <td>Hosting</td>
+      <td>$20/month (Replit)</td>
+      <td>~$5–8/month (Railway)</td>
+    </tr>
+    <tr>
+      <td>Database</td>
+      <td>Neon (free tier)</td>
+      <td>Neon (same — no change)</td>
+    </tr>
+    <tr>
+      <td>AI (Anthropic)</td>
+      <td>—</td>
+      <td>~$1–3/month (new users creating profiles)</td>
+    </tr>
+    <tr>
+      <td>Email (SendGrid)</td>
+      <td>—</td>
+      <td>$0 (free tier: 100 emails/day)</td>
+    </tr>
+    <tr>
+      <td>Apple Developer</td>
+      <td>$99/year ($8/month)</td>
+      <td>$99/year (no change)</td>
+    </tr>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td><strong>~$28/month</strong></td>
+      <td><strong>~$15–20/month</strong></td>
+    </tr>
+  </table>
+
+  <div class="callout green">
+    <strong>Saving: ~$10–15/month from the day you cancel Replit</strong>
+    At 5,000 active users, AI costs remain low because profile creation is one-time per user — not a recurring daily cost. QR sharing and profile views cost nothing.
+  </div>
+
+  <!-- AI cost breakdown -->
+  <h2>AI Cost Breakdown at Scale (5,000 Users)</h2>
+  <p>For reference when planning capacity. All AI is one-time per user, not recurring.</p>
+  <table>
+    <tr>
+      <th>Feature</th>
+      <th>Model</th>
+      <th>Cost per call</th>
+      <th>5,000 users estimate</th>
+    </tr>
+    <tr>
+      <td>AI Card Builder (F1)</td>
+      <td>Claude Haiku</td>
+      <td>~$0.002</td>
+      <td>~$10–15 one-time</td>
+    </tr>
+    <tr>
+      <td>AI Tips (F1 tips mode)</td>
+      <td>Claude Haiku</td>
+      <td>~$0.002</td>
+      <td>~$3 one-time</td>
+    </tr>
+    <tr>
+      <td>Scan business card (F6)</td>
+      <td>Claude Sonnet (vision)</td>
+      <td>~$0.01</td>
+      <td>~$10 one-time</td>
+    </tr>
+    <tr>
+      <td>Ongoing (new signups ~200/mo)</td>
+      <td>Claude Haiku</td>
+      <td>~$0.002</td>
+      <td>~$0.40/month</td>
+    </tr>
+  </table>
+
+  <!-- Pre-migration checklist -->
+  <h2>Pre-Migration Checklist</h2>
+  <ul class="checklist">
+    <li>Railway account created (railway.app — sign in with GitHub)</li>
+    <li>Credit/debit card added to Railway for Hobby plan</li>
+    <li>All env var values copied from Replit Secrets panel (open in a text editor temporarily)</li>
+    <li>ANTHROPIC_API_KEY obtained from console.anthropic.com → API Keys</li>
+    <li>Railway project created and linked to qrmingle GitHub repo</li>
+    <li>Build command set: <code>npm run build</code></li>
+    <li>Start command set: <code>npm run start</code></li>
+    <li>All 7 env vars added in Railway Variables panel</li>
+    <li>First build succeeds — no errors in build log</li>
+    <li>*.railway.app URL tested end-to-end</li>
+  </ul>
+
+  <!-- Post-DNS checklist -->
+  <h2>Post-DNS Cutover Checklist</h2>
+  <ul class="checklist">
+    <li>qrmingle.com resolves to Railway (check dnschecker.org)</li>
+    <li>SSL certificate active — padlock shows in browser</li>
+    <li>Home page loads correctly</li>
+    <li>Login works for existing user</li>
+    <li>Profile page and QR scan works</li>
+    <li>Railway log shows incoming requests (not Replit)</li>
+    <li>Stripe webhook URL confirmed at dashboard.stripe.com</li>
+    <li>Tutorial video re-uploaded via admin panel (if needed)</li>
+    <li>Monitored for 48 hours with no issues</li>
+    <li>Replit subscription cancelled</li>
+  </ul>
+
+  <!-- Footer -->
+  <div class="doc-footer">
+    QrMingle — Railway Migration Guide &nbsp;·&nbsp; Prepared May 2026<br>
+    Keep this document until Replit is fully cancelled and Railway has been stable for 2 weeks.
+  </div>
+
+</div>
+</body>
+</html>

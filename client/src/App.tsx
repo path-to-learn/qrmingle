@@ -10,7 +10,6 @@ if (savedLang === "ar") document.documentElement.dir = "rtl";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import ProfilePage from "@/pages/profile-page";
-import ProfilesDashboard from "@/pages/profiles-dashboard";
 import AdminPage from "@/pages/admin";
 import Premium from "@/pages/premium";
 import PremiumSuccess from "@/pages/premium-success";
