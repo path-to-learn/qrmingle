@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Capacitor } from "@capacitor/core";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -62,10 +63,29 @@ export default function ProfileEditor({
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  // Track keyboard height via visualViewport so the AI modal can slide above it.
+  useEffect(() => {
+    if (!showAiModal || !window.visualViewport) return;
+    const handler = () => {
+      const kbHeight = Math.max(0, window.innerHeight - window.visualViewport!.height - window.visualViewport!.offsetTop);
+      setKeyboardOffset(kbHeight);
+    };
+    window.visualViewport.addEventListener('resize', handler);
+    window.visualViewport.addEventListener('scroll', handler);
+    handler();
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handler);
+      window.visualViewport?.removeEventListener('scroll', handler);
+      setKeyboardOffset(0);
+    };
+  }, [showAiModal]);
+
   const assistsUsed = user?.aiAssistCount ?? 0;
   const FREE_LIMIT = 2;
   const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
-  const isNativeApp = !!(window as any).Capacitor;
+  const isNativeApp = Capacitor.isNativePlatform();
 
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
@@ -253,7 +273,7 @@ export default function ProfileEditor({
   };
 
   return (
-    <Card className="mb-6 w-full overflow-hidden" style={{ maxWidth: "100%", boxSizing: "border-box" }}>
+    <Card className="mb-6 overflow-hidden" style={{ width: "100%", boxSizing: "border-box" }}>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onCancel}>
@@ -292,12 +312,15 @@ export default function ProfileEditor({
 
       {/* AI Modal — rendered in a Portal at document.body to avoid iOS fixed-inside-overflow-hidden bug */}
       {showAiModal && createPortal(
-        <div
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end' }}
-          onClick={() => setShowAiModal(false)}
-        >
+        <>
+          {/* Backdrop */}
           <div
-            style={{ background: 'white', borderRadius: '20px 20px 0 0', width: '100%', display: 'flex', flexDirection: 'column', maxHeight: '80vh', overflowX: 'hidden', boxSizing: 'border-box' }}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999 }}
+            onClick={() => setShowAiModal(false)}
+          />
+          {/* Panel — slides above keyboard via keyboardOffset */}
+          <div
+            style={{ position: 'fixed', bottom: keyboardOffset, left: 0, right: 0, zIndex: 10000, background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '70vh', overflow: 'hidden', boxSizing: 'border-box', transition: 'bottom 0.25s ease-out' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Header — always visible */}
@@ -317,19 +340,18 @@ export default function ProfileEditor({
             </div>
 
             {/* Scrollable content */}
-            <div style={{ overflowY: 'auto', padding: '0 20px', flex: 1 }}>
+            <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', flex: 1, width: '100%', boxSizing: 'border-box' }}>
               <textarea
                 value={aiPrompt}
                 onChange={e => setAiPrompt(e.target.value)}
                 placeholder="e.g. I'm Sarah Chen, a UX designer at Figma. My LinkedIn is linkedin.com/in/sarahchen and my website is sarahchen.design"
                 rows={4}
                 style={{ width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
-                autoFocus
               />
             </div>
 
-            {/* Button — always pinned at bottom, clear tab bar + safe area */}
-            <div style={{ padding: '12px 20px', paddingBottom: 'calc(84px + env(safe-area-inset-bottom))', flexShrink: 0 }}>
+            {/* Button — clear tab bar when keyboard is hidden, minimal padding when keyboard is up */}
+            <div style={{ padding: '12px 20px', paddingBottom: keyboardOffset > 0 ? '12px' : 'calc(84px + env(safe-area-inset-bottom))', flexShrink: 0 }}>
               <button
                 onClick={handleAiAssist}
                 disabled={aiLoading || !aiPrompt.trim()}
@@ -341,13 +363,13 @@ export default function ProfileEditor({
               </button>
             </div>
           </div>
-        </div>,
+        </>,
         document.body
       )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <CardContent style={{ overflowX: 'hidden' }}>
+          <CardContent>
             <div className="flex flex-col md:flex-row gap-8" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
               <div className="w-full md:w-1/3" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                 <div className="mb-6">
@@ -1040,7 +1062,7 @@ export default function ProfileEditor({
                       </div>
                       
                       {/* QR Code upload option */}
-                      <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center justify-between mt-1 w-full overflow-hidden">
                         <div className="flex items-center gap-2">
                           <QrCodeIcon className="h-4 w-4 text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">

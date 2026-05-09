@@ -6,6 +6,7 @@ import { LogOut, User, BarChart2, Crown, Clock, Shield, ChevronDown, X } from "l
 import { isAdmin } from "@/lib/video";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Capacitor } from "@capacitor/core";
 
 export default function Header() {
   const { user, logoutMutation, isEffectivelyPremium } = useAuth();
@@ -84,7 +85,7 @@ export default function Header() {
           {user ? (
             <>
               {/* Avatar button - hidden on native app since Settings tab handles navigation */}
-              {!(window as any).Capacitor && (
+              {!Capacitor.isNativePlatform() && (
               <button
                 onClick={() => setShowMenu(true)}
                 style={{ WebkitTapHighlightColor: 'transparent', minHeight: '44px', minWidth: '44px', touchAction: 'manipulation' }}
