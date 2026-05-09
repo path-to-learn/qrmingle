@@ -7,7 +7,7 @@ const isCapacitorBundled =
   typeof window !== "undefined" &&
   window.location.protocol === "capacitor:";
 
-const API_BASE = isCapacitorBundled ? "https://qrmingle.com" : "";
+const API_BASE = isCapacitorBundled ? "https://www.qrmingle.com" : "";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
