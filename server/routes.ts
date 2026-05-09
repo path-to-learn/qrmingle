@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import path from "path";
 import fs from "fs";
 import { setupAuth } from "./auth";
+import { capacitorAuthMiddleware } from "./middleware";
 import { profilesRouter, handlePublicProfile } from "./routes/profiles";
 import { analyticsRouter } from "./routes/analytics";
 import { aiRouter } from "./routes/ai";
@@ -64,6 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const api = express.Router();
+  api.use(capacitorAuthMiddleware);
   app.use("/api", api);
 
   api.get("/p/:slug", handlePublicProfile);

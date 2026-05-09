@@ -4,7 +4,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
+import { getQueryFn, apiRequest, queryClient, saveCapacitorSessionId, clearCapacitorSessionId } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -88,7 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/auth/login", credentials);
       return await res.json();
     },
-    onSuccess: (userData: User) => {
+    onSuccess: (userData: User & { sessionId?: string }) => {
+      if (userData.sessionId) saveCapacitorSessionId(userData.sessionId);
       login(userData);
       toast({
         title: "Login successful",
@@ -111,7 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/auth/register", credentials);
       return await res.json();
     },
-    onSuccess: (userData: User) => {
+    onSuccess: (userData: User & { sessionId?: string }) => {
+      if (userData.sessionId) saveCapacitorSessionId(userData.sessionId);
       login(userData);
       toast({
         title: "Registration successful",
@@ -151,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/auth/logout");
     },
     onSuccess: () => {
+      clearCapacitorSessionId();
       logout();
       toast({
         title: "Logged out",

@@ -9,6 +9,25 @@ const isCapacitorBundled =
 
 const API_BASE = isCapacitorBundled ? "https://www.qrmingle.com" : "";
 
+const CAPACITOR_SESSION_KEY = "capacitor-session-id";
+
+export function saveCapacitorSessionId(id: string) {
+  localStorage.setItem(CAPACITOR_SESSION_KEY, id);
+}
+
+export function clearCapacitorSessionId() {
+  localStorage.removeItem(CAPACITOR_SESSION_KEY);
+}
+
+function capacitorHeaders(base?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...base };
+  if (isCapacitorBundled) {
+    const sid = localStorage.getItem(CAPACITOR_SESSION_KEY);
+    if (sid) headers["X-Session-Id"] = sid;
+  }
+  return headers;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     try {
@@ -33,7 +52,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const res = await fetch(API_BASE + url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: capacitorHeaders(data ? { "Content-Type": "application/json" } : {}),
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -51,6 +70,7 @@ export const getQueryFn: <T>(options: {
     const url = queryKey[0] as string;
 
     const res = await fetch(API_BASE + url, {
+      headers: capacitorHeaders(),
       credentials: "include",
     });
 

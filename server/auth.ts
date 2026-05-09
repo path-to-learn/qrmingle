@@ -148,7 +148,7 @@ export function setupAuth(app: Express) {
           req.login(adminUser, (err) => {
             if (err) return next(err);
             const { password, ...userWithoutPassword } = adminUser;
-            res.status(201).json(userWithoutPassword);
+            res.status(201).json({ ...userWithoutPassword, sessionId: req.sessionID });
           });
           return;
         }
@@ -157,7 +157,7 @@ export function setupAuth(app: Express) {
       req.login(user, (err) => {
         if (err) return next(err);
         const { password, ...userWithoutPassword } = user;
-        res.status(201).json(userWithoutPassword);
+        res.status(201).json({ ...userWithoutPassword, sessionId: req.sessionID });
       });
     } catch (error) {
       next(error);
@@ -172,7 +172,7 @@ export function setupAuth(app: Express) {
       user.isAdmin = true;
     }
     const { password, ...userWithoutPassword } = user;
-    res.status(200).json(userWithoutPassword);
+    res.status(200).json({ ...userWithoutPassword, sessionId: req.sessionID });
   });
 
   app.post("/api/auth/logout", (req, res, next) => {
