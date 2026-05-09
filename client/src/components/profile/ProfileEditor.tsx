@@ -108,8 +108,8 @@ export default function ProfileEditor({
       setShowAiModal(false);
       setAiPrompt("");
       toast({ title: '✨ Profile filled in!', description: 'Review the details and save when ready.' });
-    } catch {
-      toast({ title: 'Something went wrong', description: 'Please try again.', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Something went wrong', description: err?.message || 'Please try again.', variant: 'destructive' });
     } finally {
       setAiLoading(false);
     }
