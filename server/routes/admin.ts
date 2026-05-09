@@ -35,6 +35,17 @@ const videoUpload = multer({
 // All admin routes require admin authentication
 adminRouter.use(requireAdmin);
 
+adminRouter.post("/reset-ai-count", async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ message: "username required" });
+    await storage.resetAiAssistCount(username);
+    res.json({ message: `AI count reset for ${username}` });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to reset AI count" });
+  }
+});
+
 adminRouter.post("/promote", async (req, res) => {
   try {
     const { userId } = req.body;

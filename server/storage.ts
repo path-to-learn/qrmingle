@@ -581,6 +581,13 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  async resetAiAssistCount(username: string): Promise<void> {
+    const { db } = await import('./db');
+    const { users } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    await db.update(users).set({ aiAssistCount: 0 }).where(eq(users.username, username));
+  }
+
   // AI assist tracking
   async incrementAiAssistCount(userId: number): Promise<void> {
     const { db, eq } = await import('./db');
