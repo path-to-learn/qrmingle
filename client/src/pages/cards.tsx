@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, API_BASE, capacitorHeaders } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { PlusIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -43,9 +43,11 @@ export default function CardsPage() {
 
   const createProfile = useMutation({
     mutationFn: async (data: ProfileFormData) => {
-      const response = await fetch("/api/profiles", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+      const response = await fetch(API_BASE + "/api/profiles", {
+        method: "POST",
+        headers: capacitorHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ ...data, userId: user?.id }),
+        credentials: "include",
       });
       const result = await response.json();
       if (!response.ok) {

@@ -19,7 +19,7 @@ export function clearCapacitorSessionId() {
   localStorage.removeItem(CAPACITOR_SESSION_KEY);
 }
 
-function capacitorHeaders(base?: Record<string, string>): Record<string, string> {
+export function capacitorHeaders(base?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = { ...base };
   if (isCapacitorBundled) {
     const sid = localStorage.getItem(CAPACITOR_SESSION_KEY);
@@ -27,6 +27,8 @@ function capacitorHeaders(base?: Record<string, string>): Record<string, string>
   }
   return headers;
 }
+
+export { API_BASE };
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
