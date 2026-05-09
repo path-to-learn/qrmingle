@@ -9,7 +9,7 @@ import { storage } from "./storage";
 // and sends it here as a header so we can look it up in the session store directly.
 export async function capacitorAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   const sessionId = req.headers["x-session-id"] as string | undefined;
-  if (sessionId && !req.user) {
+  if (sessionId) {
     try {
       const rows = await db
         .select()
