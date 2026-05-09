@@ -79,8 +79,8 @@ function AppRouter() {
   return (
     <div className="min-h-screen flex flex-col" style={{ overflowX: "hidden", width: "100%", maxWidth: "100vw" }}>
       {!["/", "/login", "/register"].includes(location) && (
-        location === "/profiles" && !!(window as any).Capacitor
-          ? null
+        location === "/profiles"
+          ? <div className="profiles-header-wrap"><Header /></div>
           : <Header />
       )}
       {/* overflow-y on main, overflow-x on inner div — keeps them separate to avoid iOS WebKit scroll quirk */}
