@@ -1,6 +1,6 @@
 # iOS Release Tracker
 
-Last updated: 2026-05-09 | Stable tag: `v1.1-stable`
+Last updated: 2026-05-10 | Stable tag: `v1.1-stable`
 
 ## Completed ✅
 
@@ -20,12 +20,13 @@ Last updated: 2026-05-09 | Stable tag: `v1.1-stable`
 | Item | Owner | Description |
 |------|-------|-------------|
 | A3 | Prashant | App Store Connect — screenshots, age rating questionnaire, app description, pricing, privacy policy URL |
+| A4 | Prashant + agents | Validate StoreKit production readiness — App Store Connect product, sandbox/TestFlight purchase, restore, and server verification review |
 
 ## Post-Launch (not blockers) 🗓️
 
 | Item | Description |
 |------|-------------|
-| T1 | Apple IAP / StoreKit 2 — needed before charging money; premium currently open to all |
+| ~~T1~~ | ~~Apple IAP / StoreKit 2~~ — **implemented** (IAPPlugin.swift + iap.ts + premium.tsx with getProducts/purchase/restore) |
 | T4 | Sign in with Apple — only required if Google/Facebook login is added |
 | F5 | Voice-to-card — speak → AI fills profile form |
 | F6 | Scan physical business card → OCR → AI imports contacts |
@@ -34,7 +35,7 @@ Last updated: 2026-05-09 | Stable tag: `v1.1-stable`
 
 | ID | Description |
 |----|-------------|
-| B1 | Horizontal scroll in ProfileEditor on iOS — fix applied by Codex (v2026.05.09.1), needs device verification |
+| ~~B1~~ | ~~Horizontal scroll in ProfileEditor on iOS~~ — **fixed and verified on device (2026-05-09)** |
 | — | AI assist count shown to user is from cached auth object — requires logout/login to refresh after admin reset |
 
 ## Local Development Checklist
