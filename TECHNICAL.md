@@ -26,7 +26,7 @@ QrMingle is a digital business card app. Users create profile cards with social 
 | Hosting | **Railway** (auto-deploys on push to `main`) |
 | Email | SendGrid (`@sendgrid/mail`) |
 | AI | Anthropic Claude Haiku (`claude-haiku-4-5-20251001`) via `@anthropic-ai/sdk` |
-| Payments | Stripe (web); Apple IAP / StoreKit 2 (iOS — stub only, not yet active) |
+| Payments | Stripe (web); Apple IAP / StoreKit 2 (iOS — app flow implemented; production readiness still needs validation) |
 | i18n | react-i18next (EN, ES, FR, PT, AR, JA) |
 
 ---
@@ -221,7 +221,7 @@ All API calls go through `client/src/lib/queryClient.ts`:
 ### Auth context (`client/src/hooks/use-auth.tsx`)
 - Wraps the whole app; validates session on mount via `GET /api/auth/validate`
 - Exposes `user`, `loginMutation`, `registerMutation`, `logoutMutation`
-- `isEffectivelyPremium()` — currently returns `true` for all logged-in users (premium gating disabled until IAP is implemented)
+- `isEffectivelyPremium()` — returns true for paid premium users, admins, and the hardcoded admin email
 - On login/register success: saves `sessionId` to localStorage (Capacitor auth)
 - On logout: clears `sessionId` from localStorage
 
@@ -333,10 +333,10 @@ Adding a new theme = drop a new config file + register it. Zero server changes.
 ## 13. Payments / Premium
 
 ### Web — Stripe
-`POST /api/start-premium-trial` → creates Stripe trial subscription. Currently `isEffectivelyPremium()` returns `true` for all logged-in users — premium gating is disabled for launch.
+`POST /api/start-premium-trial` creates a Stripe trial subscription. Stripe must not be presented inside the iOS app for digital premium features.
 
-### iOS — Apple IAP (stub, not yet active)
-`POST /api/iap/verify` and `POST /api/iap/restore` endpoints exist in `misc.ts`. StoreKit 2 receipt validation logic is stubbed. Full implementation needed before monetising the iOS app (Apple requires all digital goods go through IAP — Stripe is not allowed inside the iOS app).
+### iOS — Apple IAP / StoreKit 2
+The iOS purchase flow is implemented through the custom Capacitor `IAPPlugin`, `client/src/lib/iap.ts`, and `client/src/pages/premium.tsx`. `POST /api/iap/verify` and `POST /api/iap/restore` mark the user premium after StoreKit transactions. Before paid App Store launch, validate the App Store Connect product, sandbox/TestFlight purchase and restore, and review server-side transaction verification hardening.
 
 ---
 
