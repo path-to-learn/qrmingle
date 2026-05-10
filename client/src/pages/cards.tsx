@@ -256,11 +256,10 @@ export default function CardsPage() {
           padding: "0 16px",
           display: "flex",
           flexDirection: "column",
-          height: "100%",
-          maxHeight: "100%",
+          minHeight: "100%",
           width: "100%",
           boxSizing: "border-box",
-          overflow: "hidden",
+          overflowX: "hidden",
           touchAction: "pan-y",
         }}
       >

@@ -108,9 +108,6 @@ function AppRouter() {
         paddingLeft: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         paddingRight: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         overflowX: "hidden",
-        overflowY: location === "/profiles" ? "hidden" : undefined,
-        overscrollBehaviorY: location === "/profiles" ? "none" : undefined,
-        touchAction: location === "/profiles" ? "none" : undefined,
         height: location === "/profiles" ? "calc(100dvh - 60px - env(safe-area-inset-bottom))" : undefined,
       }}>
       <div data-horizontal-lock style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0 }}>
