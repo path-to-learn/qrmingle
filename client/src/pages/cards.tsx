@@ -256,10 +256,12 @@ export default function CardsPage() {
           padding: "0 16px",
           display: "flex",
           flexDirection: "column",
-          minHeight: "calc(100vh - 80px)", /* fill main area so nav row sits above tab bar */
+          height: "100%",
+          maxHeight: "100%",
           width: "100%",
           boxSizing: "border-box",
-          overflowX: "hidden",
+          overflow: "hidden",
+          touchAction: "pan-y",
         }}
       >
         {/* Dot indicators */}

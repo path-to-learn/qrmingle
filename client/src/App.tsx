@@ -103,11 +103,15 @@ function AppRouter() {
       )}
       {/* overflow-y on main, overflow-x on inner div — keeps them separate to avoid iOS WebKit scroll quirk */}
       <main data-horizontal-lock className="main-content flex-1 min-h-0 overflow-y-auto max-w-full" style={{
-        paddingBottom: ["/", "/login", "/register"].includes(location) ? "0" : "80px",
-        paddingTop: ["/", "/login", "/register"].includes(location) ? "0" : "8px",
+        paddingBottom: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "80px",
+        paddingTop: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "8px",
         paddingLeft: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         paddingRight: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         overflowX: "hidden",
+        overflowY: location === "/profiles" ? "hidden" : undefined,
+        overscrollBehaviorY: location === "/profiles" ? "none" : undefined,
+        touchAction: location === "/profiles" ? "none" : undefined,
+        height: location === "/profiles" ? "calc(100dvh - 60px - env(safe-area-inset-bottom))" : undefined,
       }}>
       <div data-horizontal-lock style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0 }}>
         <Switch>
