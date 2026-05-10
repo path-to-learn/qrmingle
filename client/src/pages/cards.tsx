@@ -327,8 +327,8 @@ export default function CardsPage() {
       {showEditor && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
-          width: "100vw",
-          maxWidth: "100vw",
+          width: "100%",
+          maxWidth: "100%",
           minWidth: 0,
           overflowY: "auto", overflowX: "hidden",
           overscrollBehaviorX: "none",

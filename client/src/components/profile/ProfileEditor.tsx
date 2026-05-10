@@ -64,13 +64,26 @@ export default function ProfileEditor({
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [modalViewport, setModalViewport] = useState({
+    top: 0,
+    left: 0,
+    width: typeof window !== "undefined" ? window.innerWidth : 0,
+    height: typeof window !== "undefined" ? window.innerHeight : 0,
+  });
 
   // Track keyboard height via visualViewport so the AI modal can slide above it.
   useEffect(() => {
     if (!showAiModal || !window.visualViewport) return;
     const handler = () => {
-      const kbHeight = Math.max(0, window.innerHeight - window.visualViewport!.height - window.visualViewport!.offsetTop);
+      const viewport = window.visualViewport!;
+      const kbHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
       setKeyboardOffset(kbHeight);
+      setModalViewport({
+        top: viewport.offsetTop,
+        left: viewport.offsetLeft,
+        width: viewport.width,
+        height: viewport.height,
+      });
     };
     window.visualViewport.addEventListener('resize', handler);
     window.visualViewport.addEventListener('scroll', handler);
@@ -109,17 +122,41 @@ export default function ProfileEditor({
   const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
   const isNativeApp = Capacitor.isNativePlatform();
 
+  const syncModalViewport = () => {
+    const viewport = window.visualViewport;
+    setModalViewport({
+      top: viewport?.offsetTop ?? 0,
+      left: viewport?.offsetLeft ?? 0,
+      width: viewport?.width ?? window.innerWidth,
+      height: viewport?.height ?? window.innerHeight,
+    });
+  };
+
+  const openAiModal = () => {
+    syncModalViewport();
+    setShowAiModal(true);
+  };
+
   const closeAiModal = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setShowAiModal(false);
     setKeyboardOffset(0);
-    requestAnimationFrame(() => {
+    const resetHorizontalScroll = () => {
+      window.scrollTo(0, window.scrollY);
       document.documentElement.scrollLeft = 0;
       document.body.scrollLeft = 0;
-    });
+    };
+    requestAnimationFrame(resetHorizontalScroll);
+    window.setTimeout(resetHorizontalScroll, 250);
   };
 
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setAiLoading(true);
     try {
       const response = await fetch(API_BASE + '/api/ai/card-assist', {
@@ -138,6 +175,7 @@ export default function ProfileEditor({
         return;
       }
       const { result } = data;
+      await new Promise((resolve) => window.setTimeout(resolve, 150));
       if (result.name) form.setValue('name', result.name);
       if (result.name) form.setValue('displayName', result.name);
       if (result.title) form.setValue('title', result.title);
@@ -326,7 +364,7 @@ export default function ProfileEditor({
         <div style={{ padding: '0 24px 16px' }}>
           <button
             type="button"
-            onClick={canUseAi ? () => setShowAiModal(true) : () => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
+            onClick={canUseAi ? openAiModal : () => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
             style={{
               width: '100%', padding: '13px 16px',
               background: canUseAi ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : '#f1f5f9',
@@ -351,27 +389,36 @@ export default function ProfileEditor({
 
       {/* AI Modal — rendered in a Portal at document.body to avoid iOS fixed-inside-overflow-hidden bug */}
       {showAiModal && createPortal(
-        <>
-          {/* Backdrop */}
-          <div
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', maxWidth: '100vw', height: '100dvh', overflow: 'hidden', background: 'rgba(0,0,0,0.5)', zIndex: 9999, touchAction: 'none' }}
-            onClick={closeAiModal}
-          />
-          {/* Panel — slides above keyboard via keyboardOffset */}
+        <div
+          style={{
+            position: 'fixed',
+            top: `${modalViewport.top}px`,
+            left: `${modalViewport.left}px`,
+            width: `${modalViewport.width}px`,
+            height: `${modalViewport.height}px`,
+            maxWidth: `${modalViewport.width}px`,
+            overflow: 'hidden',
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 9999,
+            touchAction: 'none',
+            boxSizing: 'border-box',
+          }}
+          onClick={closeAiModal}
+        >
+          {/* Panel — anchored to the visual viewport so iOS keyboard resizing cannot widen it */}
           <div
             style={{
-              position: 'fixed',
-              bottom: keyboardOffset,
+              position: 'absolute',
+              bottom: 0,
               left: 0,
-              width: '100vw',
-              maxWidth: '100vw',
+              width: '100%',
+              maxWidth: '100%',
               minWidth: 0,
-              zIndex: 10000,
               background: 'white',
               borderRadius: '20px 20px 0 0',
               display: 'flex',
               flexDirection: 'column',
-              maxHeight: keyboardOffset > 0 ? 'calc(100dvh - 12px)' : '70dvh',
+              maxHeight: keyboardOffset > 0 ? 'calc(100% - 12px)' : '70%',
               overflowY: 'auto',
               overflowX: 'hidden',
               overscrollBehaviorX: 'none',
@@ -414,7 +461,7 @@ export default function ProfileEditor({
               <button
                 onClick={handleAiAssist}
                 disabled={aiLoading || !aiPrompt.trim()}
-                style={{ width: '100%', padding: '14px', background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '14px', background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxSizing: 'border-box' }}
               >
                 {aiLoading
                   ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
@@ -422,7 +469,7 @@ export default function ProfileEditor({
               </button>
             </div>
           </div>
-        </>,
+        </div>,
         document.body
       )}
 
