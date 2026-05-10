@@ -52,7 +52,7 @@ Single source of truth for DB schema and Zod validation, imported by both server
 - Passport.js local strategy with express-session (sessions stored in PostgreSQL via connect-pg-simple)
 - `username` field stores email addresses
 - Admin user is hardcoded as `dathwal@qrmingle#2025`; admin status is set at registration
-- `isEffectivelyPremium()` in `use-auth.tsx` returns `true` for any logged-in user — premium gating is currently disabled
+- `isEffectivelyPremium()` in `use-auth.tsx` returns `true` for `isPremium || isAdmin || prashant.dathwal@gmail.com` — StoreKit 2 IAP is implemented (`client/src/lib/iap.ts`, `ios/App/App/IAPPlugin.swift`, `client/src/pages/premium.tsx`)
 
 ### Frontend routes (wouter)
 - `/` — Home/tutorial page
