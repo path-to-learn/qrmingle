@@ -39,6 +39,7 @@ import ThemePicker from "./ThemePicker";
 import { getTeamById } from "@/data/themes";
 import { useAuth } from "@/hooks/use-auth";
 import { API_BASE, capacitorHeaders } from "@/lib/queryClient";
+import { scheduleHorizontalReset } from "@/lib/viewport";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -143,14 +144,28 @@ export default function ProfileEditor({
     }
     setShowAiModal(false);
     setKeyboardOffset(0);
-    const resetHorizontalScroll = () => {
-      window.scrollTo(0, window.scrollY);
-      document.documentElement.scrollLeft = 0;
-      document.body.scrollLeft = 0;
-    };
-    requestAnimationFrame(resetHorizontalScroll);
-    window.setTimeout(resetHorizontalScroll, 250);
+    requestAnimationFrame(() => scheduleHorizontalReset());
   };
+
+  const waitForKeyboardToSettle = () =>
+    new Promise<void>((resolve) => {
+      const viewport = window.visualViewport;
+      if (!viewport) {
+        window.setTimeout(resolve, 180);
+        return;
+      }
+
+      const started = Date.now();
+      const check = () => {
+        const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+        if (keyboardHeight < 24 || Date.now() - started > 700) {
+          resolve();
+          return;
+        }
+        window.requestAnimationFrame(check);
+      };
+      check();
+    });
 
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
@@ -159,6 +174,7 @@ export default function ProfileEditor({
     }
     setAiLoading(true);
     try {
+      await waitForKeyboardToSettle();
       const response = await fetch(API_BASE + '/api/ai/card-assist', {
         method: 'POST',
         headers: capacitorHeaders({ 'Content-Type': 'application/json' }),
@@ -175,7 +191,7 @@ export default function ProfileEditor({
         return;
       }
       const { result } = data;
-      await new Promise((resolve) => window.setTimeout(resolve, 150));
+      await waitForKeyboardToSettle();
       if (result.name) form.setValue('name', result.name);
       if (result.name) form.setValue('displayName', result.name);
       if (result.title) form.setValue('title', result.title);
@@ -185,7 +201,11 @@ export default function ProfileEditor({
       }
       closeAiModal();
       setAiPrompt("");
-      toast({ title: '✨ Profile filled in!', description: 'Review the details and save when ready.' });
+      scheduleHorizontalReset();
+      window.setTimeout(() => {
+        toast({ title: '✨ Profile filled in!', description: 'Review the details and save when ready.' });
+        scheduleHorizontalReset();
+      }, 200);
     } catch (err: any) {
       toast({ title: 'Something went wrong', description: err?.message || 'Please try again.', variant: 'destructive' });
     } finally {
@@ -350,7 +370,7 @@ export default function ProfileEditor({
   };
 
   return (
-    <Card className="mb-6 overflow-hidden" style={{ width: "100%", maxWidth: "100vw", minWidth: 0, boxSizing: "border-box" }}>
+    <Card data-horizontal-lock className="mb-6 overflow-hidden" style={{ width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onCancel}>
@@ -474,9 +494,9 @@ export default function ProfileEditor({
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-8" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+        <form data-horizontal-lock onSubmit={form.handleSubmit(handleSubmit)}>
+          <CardContent data-horizontal-lock>
+            <div data-horizontal-lock className="flex flex-col md:flex-row gap-8" style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
               <div className="w-full md:w-1/3" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                 <div className="mb-6">
                   <FormLabel className="block mb-2">Profile Photo</FormLabel>
@@ -1258,11 +1278,11 @@ export default function ProfileEditor({
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-end space-x-3 border-t pt-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
+          <CardFooter data-horizontal-lock className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-end" style={{ width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
+            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               {isEditing ? "Update Profile" : "Save Profile"}
             </Button>
           </CardFooter>

@@ -17,6 +17,8 @@
   html {
     overflow-x: hidden;
     width: 100%;
+    min-width: 0;
+    overscroll-behavior-x: none;
   }
 
   body {
@@ -24,8 +26,10 @@
     background-color: #f2f2f7;
     overflow-x: hidden;
     width: 100%;
+    min-width: 0;
     position: relative;
     overscroll-behavior-x: none;
+    touch-action: pan-y;
   }
 }
 
@@ -83,6 +87,13 @@ img, video, canvas, input[type="range"] { max-width: 100%; }
 
 /* flex-col containers shrink-wrap on iOS WebKit — always give them full width */
 .flex-col { width: 100%; }
+
+#root,
+[data-horizontal-lock] {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
 
 /* Hide scrollbar on welcome card carousel */
 .welcome-scroll::-webkit-scrollbar { display: none; }

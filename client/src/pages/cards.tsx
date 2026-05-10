@@ -9,6 +9,7 @@ import ProfileCard, { getCardAccent } from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { celebrateCreation } from "@/lib/confetti";
 import { useTranslation } from "react-i18next";
+import { scheduleHorizontalReset } from "@/lib/viewport";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
@@ -54,6 +55,7 @@ export default function CardsPage() {
       celebrateCreation();
       queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
       setShowEditor(false);
+      scheduleHorizontalReset();
       toast({ title: "Profile created!" });
     },
     onError: (e: any) => {
@@ -74,6 +76,7 @@ export default function CardsPage() {
       }
       setShowEditor(false);
       setEditingProfileId(null);
+      scheduleHorizontalReset();
       toast({ title: "Profile updated!" });
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
@@ -128,8 +131,7 @@ export default function CardsPage() {
     body.style.touchAction = "pan-y";
 
     return () => {
-      html.scrollLeft = 0;
-      body.scrollLeft = 0;
+      scheduleHorizontalReset();
       html.style.overflowX = prevHtmlOverflowX;
       html.style.width = prevHtmlWidth;
       body.style.overflowX = prevBodyOverflowX;
@@ -225,6 +227,7 @@ export default function CardsPage() {
 
       {/* ── MOBILE layout ──────────────────────────────────────────── */}
       <div
+        data-horizontal-lock
         className="mobile-cards-layout"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -290,8 +293,8 @@ export default function CardsPage() {
 
         {/* Navigation — marginTop:auto pushes it to the bottom of the flex column */}
         {profiles.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 4px 16px", marginTop: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "8px 4px 16px", marginTop: "auto", width: "100%", minWidth: 0, overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flexShrink: 0 }}>
               <button onClick={goPrev} disabled={currentIndex === 0} style={{
                 background: currentIndex === 0 ? "#e2e8f0" : accent,
                 border: "none", borderRadius: "50%", width: "36px", height: "36px",
@@ -315,9 +318,10 @@ export default function CardsPage() {
             <button onClick={openNewCard} style={{
               background: accent, border: "none", borderRadius: "99px",
               padding: "8px 18px", display: "flex", alignItems: "center", gap: "6px",
+              minWidth: 0, maxWidth: "50%", overflow: "hidden",
               cursor: "pointer", color: "white", fontWeight: 600, fontSize: "13px",
             }}>
-              <PlusIcon size={16} /> {t('cards.newCard')}
+              <PlusIcon size={16} style={{ flexShrink: 0 }} /> <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t('cards.newCard')}</span>
             </button>
           </div>
         )}
@@ -325,7 +329,7 @@ export default function CardsPage() {
 
       {/* Profile Editor — outer fixed div IS the scroll container (CLAUDE.md pattern) */}
       {showEditor && (
-        <div style={{
+        <div data-horizontal-lock style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
           width: "100%",
           maxWidth: "100%",
@@ -344,7 +348,11 @@ export default function CardsPage() {
               if (editingProfileId) updateProfile.mutate({ id: editingProfileId, data });
               else createProfile.mutate(data);
             }}
-            onCancel={() => { setShowEditor(false); setEditingProfileId(null); }}
+            onCancel={() => {
+              setShowEditor(false);
+              setEditingProfileId(null);
+              scheduleHorizontalReset();
+            }}
             isEditing={!!editingProfileId}
             isPremium={isEffectivelyPremium()}
           />

@@ -155,7 +155,7 @@ export default function ProfileCard({
   return (
     <>
       {/* Outer wrapper stretches to parent height so action buttons align across cards */}
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%", minWidth: 0, overflowX: "hidden" }}>
+      <div data-horizontal-lock style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
 
       {/* ── Portrait card — tap navigates to full preview ── */}
       <div
@@ -385,15 +385,16 @@ export default function ProfileCard({
       </div>
 
       {/* ── Action buttons ── */}
-      <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div data-horizontal-lock style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "10px", width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
         {/* Primary: Share + Edit */}
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", width: "100%", minWidth: 0 }}>
           <button
             onClick={handleShare}
             style={{
-              flex: 1, background: accent, color: "white",
+              flex: "1 1 0", minWidth: 0, background: accent, color: "white",
               border: "none", borderRadius: "14px", padding: "14px 0",
               fontSize: "15px", fontWeight: 600,
+              overflow: "hidden",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
               cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
             }}
@@ -403,9 +404,10 @@ export default function ProfileCard({
           <button
             onClick={() => onEdit(id)}
             style={{
-              flex: 1, background: "#f1f5f9", color: "#1e293b",
+              flex: "1 1 0", minWidth: 0, background: "#f1f5f9", color: "#1e293b",
               border: "none", borderRadius: "14px", padding: "14px 0",
               fontSize: "15px", fontWeight: 600,
+              overflow: "hidden",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
               cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
             }}
@@ -415,7 +417,7 @@ export default function ProfileCard({
         </div>
 
         {/* Secondary: QR fullscreen · Preview (web) · Save · Delete */}
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "10px", width: "100%", minWidth: 0 }}>
           {([
             { icon: <QrCode size={19} color="#475569" />, label: t('card.qrCode'), onClick: () => setShowQr(true), bg: "#f1f5f9", color: "#64748b" },
             { icon: <Globe size={19} color="#475569" />, label: t('card.preview'), onClick: () => setLocation(`/p/${slug}?preview=1`), bg: "#f1f5f9", color: "#64748b" },
@@ -427,13 +429,14 @@ export default function ProfileCard({
               onClick={onClick}
               title={label}
               style={{
-                flex: 1, background: bg, border: "none", borderRadius: "12px", padding: "10px 0",
+                minWidth: 0, background: bg, border: "none", borderRadius: "12px", padding: "10px 0",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px",
+                overflow: "hidden",
                 cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
               }}
             >
               {icon}
-              <span style={{ fontSize: "10px", color, fontWeight: 500 }}>{label}</span>
+              <span style={{ fontSize: "10px", color, fontWeight: 500, maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
             </button>
           ))}
         </div>
