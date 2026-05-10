@@ -38,7 +38,7 @@ import ImageCropper from "./ImageCropper";
 import ThemePicker from "./ThemePicker";
 import { getTeamById } from "@/data/themes";
 import { useAuth } from "@/hooks/use-auth";
-import { apiRequest } from "@/lib/queryClient";
+import { API_BASE, capacitorHeaders } from "@/lib/queryClient";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -91,13 +91,22 @@ export default function ProfileEditor({
     if (!aiPrompt.trim()) return;
     setAiLoading(true);
     try {
-      const res = await apiRequest('POST', '/api/ai/card-assist', { mode: 'writer', prompt: aiPrompt });
-      if (!res.ok) {
-        const err = await res.json();
-        toast({ title: err.type === 'AI_LIMIT_REACHED' ? 'Free limit reached' : 'AI error', description: err.message, variant: 'destructive' });
+      const response = await fetch(API_BASE + '/api/ai/card-assist', {
+        method: 'POST',
+        headers: capacitorHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ mode: 'writer', prompt: aiPrompt }),
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast({
+          title: data.type === 'AI_LIMIT_REACHED' ? 'Free limit reached' : 'AI error',
+          description: data.message,
+          variant: 'destructive',
+        });
         return;
       }
-      const { result } = await res.json();
+      const { result } = data;
       if (result.name) form.setValue('name', result.name);
       if (result.name) form.setValue('displayName', result.name);
       if (result.title) form.setValue('title', result.title);
