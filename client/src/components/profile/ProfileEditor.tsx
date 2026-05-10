@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { Capacitor } from "@capacitor/core";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { ProfileFormData, profileFormSchema } from "@shared/schema";
 import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon, Crop, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -64,37 +62,6 @@ export default function ProfileEditor({
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-  const [modalViewport, setModalViewport] = useState({
-    top: 0,
-    left: 0,
-    width: typeof window !== "undefined" ? window.innerWidth : 0,
-    height: typeof window !== "undefined" ? window.innerHeight : 0,
-  });
-
-  // Track keyboard height via visualViewport so the AI modal can slide above it.
-  useEffect(() => {
-    if (!showAiModal || !window.visualViewport) return;
-    const handler = () => {
-      const viewport = window.visualViewport!;
-      const kbHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
-      setKeyboardOffset(kbHeight);
-      setModalViewport({
-        top: viewport.offsetTop,
-        left: viewport.offsetLeft,
-        width: viewport.width,
-        height: viewport.height,
-      });
-    };
-    window.visualViewport.addEventListener('resize', handler);
-    window.visualViewport.addEventListener('scroll', handler);
-    handler();
-    return () => {
-      window.visualViewport?.removeEventListener('resize', handler);
-      window.visualViewport?.removeEventListener('scroll', handler);
-      setKeyboardOffset(0);
-    };
-  }, [showAiModal]);
 
   useEffect(() => {
     if (!showAiModal) return;
@@ -115,6 +82,7 @@ export default function ProfileEditor({
       html.style.overflowX = prevHtmlOverflowX;
       body.style.overflowX = prevBodyOverflowX;
       body.style.touchAction = prevBodyTouchAction;
+      scheduleHorizontalReset();
     };
   }, [showAiModal]);
 
@@ -123,18 +91,8 @@ export default function ProfileEditor({
   const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
   const isNativeApp = Capacitor.isNativePlatform();
 
-  const syncModalViewport = () => {
-    const viewport = window.visualViewport;
-    setModalViewport({
-      top: viewport?.offsetTop ?? 0,
-      left: viewport?.offsetLeft ?? 0,
-      width: viewport?.width ?? window.innerWidth,
-      height: viewport?.height ?? window.innerHeight,
-    });
-  };
-
   const openAiModal = () => {
-    syncModalViewport();
+    scheduleHorizontalReset();
     setShowAiModal(true);
   };
 
@@ -143,7 +101,6 @@ export default function ProfileEditor({
       document.activeElement.blur();
     }
     setShowAiModal(false);
-    setKeyboardOffset(0);
     requestAnimationFrame(() => scheduleHorizontalReset());
   };
 
@@ -407,85 +364,153 @@ export default function ProfileEditor({
         </div>
       )}
 
-      {/* AI Modal — rendered in a Portal at document.body to avoid iOS fixed-inside-overflow-hidden bug */}
+      {/* iOS AI Composer — full-screen to avoid WKWebView keyboard + bottom-sheet viewport bugs */}
       {showAiModal && createPortal(
         <div
+          data-horizontal-lock
           style={{
             position: 'fixed',
-            top: `${modalViewport.top}px`,
-            left: `${modalViewport.left}px`,
-            width: `${modalViewport.width}px`,
-            height: `${modalViewport.height}px`,
-            maxWidth: `${modalViewport.width}px`,
-            overflow: 'hidden',
-            background: 'rgba(0,0,0,0.5)',
+            inset: 0,
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            minHeight: '100%',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            background: 'white',
             zIndex: 9999,
-            touchAction: 'none',
+            touchAction: 'pan-y',
+            overscrollBehaviorX: 'none',
+            WebkitOverflowScrolling: 'touch',
             boxSizing: 'border-box',
+            padding: 'calc(14px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom))',
           }}
-          onClick={closeAiModal}
         >
-          {/* Panel — anchored to the visual viewport so iOS keyboard resizing cannot widen it */}
           <div
+            data-horizontal-lock
             style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
               width: '100%',
               maxWidth: '100%',
               minWidth: 0,
-              background: 'white',
-              borderRadius: '20px 20px 0 0',
+              minHeight: '100%',
               display: 'flex',
               flexDirection: 'column',
-              maxHeight: keyboardOffset > 0 ? 'calc(100% - 12px)' : '70%',
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              overscrollBehaviorX: 'none',
-              touchAction: 'pan-y',
-              WebkitOverflowScrolling: 'touch',
+              gap: '18px',
               boxSizing: 'border-box',
-              transition: 'bottom 0.25s ease-out',
             }}
-            onClick={e => e.stopPropagation()}
           >
-            {/* Header — always visible */}
-            <div style={{ padding: '20px 20px 0', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <Sparkles size={20} style={{ color: '#6366f1' }} />
-                <span style={{ fontWeight: 700, fontSize: '16px', color: '#1e293b' }}>Build with AI</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Sparkles size={21} style={{ color: '#6366f1' }} />
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontWeight: 800, fontSize: '22px', color: '#111827', lineHeight: 1.15 }}>Build with AI</div>
                 {!isPremium && (
-                  <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '99px' }}>
+                  <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
                     {assistsUsed}/{FREE_LIMIT} free uses
-                  </span>
+                  </div>
                 )}
               </div>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px' }}>
-                Describe yourself — your role, company, and any social links you want included.
-              </p>
+              <button
+                type="button"
+                onClick={closeAiModal}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#f8fafc',
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            {/* Scrollable content */}
-            <div style={{ padding: '0 20px', flex: 1, width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+            <p style={{ fontSize: '15px', lineHeight: 1.55, color: '#64748b', margin: 0 }}>
+              Describe yourself, your role, company, and any social links you want included. AI will fill the profile form for you.
+            </p>
+
+            <div style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
               <textarea
                 value={aiPrompt}
                 onChange={e => setAiPrompt(e.target.value)}
                 placeholder="e.g. I'm Sarah Chen, a UX designer at Figma. My LinkedIn is linkedin.com/in/sarahchen and my website is sarahchen.design"
-                rows={4}
-                style={{ width: '100%', maxWidth: '100%', minWidth: 0, borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
+                rows={8}
+                autoFocus
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  minHeight: '210px',
+                  borderRadius: '16px',
+                  border: '1px solid #dbe3ef',
+                  background: '#fbfdff',
+                  padding: '14px 16px',
+                  fontSize: '16px',
+                  lineHeight: 1.45,
+                  resize: 'vertical',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  WebkitAppearance: 'none',
+                }}
               />
             </div>
 
-            {/* Button — clear tab bar when keyboard is hidden, minimal padding when keyboard is up */}
-            <div style={{ padding: '12px 20px', paddingBottom: keyboardOffset > 0 ? '12px' : 'calc(84px + env(safe-area-inset-bottom))', flexShrink: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', minWidth: 0, marginTop: 'auto', paddingTop: '8px' }}>
               <button
+                type="button"
                 onClick={handleAiAssist}
                 disabled={aiLoading || !aiPrompt.trim()}
-                style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '14px', background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxSizing: 'border-box' }}
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  padding: '15px 16px',
+                  background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  cursor: aiLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxSizing: 'border-box',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
               >
                 {aiLoading
                   ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
                   : '✨ Fill in my profile'}
+              </button>
+              <button
+                type="button"
+                onClick={closeAiModal}
+                disabled={aiLoading}
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  padding: '13px 16px',
+                  background: '#f8fafc',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
+                  fontSize: '15px',
+                  fontWeight: 650,
+                  boxSizing: 'border-box',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                Cancel
               </button>
             </div>
           </div>
