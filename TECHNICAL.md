@@ -387,15 +387,59 @@ Local dev: set in `.env` file (gitignored). Production: set in Railway dashboard
 
 ## 17. Branch & Review Workflow
 
-- Feature development happens on **user branches** (e.g. `dev/feature-name`)
-- Codex agent reviews changes on the branch before merge
-- Merge to `main` only after review approval → Railway auto-deploys
-- Stable milestones are tagged (e.g. `v1.1-stable`)
+### Rule
+**Never commit or push directly to `main`.** Railway auto-deploys on every push to `main`, so only reviewed code should land there.
 
+### Branches
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production — Railway deploys from here automatically |
+| `dev/main` | Ongoing development work (current active branch) |
+| `dev/<feature>` | Isolated feature branches when needed |
+
+### Step-by-step process
+
+#### 1. Start work on a dev branch
 ```bash
-git checkout -b dev/<feature-name>   # start new work
-# ... make changes, commit ...
-git push origin dev/<feature-name>   # push for Codex review
-# after approval:
-git checkout main && git merge dev/<feature-name> && git push origin main
+git checkout dev/main          # continue ongoing work
+# or for an isolated feature:
+git checkout -b dev/<feature-name>
 ```
+
+#### 2. Make changes and commit
+```bash
+git add <files>
+git commit -m "feat: describe the change"
+git push origin dev/main       # or dev/<feature-name>
+```
+
+#### 3. Codex agent reviews
+- Point Codex at `TECHNICAL.md` so it understands the architecture
+- Ask Codex to review the diff on the branch: `git diff main...dev/main`
+- Codex checks for correctness, security issues, iOS-specific pitfalls (see §9), and architectural consistency
+
+#### 4. Merge to main after approval
+```bash
+git checkout main
+git merge dev/main             # or dev/<feature-name>
+git push origin main           # triggers Railway deploy (~1 min)
+git checkout dev/main          # switch back to dev branch
+```
+
+#### 5. Tag stable milestones
+After a significant set of features is confirmed working on the live iPhone:
+```bash
+git tag -a v<major>.<minor>-stable -m "Short description of what's stable"
+git push origin v<major>.<minor>-stable
+```
+
+Current stable tag: `v1.1-stable` (forgot-password + AI card builder working on iOS, 2026-05-09)
+
+### What Codex should check
+When reviewing a diff, Codex should verify:
+1. All `fetch()` calls use `API_BASE + url` and `capacitorHeaders()` — not bare relative URLs (§8)
+2. New POST/PUT/DELETE routes are covered by `requireAuth` or `requireAdmin` middleware
+3. iOS layout changes follow the overflow rules in §9 (no `flex-col items-center` without `w-full`)
+4. Any new admin-only operations are behind `adminRouter` (which applies `requireAdmin`)
+5. No secrets or credentials committed
+6. `shared/schema.ts` changes are followed by `npm run db:push`
