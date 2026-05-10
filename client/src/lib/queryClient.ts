@@ -32,18 +32,17 @@ export { API_BASE };
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
+    let message = res.statusText;
     try {
-      const jsonResponse = await res.json();
-      const errorMessage = jsonResponse.message || res.statusText;
-      throw new Error(`${res.status}: ${errorMessage}`);
-    } catch (e) {
+      const text = await res.text();
       try {
-        const text = await res.text();
-        throw new Error(`${res.status}: ${text || res.statusText}`);
-      } catch (textError) {
-        throw new Error(`${res.status}: ${res.statusText}`);
+        const json = JSON.parse(text);
+        message = json.message || text || res.statusText;
+      } catch {
+        message = text || res.statusText;
       }
-    }
+    } catch {}
+    throw new Error(`${res.status}: ${message}`);
   }
 }
 

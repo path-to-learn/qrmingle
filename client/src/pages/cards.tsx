@@ -30,7 +30,7 @@ export default function CardsPage() {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [touchStartX, setTouchStartX] = useState(0);
 
-  const { data: profiles = [], isLoading, refetch } = useQuery<any[]>({
+  const { data: profiles = [], isLoading, error: profilesError } = useQuery<any[]>({
     queryKey: ['/api/profiles'],
     enabled: !!user,
   });
@@ -52,7 +52,7 @@ export default function CardsPage() {
     },
     onSuccess: () => {
       celebrateCreation();
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
       setShowEditor(false);
       toast({ title: "Profile created!" });
     },
@@ -68,7 +68,7 @@ export default function CardsPage() {
       return res.json() as Promise<any>;
     },
     onSuccess: (updated: any) => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
       if (updated?.slug) {
         queryClient.invalidateQueries({ queryKey: [`/api/p/${updated.slug}`] });
       }
@@ -82,7 +82,7 @@ export default function CardsPage() {
   const deleteProfile = useMutation({
     mutationFn: async (id: number) => apiRequest("DELETE", `/api/profiles/${id}`),
     onSuccess: () => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
       setProfileToDelete(null);
       setCurrentIndex(prev => Math.max(0, prev - 1));
       toast({ title: "Profile deleted" });
@@ -225,6 +225,10 @@ export default function CardsPage() {
         {/* Profile card */}
         {isLoading ? (
           <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>Loading...</div>
+        ) : profilesError ? (
+          <div style={{ padding: "24px", background: "#fef2f2", borderRadius: "12px", color: "#dc2626", fontSize: "13px" }}>
+            Failed to load profiles: {(profilesError as Error).message}
+          </div>
         ) : profiles.length === 0 ? (
           <div
             onClick={openNewCard}
