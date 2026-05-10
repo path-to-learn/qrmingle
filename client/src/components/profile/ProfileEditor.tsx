@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { Capacitor } from "@capacitor/core";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { ProfileFormData, profileFormSchema } from "@shared/schema";
 import { X, Plus, Upload, Image, X as XIcon, QrCode as QrCodeIcon, Crop, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +37,7 @@ import ThemePicker from "./ThemePicker";
 import { getTeamById } from "@/data/themes";
 import { useAuth } from "@/hooks/use-auth";
 import { API_BASE, capacitorHeaders } from "@/lib/queryClient";
+import { scheduleHorizontalReset } from "@/lib/viewport";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -63,22 +62,27 @@ export default function ProfileEditor({
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  // Track keyboard height via visualViewport so the AI modal can slide above it.
   useEffect(() => {
-    if (!showAiModal || !window.visualViewport) return;
-    const handler = () => {
-      const kbHeight = Math.max(0, window.innerHeight - window.visualViewport!.height - window.visualViewport!.offsetTop);
-      setKeyboardOffset(kbHeight);
-    };
-    window.visualViewport.addEventListener('resize', handler);
-    window.visualViewport.addEventListener('scroll', handler);
-    handler();
+    if (!showAiModal) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflowX = html.style.overflowX;
+    const prevBodyOverflowX = body.style.overflowX;
+    const prevBodyTouchAction = body.style.touchAction;
+
+    html.style.overflowX = "hidden";
+    body.style.overflowX = "hidden";
+    body.style.touchAction = "pan-y";
+
     return () => {
-      window.visualViewport?.removeEventListener('resize', handler);
-      window.visualViewport?.removeEventListener('scroll', handler);
-      setKeyboardOffset(0);
+      html.scrollLeft = 0;
+      body.scrollLeft = 0;
+      html.style.overflowX = prevHtmlOverflowX;
+      body.style.overflowX = prevBodyOverflowX;
+      body.style.touchAction = prevBodyTouchAction;
+      scheduleHorizontalReset();
     };
   }, [showAiModal]);
 
@@ -87,10 +91,47 @@ export default function ProfileEditor({
   const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
   const isNativeApp = Capacitor.isNativePlatform();
 
+  const openAiModal = () => {
+    scheduleHorizontalReset();
+    setShowAiModal(true);
+  };
+
+  const closeAiModal = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setShowAiModal(false);
+    requestAnimationFrame(() => scheduleHorizontalReset());
+  };
+
+  const waitForKeyboardToSettle = () =>
+    new Promise<void>((resolve) => {
+      const viewport = window.visualViewport;
+      if (!viewport) {
+        window.setTimeout(resolve, 180);
+        return;
+      }
+
+      const started = Date.now();
+      const check = () => {
+        const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+        if (keyboardHeight < 24 || Date.now() - started > 700) {
+          resolve();
+          return;
+        }
+        window.requestAnimationFrame(check);
+      };
+      check();
+    });
+
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setAiLoading(true);
     try {
+      await waitForKeyboardToSettle();
       const response = await fetch(API_BASE + '/api/ai/card-assist', {
         method: 'POST',
         headers: capacitorHeaders({ 'Content-Type': 'application/json' }),
@@ -107,6 +148,7 @@ export default function ProfileEditor({
         return;
       }
       const { result } = data;
+      await waitForKeyboardToSettle();
       if (result.name) form.setValue('name', result.name);
       if (result.name) form.setValue('displayName', result.name);
       if (result.title) form.setValue('title', result.title);
@@ -114,9 +156,13 @@ export default function ProfileEditor({
       if (Array.isArray(result.suggestedLinks) && result.suggestedLinks.length > 0) {
         form.setValue('socialLinks', result.suggestedLinks);
       }
-      setShowAiModal(false);
+      closeAiModal();
       setAiPrompt("");
-      toast({ title: '✨ Profile filled in!', description: 'Review the details and save when ready.' });
+      scheduleHorizontalReset();
+      window.setTimeout(() => {
+        toast({ title: '✨ Profile filled in!', description: 'Review the details and save when ready.' });
+        scheduleHorizontalReset();
+      }, 200);
     } catch (err: any) {
       toast({ title: 'Something went wrong', description: err?.message || 'Please try again.', variant: 'destructive' });
     } finally {
@@ -281,7 +327,7 @@ export default function ProfileEditor({
   };
 
   return (
-    <Card className="mb-6 overflow-hidden" style={{ width: "100%", boxSizing: "border-box" }}>
+    <Card data-horizontal-lock className="mb-6 overflow-hidden" style={{ width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onCancel}>
@@ -295,7 +341,7 @@ export default function ProfileEditor({
         <div style={{ padding: '0 24px 16px' }}>
           <button
             type="button"
-            onClick={canUseAi ? () => setShowAiModal(true) : () => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
+            onClick={canUseAi ? openAiModal : () => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
             style={{
               width: '100%', padding: '13px 16px',
               background: canUseAi ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : '#f1f5f9',
@@ -318,67 +364,164 @@ export default function ProfileEditor({
         </div>
       )}
 
-      {/* AI Modal — rendered in a Portal at document.body to avoid iOS fixed-inside-overflow-hidden bug */}
+      {/* iOS AI Composer — full-screen to avoid WKWebView keyboard + bottom-sheet viewport bugs */}
       {showAiModal && createPortal(
-        <>
-          {/* Backdrop */}
+        <div
+          data-horizontal-lock
+          style={{
+            position: 'fixed',
+            inset: 0,
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            minHeight: '100%',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            background: 'white',
+            zIndex: 9999,
+            touchAction: 'pan-y',
+            overscrollBehaviorX: 'none',
+            WebkitOverflowScrolling: 'touch',
+            boxSizing: 'border-box',
+            padding: 'calc(14px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom))',
+          }}
+        >
           <div
-            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999 }}
-            onClick={() => setShowAiModal(false)}
-          />
-          {/* Panel — slides above keyboard via keyboardOffset */}
-          <div
-            style={{ position: 'fixed', bottom: keyboardOffset, left: 0, right: 0, zIndex: 10000, background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '70vh', overflow: 'hidden', boxSizing: 'border-box', transition: 'bottom 0.25s ease-out' }}
-            onClick={e => e.stopPropagation()}
+            data-horizontal-lock
+            style={{
+              width: '100%',
+              maxWidth: '100%',
+              minWidth: 0,
+              minHeight: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '18px',
+              boxSizing: 'border-box',
+            }}
           >
-            {/* Header — always visible */}
-            <div style={{ padding: '20px 20px 0', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <Sparkles size={20} style={{ color: '#6366f1' }} />
-                <span style={{ fontWeight: 700, fontSize: '16px', color: '#1e293b' }}>Build with AI</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Sparkles size={21} style={{ color: '#6366f1' }} />
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontWeight: 800, fontSize: '22px', color: '#111827', lineHeight: 1.15 }}>Build with AI</div>
                 {!isPremium && (
-                  <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '99px' }}>
+                  <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
                     {assistsUsed}/{FREE_LIMIT} free uses
-                  </span>
+                  </div>
                 )}
               </div>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px' }}>
-                Describe yourself — your role, company, and any social links you want included.
-              </p>
+              <button
+                type="button"
+                onClick={closeAiModal}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#f8fafc',
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            {/* Scrollable content */}
-            <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', flex: 1, width: '100%', boxSizing: 'border-box' }}>
+            <p style={{ fontSize: '15px', lineHeight: 1.55, color: '#64748b', margin: 0 }}>
+              Describe yourself, your role, company, and any social links you want included. AI will fill the profile form for you.
+            </p>
+
+            <div style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
               <textarea
                 value={aiPrompt}
                 onChange={e => setAiPrompt(e.target.value)}
                 placeholder="e.g. I'm Sarah Chen, a UX designer at Figma. My LinkedIn is linkedin.com/in/sarahchen and my website is sarahchen.design"
-                rows={4}
-                style={{ width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
+                rows={8}
+                autoFocus
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  minHeight: '210px',
+                  borderRadius: '16px',
+                  border: '1px solid #dbe3ef',
+                  background: '#fbfdff',
+                  padding: '14px 16px',
+                  fontSize: '16px',
+                  lineHeight: 1.45,
+                  resize: 'vertical',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  WebkitAppearance: 'none',
+                }}
               />
             </div>
 
-            {/* Button — clear tab bar when keyboard is hidden, minimal padding when keyboard is up */}
-            <div style={{ padding: '12px 20px', paddingBottom: keyboardOffset > 0 ? '12px' : 'calc(84px + env(safe-area-inset-bottom))', flexShrink: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', minWidth: 0, marginTop: 'auto', paddingTop: '8px' }}>
               <button
+                type="button"
                 onClick={handleAiAssist}
                 disabled={aiLoading || !aiPrompt.trim()}
-                style={{ width: '100%', padding: '14px', background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  padding: '15px 16px',
+                  background: aiLoading || !aiPrompt.trim() ? '#c7d2fe' : '#6366f1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  cursor: aiLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxSizing: 'border-box',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
               >
                 {aiLoading
                   ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
                   : '✨ Fill in my profile'}
               </button>
+              <button
+                type="button"
+                onClick={closeAiModal}
+                disabled={aiLoading}
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  padding: '13px 16px',
+                  background: '#f8fafc',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
+                  fontSize: '15px',
+                  fontWeight: 650,
+                  boxSizing: 'border-box',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </>,
+        </div>,
         document.body
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-8" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+        <form data-horizontal-lock onSubmit={form.handleSubmit(handleSubmit)}>
+          <CardContent data-horizontal-lock>
+            <div data-horizontal-lock className="flex flex-col md:flex-row gap-8" style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
               <div className="w-full md:w-1/3" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                 <div className="mb-6">
                   <FormLabel className="block mb-2">Profile Photo</FormLabel>
@@ -416,10 +559,10 @@ export default function ProfileEditor({
                       )}
                     </Avatar>
                     
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex flex-wrap justify-center gap-2 mb-3 w-full min-w-0">
                       <Button
                         type="button"
-                        className="flex items-center"
+                        className="flex items-center min-w-0"
                         onClick={() => document.getElementById("photo-upload")?.click()}
                       >
                         <Upload className="mr-2 h-4 w-4" />
@@ -437,7 +580,7 @@ export default function ProfileEditor({
                           <Button
                             type="button"
                             variant="outline"
-                            className="flex items-center"
+                            className="flex items-center min-w-0"
                             onClick={() => {
                               setImageToProcess(previewUrl);
                               setShowCropper(true);
@@ -553,10 +696,10 @@ export default function ProfileEditor({
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap justify-center gap-2 w-full min-w-0">
                       <Button
                         type="button"
-                        className="flex items-center"
+                        className="flex items-center min-w-0"
                         onClick={() => document.getElementById("background-upload")?.click()}
                       >
                         <Upload className="mr-2 h-4 w-4" />
@@ -614,7 +757,7 @@ export default function ProfileEditor({
                 </div>
 
                 <div className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
                     <FormLabel className="block">QR Code Style</FormLabel>
                     {!isPremium && (
                       <a href="/premium" className="text-xs text-primary hover:underline">
@@ -921,18 +1064,18 @@ export default function ProfileEditor({
                         <FormItem>
                           <FormLabel>QR Code Size</FormLabel>
                           <FormControl>
-                            <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
                               <Input
                                 type="range"
                                 min="100"
                                 max="250"
                                 step="10"
-                                className="w-full h-8"
+                                className="w-full h-8 min-w-0"
                                 {...field}
                                 value={field.value.toString()}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
                               />
-                              <div className="text-sm font-medium w-12">{field.value}px</div>
+                              <div className="text-sm font-medium w-12 shrink-0">{field.value}px</div>
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -1024,8 +1167,8 @@ export default function ProfileEditor({
                       key={field.id}
                       className="space-y-2 mb-5"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-1/4 min-w-0 shrink-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0 w-full">
+                        <div className="w-full sm:w-1/4 min-w-0 shrink-0">
                           <Select
                             value={form.watch(`socialLinks.${index}.platform`)}
                             onValueChange={(value) =>
@@ -1052,27 +1195,28 @@ export default function ProfileEditor({
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex w-full min-w-0 gap-2 sm:flex-1">
                           <Input
                             placeholder="Enter URL or contact info"
+                            className="min-w-0"
                             {...form.register(`socialLinks.${index}.url`)}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => remove(index)}
+                          >
+                            <X className="h-5 w-5" />
+                          </Button>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => remove(index)}
-                        >
-                          <X className="h-5 w-5" />
-                        </Button>
                       </div>
                       
                       {/* QR Code upload option */}
-                      <div className="flex items-center justify-between mt-1 w-full overflow-hidden">
-                        <div className="flex items-center gap-2">
-                          <QrCodeIcon className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex flex-wrap items-center justify-between gap-2 mt-1 w-full overflow-hidden">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <QrCodeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">
                             Have a QR code for this platform?
                           </span>
@@ -1081,7 +1225,7 @@ export default function ProfileEditor({
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-xs text-primary"
+                          className="h-7 shrink-0 text-xs text-primary"
                           onClick={() => document.getElementById(`qr-upload-${index}`)?.click()}
                         >
                           Upload QR
@@ -1159,11 +1303,11 @@ export default function ProfileEditor({
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-end space-x-3 border-t pt-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
+          <CardFooter data-horizontal-lock className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-end" style={{ width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
+            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               {isEditing ? "Update Profile" : "Save Profile"}
             </Button>
           </CardFooter>

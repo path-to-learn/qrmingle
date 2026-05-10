@@ -30,6 +30,7 @@ import Scan from "@/pages/scan";
 import Footer from "./components/layout/Footer";
 import { useState, useEffect } from "react";
 import { App as CapApp } from "@capacitor/app";
+import { scheduleHorizontalReset } from "@/lib/viewport";
 
 function MobileHidden({ children }: { children: React.ReactNode }) {
   return null; // Hidden on mobile app - re-enable for web if needed
@@ -75,22 +76,41 @@ function AppRouter() {
     });
     return () => { listener.then(h => h.remove()); };
   }, [navigate]);
+
+  useEffect(() => {
+    const reset = () => scheduleHorizontalReset();
+    const viewport = window.visualViewport;
+
+    window.addEventListener("resize", reset);
+    window.addEventListener("orientationchange", reset);
+    viewport?.addEventListener("resize", reset);
+    viewport?.addEventListener("scroll", reset);
+
+    return () => {
+      window.removeEventListener("resize", reset);
+      window.removeEventListener("orientationchange", reset);
+      viewport?.removeEventListener("resize", reset);
+      viewport?.removeEventListener("scroll", reset);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ overflowX: "hidden", width: "100%", maxWidth: "100vw" }}>
+    <div data-horizontal-lock className="min-h-screen flex flex-col" style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0, touchAction: "pan-y" }}>
       {!["/", "/login", "/register"].includes(location) && (
         location === "/profiles"
           ? <div className="profiles-header-wrap"><Header /></div>
           : <Header />
       )}
       {/* overflow-y on main, overflow-x on inner div — keeps them separate to avoid iOS WebKit scroll quirk */}
-      <main className="main-content flex-1 min-h-0 overflow-y-auto max-w-full" style={{
-        paddingBottom: ["/", "/login", "/register"].includes(location) ? "0" : "80px",
-        paddingTop: ["/", "/login", "/register"].includes(location) ? "0" : "8px",
+      <main data-horizontal-lock className="main-content flex-1 min-h-0 overflow-y-auto max-w-full" style={{
+        paddingBottom: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "80px",
+        paddingTop: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "8px",
         paddingLeft: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         paddingRight: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         overflowX: "hidden",
+        height: location === "/profiles" ? "calc(100dvh - 60px - env(safe-area-inset-bottom))" : undefined,
       }}>
-      <div style={{ overflowX: "hidden", width: "100%" }}>
+      <div data-horizontal-lock style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0 }}>
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />

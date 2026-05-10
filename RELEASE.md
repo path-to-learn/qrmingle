@@ -34,8 +34,7 @@ Last updated: 2026-05-09 | Stable tag: `v1.1-stable`
 
 | ID | Description |
 |----|-------------|
-| B1 | Horizontal scroll in ProfileEditor on iOS (native WKWebView UIScrollView — CSS fixes exhausted) |
-| — | `npx cap copy ios` wipes IAPPlugin from `ios/App/App/capacitor.config.json` — re-add manually after each run |
+| B1 | Horizontal scroll in ProfileEditor on iOS — fix applied by Codex (v2026.05.09.1), needs device verification |
 | — | AI assist count shown to user is from cached auth object — requires logout/login to refresh after admin reset |
 
 ## Local Development Checklist

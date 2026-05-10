@@ -9,6 +9,7 @@ import ProfileCard, { getCardAccent } from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { celebrateCreation } from "@/lib/confetti";
 import { useTranslation } from "react-i18next";
+import { scheduleHorizontalReset } from "@/lib/viewport";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
@@ -26,6 +27,7 @@ export default function CardsPage() {
   });
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
+  const [pendingCreatedProfileId, setPendingCreatedProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [touchStartX, setTouchStartX] = useState(0);
@@ -50,10 +52,22 @@ export default function CardsPage() {
       }
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (createdProfile: any) => {
       celebrateCreation();
+      queryClient.setQueryData<any[]>(['/api/profiles'], (current = []) => {
+        if (!createdProfile?.id || current.some((profile: any) => profile.id === createdProfile.id)) {
+          return current;
+        }
+        return [...current, createdProfile];
+      });
+      if (createdProfile?.id) {
+        setPendingCreatedProfileId(createdProfile.id);
+        setCurrentIndex((profiles.length || 0));
+        sessionStorage.setItem("cardsCurrentIndex", String(profiles.length || 0));
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
       setShowEditor(false);
+      scheduleHorizontalReset();
       toast({ title: "Profile created!" });
     },
     onError: (e: any) => {
@@ -74,6 +88,7 @@ export default function CardsPage() {
       }
       setShowEditor(false);
       setEditingProfileId(null);
+      scheduleHorizontalReset();
       toast({ title: "Profile updated!" });
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
@@ -101,12 +116,50 @@ export default function CardsPage() {
     }
   }, [profiles.length]);
 
+  useEffect(() => {
+    if (!pendingCreatedProfileId) return;
+    const createdIndex = profiles.findIndex((profile: any) => profile.id === pendingCreatedProfileId);
+    if (createdIndex === -1) return;
+    setCurrentIndex(createdIndex);
+    sessionStorage.setItem("cardsCurrentIndex", String(createdIndex));
+    setPendingCreatedProfileId(null);
+  }, [pendingCreatedProfileId, profiles]);
+
   // Sync accent color to CSS variable so BottomTabBar + other UI match the active card
   useEffect(() => {
     const current = profiles[currentIndex];
     const accent = current ? getCardAccent(current.name, current.cardColor) : "#6366f1";
     document.documentElement.style.setProperty("--app-accent", accent);
   }, [profiles, currentIndex]);
+
+  // iOS WKWebView can keep a horizontal visual viewport offset after fixed
+  // overlays interact with the keyboard. Lock the page while the editor is open.
+  useEffect(() => {
+    if (!showEditor) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflowX = html.style.overflowX;
+    const prevHtmlWidth = html.style.width;
+    const prevBodyOverflowX = body.style.overflowX;
+    const prevBodyWidth = body.style.width;
+    const prevBodyTouchAction = body.style.touchAction;
+
+    html.style.overflowX = "hidden";
+    html.style.width = "100%";
+    body.style.overflowX = "hidden";
+    body.style.width = "100%";
+    body.style.touchAction = "pan-y";
+
+    return () => {
+      scheduleHorizontalReset();
+      html.style.overflowX = prevHtmlOverflowX;
+      html.style.width = prevHtmlWidth;
+      body.style.overflowX = prevBodyOverflowX;
+      body.style.width = prevBodyWidth;
+      body.style.touchAction = prevBodyTouchAction;
+    };
+  }, [showEditor]);
 
   const goNext = () => { if (currentIndex < profiles.length - 1) setCurrentIndex(currentIndex + 1); };
   const goPrev = () => { if (currentIndex > 0) setCurrentIndex(currentIndex - 1); };
@@ -195,6 +248,7 @@ export default function CardsPage() {
 
       {/* ── MOBILE layout ──────────────────────────────────────────── */}
       <div
+        data-horizontal-lock
         className="mobile-cards-layout"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -202,10 +256,11 @@ export default function CardsPage() {
           padding: "0 16px",
           display: "flex",
           flexDirection: "column",
-          minHeight: "calc(100vh - 80px)", /* fill main area so nav row sits above tab bar */
+          minHeight: "100%",
           width: "100%",
           boxSizing: "border-box",
           overflowX: "hidden",
+          touchAction: "pan-y",
         }}
       >
         {/* Dot indicators */}
@@ -260,8 +315,8 @@ export default function CardsPage() {
 
         {/* Navigation — marginTop:auto pushes it to the bottom of the flex column */}
         {profiles.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 4px 16px", marginTop: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "8px 4px 16px", marginTop: "auto", width: "100%", minWidth: 0, overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flexShrink: 0 }}>
               <button onClick={goPrev} disabled={currentIndex === 0} style={{
                 background: currentIndex === 0 ? "#e2e8f0" : accent,
                 border: "none", borderRadius: "50%", width: "36px", height: "36px",
@@ -285,9 +340,10 @@ export default function CardsPage() {
             <button onClick={openNewCard} style={{
               background: accent, border: "none", borderRadius: "99px",
               padding: "8px 18px", display: "flex", alignItems: "center", gap: "6px",
+              minWidth: 0, maxWidth: "50%", overflow: "hidden",
               cursor: "pointer", color: "white", fontWeight: 600, fontSize: "13px",
             }}>
-              <PlusIcon size={16} /> {t('cards.newCard')}
+              <PlusIcon size={16} style={{ flexShrink: 0 }} /> <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t('cards.newCard')}</span>
             </button>
           </div>
         )}
@@ -295,9 +351,15 @@ export default function CardsPage() {
 
       {/* Profile Editor — outer fixed div IS the scroll container (CLAUDE.md pattern) */}
       {showEditor && (
-        <div style={{
+        <div data-horizontal-lock style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
           overflowY: "auto", overflowX: "hidden",
+          overscrollBehaviorX: "none",
+          touchAction: "pan-y",
+          WebkitOverflowScrolling: "touch",
           background: "white",
           paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
           boxSizing: "border-box",
@@ -308,7 +370,11 @@ export default function CardsPage() {
               if (editingProfileId) updateProfile.mutate({ id: editingProfileId, data });
               else createProfile.mutate(data);
             }}
-            onCancel={() => { setShowEditor(false); setEditingProfileId(null); }}
+            onCancel={() => {
+              setShowEditor(false);
+              setEditingProfileId(null);
+              scheduleHorizontalReset();
+            }}
             isEditing={!!editingProfileId}
             isPremium={isEffectivelyPremium()}
           />

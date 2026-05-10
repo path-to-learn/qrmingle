@@ -19,12 +19,17 @@ export default function BottomTabBar() {
 
   return (
     <div
+      data-horizontal-lock
       className="bottom-tab-bar"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        overflowX: "hidden",
         background: "var(--color-background-primary, #fff)",
         borderTop: "1px solid var(--color-border-tertiary, #e5e7eb)",
         display: "flex",
@@ -54,8 +59,11 @@ export default function BottomTabBar() {
               background: "transparent",
               cursor: "pointer",
               WebkitTapHighlightColor: "transparent",
+              boxSizing: "border-box",
+              overflow: "hidden",
               minHeight: "44px",
-              minWidth: "60px",
+              minWidth: 0,
+              flex: "1 1 0",
               touchAction: "manipulation",
             }}
           >
@@ -71,6 +79,10 @@ export default function BottomTabBar() {
                 fontSize: "10px",
                 fontWeight: isActive ? 600 : 400,
                 color: isActive ? "var(--app-accent, #6366f1)" : "var(--color-text-tertiary, #9ca3af)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: "100%",
               }}
             >
               {tab.label}
