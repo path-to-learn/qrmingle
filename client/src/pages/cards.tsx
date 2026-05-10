@@ -108,6 +108,36 @@ export default function CardsPage() {
     document.documentElement.style.setProperty("--app-accent", accent);
   }, [profiles, currentIndex]);
 
+  // iOS WKWebView can keep a horizontal visual viewport offset after fixed
+  // overlays interact with the keyboard. Lock the page while the editor is open.
+  useEffect(() => {
+    if (!showEditor) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflowX = html.style.overflowX;
+    const prevHtmlWidth = html.style.width;
+    const prevBodyOverflowX = body.style.overflowX;
+    const prevBodyWidth = body.style.width;
+    const prevBodyTouchAction = body.style.touchAction;
+
+    html.style.overflowX = "hidden";
+    html.style.width = "100%";
+    body.style.overflowX = "hidden";
+    body.style.width = "100%";
+    body.style.touchAction = "pan-y";
+
+    return () => {
+      html.scrollLeft = 0;
+      body.scrollLeft = 0;
+      html.style.overflowX = prevHtmlOverflowX;
+      html.style.width = prevHtmlWidth;
+      body.style.overflowX = prevBodyOverflowX;
+      body.style.width = prevBodyWidth;
+      body.style.touchAction = prevBodyTouchAction;
+    };
+  }, [showEditor]);
+
   const goNext = () => { if (currentIndex < profiles.length - 1) setCurrentIndex(currentIndex + 1); };
   const goPrev = () => { if (currentIndex > 0) setCurrentIndex(currentIndex - 1); };
 
@@ -297,7 +327,13 @@ export default function CardsPage() {
       {showEditor && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
+          width: "100vw",
+          maxWidth: "100vw",
+          minWidth: 0,
           overflowY: "auto", overflowX: "hidden",
+          overscrollBehaviorX: "none",
+          touchAction: "pan-y",
+          WebkitOverflowScrolling: "touch",
           background: "white",
           paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
           boxSizing: "border-box",

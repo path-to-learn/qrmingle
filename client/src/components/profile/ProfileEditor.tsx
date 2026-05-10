@@ -82,10 +82,41 @@ export default function ProfileEditor({
     };
   }, [showAiModal]);
 
+  useEffect(() => {
+    if (!showAiModal) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflowX = html.style.overflowX;
+    const prevBodyOverflowX = body.style.overflowX;
+    const prevBodyTouchAction = body.style.touchAction;
+
+    html.style.overflowX = "hidden";
+    body.style.overflowX = "hidden";
+    body.style.touchAction = "pan-y";
+
+    return () => {
+      html.scrollLeft = 0;
+      body.scrollLeft = 0;
+      html.style.overflowX = prevHtmlOverflowX;
+      body.style.overflowX = prevBodyOverflowX;
+      body.style.touchAction = prevBodyTouchAction;
+    };
+  }, [showAiModal]);
+
   const assistsUsed = user?.aiAssistCount ?? 0;
   const FREE_LIMIT = 2;
   const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
   const isNativeApp = Capacitor.isNativePlatform();
+
+  const closeAiModal = () => {
+    setShowAiModal(false);
+    setKeyboardOffset(0);
+    requestAnimationFrame(() => {
+      document.documentElement.scrollLeft = 0;
+      document.body.scrollLeft = 0;
+    });
+  };
 
   const handleAiAssist = async () => {
     if (!aiPrompt.trim()) return;
@@ -114,7 +145,7 @@ export default function ProfileEditor({
       if (Array.isArray(result.suggestedLinks) && result.suggestedLinks.length > 0) {
         form.setValue('socialLinks', result.suggestedLinks);
       }
-      setShowAiModal(false);
+      closeAiModal();
       setAiPrompt("");
       toast({ title: '✨ Profile filled in!', description: 'Review the details and save when ready.' });
     } catch (err: any) {
@@ -281,7 +312,7 @@ export default function ProfileEditor({
   };
 
   return (
-    <Card className="mb-6 overflow-hidden" style={{ width: "100%", boxSizing: "border-box" }}>
+    <Card className="mb-6 overflow-hidden" style={{ width: "100%", maxWidth: "100vw", minWidth: 0, boxSizing: "border-box" }}>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>{isEditing ? "Edit Profile" : "Create New Profile"}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onCancel}>
@@ -323,12 +354,32 @@ export default function ProfileEditor({
         <>
           {/* Backdrop */}
           <div
-            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999 }}
-            onClick={() => setShowAiModal(false)}
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', maxWidth: '100vw', height: '100dvh', overflow: 'hidden', background: 'rgba(0,0,0,0.5)', zIndex: 9999, touchAction: 'none' }}
+            onClick={closeAiModal}
           />
           {/* Panel — slides above keyboard via keyboardOffset */}
           <div
-            style={{ position: 'fixed', bottom: keyboardOffset, left: 0, right: 0, zIndex: 10000, background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '70vh', overflow: 'hidden', boxSizing: 'border-box', transition: 'bottom 0.25s ease-out' }}
+            style={{
+              position: 'fixed',
+              bottom: keyboardOffset,
+              left: 0,
+              width: '100vw',
+              maxWidth: '100vw',
+              minWidth: 0,
+              zIndex: 10000,
+              background: 'white',
+              borderRadius: '20px 20px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: keyboardOffset > 0 ? 'calc(100dvh - 12px)' : '70dvh',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              overscrollBehaviorX: 'none',
+              touchAction: 'pan-y',
+              WebkitOverflowScrolling: 'touch',
+              boxSizing: 'border-box',
+              transition: 'bottom 0.25s ease-out',
+            }}
             onClick={e => e.stopPropagation()}
           >
             {/* Header — always visible */}
@@ -348,13 +399,13 @@ export default function ProfileEditor({
             </div>
 
             {/* Scrollable content */}
-            <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', flex: 1, width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ padding: '0 20px', flex: 1, width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
               <textarea
                 value={aiPrompt}
                 onChange={e => setAiPrompt(e.target.value)}
                 placeholder="e.g. I'm Sarah Chen, a UX designer at Figma. My LinkedIn is linkedin.com/in/sarahchen and my website is sarahchen.design"
                 rows={4}
-                style={{ width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', maxWidth: '100%', minWidth: 0, borderRadius: '10px', border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: '14px', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
 
@@ -416,10 +467,10 @@ export default function ProfileEditor({
                       )}
                     </Avatar>
                     
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex flex-wrap justify-center gap-2 mb-3 w-full min-w-0">
                       <Button
                         type="button"
-                        className="flex items-center"
+                        className="flex items-center min-w-0"
                         onClick={() => document.getElementById("photo-upload")?.click()}
                       >
                         <Upload className="mr-2 h-4 w-4" />
@@ -437,7 +488,7 @@ export default function ProfileEditor({
                           <Button
                             type="button"
                             variant="outline"
-                            className="flex items-center"
+                            className="flex items-center min-w-0"
                             onClick={() => {
                               setImageToProcess(previewUrl);
                               setShowCropper(true);
@@ -553,10 +604,10 @@ export default function ProfileEditor({
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap justify-center gap-2 w-full min-w-0">
                       <Button
                         type="button"
-                        className="flex items-center"
+                        className="flex items-center min-w-0"
                         onClick={() => document.getElementById("background-upload")?.click()}
                       >
                         <Upload className="mr-2 h-4 w-4" />
@@ -614,7 +665,7 @@ export default function ProfileEditor({
                 </div>
 
                 <div className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
                     <FormLabel className="block">QR Code Style</FormLabel>
                     {!isPremium && (
                       <a href="/premium" className="text-xs text-primary hover:underline">
@@ -921,18 +972,18 @@ export default function ProfileEditor({
                         <FormItem>
                           <FormLabel>QR Code Size</FormLabel>
                           <FormControl>
-                            <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
                               <Input
                                 type="range"
                                 min="100"
                                 max="250"
                                 step="10"
-                                className="w-full h-8"
+                                className="w-full h-8 min-w-0"
                                 {...field}
                                 value={field.value.toString()}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
                               />
-                              <div className="text-sm font-medium w-12">{field.value}px</div>
+                              <div className="text-sm font-medium w-12 shrink-0">{field.value}px</div>
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -1024,8 +1075,8 @@ export default function ProfileEditor({
                       key={field.id}
                       className="space-y-2 mb-5"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-1/4 min-w-0 shrink-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0 w-full">
+                        <div className="w-full sm:w-1/4 min-w-0 shrink-0">
                           <Select
                             value={form.watch(`socialLinks.${index}.platform`)}
                             onValueChange={(value) =>
@@ -1052,27 +1103,28 @@ export default function ProfileEditor({
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex w-full min-w-0 gap-2 sm:flex-1">
                           <Input
                             placeholder="Enter URL or contact info"
+                            className="min-w-0"
                             {...form.register(`socialLinks.${index}.url`)}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => remove(index)}
+                          >
+                            <X className="h-5 w-5" />
+                          </Button>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => remove(index)}
-                        >
-                          <X className="h-5 w-5" />
-                        </Button>
                       </div>
                       
                       {/* QR Code upload option */}
-                      <div className="flex items-center justify-between mt-1 w-full overflow-hidden">
-                        <div className="flex items-center gap-2">
-                          <QrCodeIcon className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex flex-wrap items-center justify-between gap-2 mt-1 w-full overflow-hidden">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <QrCodeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">
                             Have a QR code for this platform?
                           </span>
@@ -1081,7 +1133,7 @@ export default function ProfileEditor({
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-xs text-primary"
+                          className="h-7 shrink-0 text-xs text-primary"
                           onClick={() => document.getElementById(`qr-upload-${index}`)?.click()}
                         >
                           Upload QR
