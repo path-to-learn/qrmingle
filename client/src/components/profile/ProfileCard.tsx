@@ -373,6 +373,7 @@ export default function ProfileCard({
                   </div>
                   <span style={{
                     fontSize: "13px", color: "#475569",
+                    flex: 1, minWidth: 0, maxWidth: "100%",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
                     {formatLinkLabel(link.platform, link.url)}
