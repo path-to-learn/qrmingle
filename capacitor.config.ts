@@ -17,7 +17,7 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'always',
     scrollEnabled: true,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
   },
   plugins: {
     Camera: {
