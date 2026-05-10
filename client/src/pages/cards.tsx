@@ -27,6 +27,7 @@ export default function CardsPage() {
   });
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
+  const [pendingCreatedProfileId, setPendingCreatedProfileId] = useState<number | null>(null);
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [touchStartX, setTouchStartX] = useState(0);
@@ -51,8 +52,19 @@ export default function CardsPage() {
       }
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (createdProfile: any) => {
       celebrateCreation();
+      queryClient.setQueryData<any[]>(['/api/profiles'], (current = []) => {
+        if (!createdProfile?.id || current.some((profile: any) => profile.id === createdProfile.id)) {
+          return current;
+        }
+        return [...current, createdProfile];
+      });
+      if (createdProfile?.id) {
+        setPendingCreatedProfileId(createdProfile.id);
+        setCurrentIndex((profiles.length || 0));
+        sessionStorage.setItem("cardsCurrentIndex", String(profiles.length || 0));
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
       setShowEditor(false);
       scheduleHorizontalReset();
@@ -103,6 +115,15 @@ export default function CardsPage() {
       setCurrentIndex(i => Math.min(i, profiles.length - 1));
     }
   }, [profiles.length]);
+
+  useEffect(() => {
+    if (!pendingCreatedProfileId) return;
+    const createdIndex = profiles.findIndex((profile: any) => profile.id === pendingCreatedProfileId);
+    if (createdIndex === -1) return;
+    setCurrentIndex(createdIndex);
+    sessionStorage.setItem("cardsCurrentIndex", String(createdIndex));
+    setPendingCreatedProfileId(null);
+  }, [pendingCreatedProfileId, profiles]);
 
   // Sync accent color to CSS variable so BottomTabBar + other UI match the active card
   useEffect(() => {
