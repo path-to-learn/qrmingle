@@ -10,6 +10,9 @@ interface ImageCropperProps {
   open: boolean;
   onClose: () => void;
   onCropComplete: (croppedImageData: string) => void;
+  aspect?: number;
+  title?: string;
+  actionLabel?: string;
 }
 
 // Function to create a canvas with the cropped image
@@ -41,7 +44,15 @@ const createCroppedImage = (
   return canvas.toDataURL('image/jpeg', 0.9);
 };
 
-export default function ImageCropper({ image, open, onClose, onCropComplete }: ImageCropperProps) {
+export default function ImageCropper({
+  image,
+  open,
+  onClose,
+  onCropComplete,
+  aspect = 1,
+  title = "Crop Image",
+  actionLabel = "Crop & Save",
+}: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
@@ -82,7 +93,7 @@ export default function ImageCropper({ image, open, onClose, onCropComplete }: I
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Crop Image</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         
         <div className="relative w-full h-80 my-4 bg-gray-100 rounded-md overflow-hidden">
@@ -91,7 +102,7 @@ export default function ImageCropper({ image, open, onClose, onCropComplete }: I
               image={image}
               crop={crop}
               zoom={zoom}
-              aspect={1}
+              aspect={aspect}
               onCropChange={onCropChange}
               onZoomChange={onZoomChange}
               onCropComplete={onCropAreaChange}
@@ -115,7 +126,7 @@ export default function ImageCropper({ image, open, onClose, onCropComplete }: I
         
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleCropImage}>Crop & Save</Button>
+          <Button onClick={handleCropImage}>{actionLabel}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

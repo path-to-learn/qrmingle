@@ -1,6 +1,6 @@
 # iOS Release Tracker
 
-Last updated: 2026-05-10 | Stable tag: `v1.1-stable`
+Last updated: 2026-05-18 | Stable tag: `v1.1-stable`
 
 ## Completed ✅
 
@@ -10,6 +10,7 @@ Last updated: 2026-05-10 | Stable tag: `v1.1-stable`
 | F2 | FIFA World Cup 2026 fan cards |
 | F3 | Forgot password — SendGrid reset emails (admin-triggered + self-serve) |
 | F4 | Multilingual support (EN, ES, FR, PT, AR, JA) |
+| F6 | Scan physical business card → AI extracts details → create QrMingle card — verified on iPhone (2026-05-18) |
 | T2 | Railway migration + Neon DB + DNS cutover |
 | T3 | Universal Links — AASA served from Express, Associated Domains entitlement in Xcode |
 | E1 | `ANTHROPIC_API_KEY` set in Railway prod env |
@@ -29,7 +30,6 @@ Last updated: 2026-05-10 | Stable tag: `v1.1-stable`
 | ~~T1~~ | ~~Apple IAP / StoreKit 2~~ — **implemented** (IAPPlugin.swift + iap.ts + premium.tsx with getProducts/purchase/restore) |
 | T4 | Sign in with Apple — only required if Google/Facebook login is added |
 | F5 | Voice-to-card — speak → AI fills profile form |
-| F6 | Scan physical business card → OCR → AI imports contacts |
 
 ## Known Issues / Tech Debt
 
