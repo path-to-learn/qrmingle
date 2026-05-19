@@ -1,69 +1,411 @@
-import { QrCode, Camera } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Camera as CameraIcon, Check, IdCard, Image as ImageIcon, Loader2, QrCode, RotateCcw, Sparkles, UserPlus } from "lucide-react";
+import { Camera as CameraPlugin, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import ImageCropper from "@/components/profile/ImageCropper";
+import type { ProfileFormData } from "@shared/schema";
+
+type ScannedLink = {
+  platform: string;
+  url: string;
+};
+
+type ScannedContact = {
+  name: string;
+  title: string;
+  company?: string;
+  bio?: string;
+  suggestedLinks: ScannedLink[];
+};
+
+const accent = "var(--app-accent, #6366f1)";
+const PENDING_CREATED_PROFILE_ID_KEY = "cardsPendingCreatedProfileId";
+
+function normalizeImageDataUrl(dataUrl: string): string {
+  const commaIndex = dataUrl.indexOf(",");
+  if (commaIndex === -1) return dataUrl;
+
+  const header = dataUrl.slice(0, commaIndex).trim();
+  const match = /^data:(image\/(?:jpeg|jpg|png|webp));base64$/i.exec(header);
+  const mediaType = match?.[1]?.toLowerCase() === "image/jpg"
+    ? "image/jpeg"
+    : match?.[1]?.toLowerCase() || "image/jpeg";
+  const base64 = dataUrl
+    .slice(commaIndex + 1)
+    .replace(/[^A-Za-z0-9+/=]/g, "");
+
+  return `data:${mediaType};base64,${base64}`;
+}
+
+function normalizeLink(link: ScannedLink): ScannedLink {
+  const platform = link.platform.trim();
+  let url = link.url.trim();
+  if (platform === "Website" && url && !/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+  return { platform, url };
+}
+
+function buildProfilePayload(contact: ScannedContact): ProfileFormData {
+  const name = contact.name?.trim() || contact.company?.trim() || "Scanned Contact";
+  const links = (contact.suggestedLinks || [])
+    .map(normalizeLink)
+    .filter((link) => link.platform && link.url);
+
+  return {
+    name,
+    displayName: name,
+    title: contact.title || contact.company || "",
+    bio: contact.bio || "",
+    photoUrl: "",
+    photoSize: 120,
+    backgroundUrl: "",
+    backgroundOpacity: 100,
+    cardColor: "#ffffff",
+    qrStyle: "basic",
+    qrColor: "#3B82F6",
+    qrSize: 150,
+    qrPosition: "bottom",
+    photoPosition: "hidden",
+    layoutStyle: "standard",
+    shortBio: null,
+    themeId: null,
+    teamId: null,
+    socialLinks: links.length ? links : [{ platform: "Website", url: "https://qrmingle.com" }],
+  };
+}
 
 export default function Scan() {
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const isNativeApp = Capacitor.isNativePlatform();
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [contact, setContact] = useState<ScannedContact | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleScan = () => {
-    // On iOS, opening camera:// or using the native share will trigger QR scanning
-    // The simplest approach is to direct users to use the native camera
-    const isCapacitor = Capacitor.isNativePlatform();
-    if (isCapacitor) {
-      // On native app, user can use iPhone's built-in camera which auto-detects QR
-      alert("To scan a QR code, open your iPhone's Camera app and point it at the QR code. It will automatically detect and open the QRMingle profile.");
-    } else {
-      alert("Use your device camera to scan QR codes.");
+  const analyzeBusinessCard = async (dataUrl: string) => {
+    setIsScanning(true);
+    setContact(null);
+
+    try {
+      const res = await apiRequest("POST", "/api/ai/business-card-ocr", {
+        imageDataUrl: normalizeImageDataUrl(dataUrl),
+      });
+      const data = await res.json();
+      setContact(data.result);
+      toast({ title: "Card details found", description: "Review the details before creating a card." });
+    } catch (error: any) {
+      const rawMessage = error?.message || "Could not scan this business card.";
+      const message = rawMessage.includes("expected pattern")
+        ? "The image format was rejected. Please crop again or choose a PNG/JPEG from Photos."
+        : rawMessage;
+      if (!message.toLowerCase().includes("cancel")) {
+        toast({ title: "Scan failed", description: message, variant: "destructive" });
+      }
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const scanBusinessCard = async (source: CameraSource) => {
+    if (isScanning) return;
+    setContact(null);
+
+    try {
+      const photo = await CameraPlugin.getPhoto({
+        source,
+        resultType: CameraResultType.DataUrl,
+        quality: 72,
+        width: 1600,
+        allowEditing: false,
+        promptLabelHeader: "Business Card",
+        promptLabelPhoto: "Choose Photo",
+        promptLabelPicture: "Take Photo",
+      });
+
+      if (!photo.dataUrl) throw new Error("No image was captured.");
+      setImageDataUrl(photo.dataUrl);
+      setShowCropper(true);
+    } catch (error: any) {
+      const message = error?.message || "Could not scan this business card.";
+      if (!message.toLowerCase().includes("cancel")) {
+        toast({ title: "Scan failed", description: message, variant: "destructive" });
+      }
+    }
+  };
+
+  const createCard = async () => {
+    if (!contact || isCreating) return;
+    setIsCreating(true);
+
+    try {
+      const payload = buildProfilePayload(contact);
+      const res = await apiRequest("POST", "/api/profiles", payload);
+      const createdProfile = await res.json();
+
+      queryClient.setQueryData<any[]>(["/api/profiles"], (current = []) => {
+        if (!createdProfile?.id || current.some((profile: any) => profile.id === createdProfile.id)) {
+          return current;
+        }
+        sessionStorage.setItem("cardsCurrentIndex", String(current.length));
+        return [...current, createdProfile];
+      });
+      if (createdProfile?.id) {
+        sessionStorage.setItem(PENDING_CREATED_PROFILE_ID_KEY, String(createdProfile.id));
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/profiles"] });
+
+      toast({ title: "Card created", description: "The scanned contact is now in your cards." });
+      navigate("/profiles");
+    } catch (error: any) {
+      toast({ title: "Could not create card", description: error?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setIsCreating(false);
     }
   };
 
   return (
     <div style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: "60vh",
-      gap: "24px",
-      padding: "24px",
-      paddingBottom: "80px",
+      minHeight: "calc(100dvh - 140px)",
+      padding: "18px 18px calc(92px + env(safe-area-inset-bottom))",
+      overflowX: "hidden",
+      boxSizing: "border-box",
+      width: "100%",
+      maxWidth: "100%",
     }}>
       <div style={{
-        width: "120px", height: "120px", borderRadius: "32px",
-        background: "var(--app-accent, #6366f1)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>
-        <QrCode size={60} color="white" />
-      </div>
-      <div style={{ textAlign: "center" }}>
-        <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>Scan a QR Code</h2>
-        <p style={{ color: "#64748b", fontSize: "15px", lineHeight: 1.5 }}>
-          Point your iPhone camera at any QRMingle card to instantly view and save their contact
-        </p>
-      </div>
-      <div style={{
-        background: "#f8fafc",
-        border: "1px solid #e2e8f0",
-        borderRadius: "16px",
-        padding: "20px",
         width: "100%",
-        maxWidth: "320px",
+        maxWidth: "440px",
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: "18px",
+        minWidth: 0,
       }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px" }}>
-          <div style={{ fontSize: "24px" }}>1️⃣</div>
-          <p style={{ fontSize: "14px", color: "#475569" }}>Open your iPhone's <strong>Camera app</strong></p>
+        <section style={{ textAlign: "center", paddingTop: "14px" }}>
+          <div style={{
+            width: "104px",
+            height: "104px",
+            borderRadius: "28px",
+            background: accent,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 18px",
+            boxShadow: "0 16px 36px rgba(99,102,241,0.24)",
+          }}>
+            <IdCard size={52} color="white" />
+          </div>
+          <h2 style={{ fontSize: "24px", lineHeight: 1.15, fontWeight: 800, margin: "0 0 8px", color: "#0f172a" }}>
+            Scan a Business Card
+          </h2>
+          <p style={{ color: "#64748b", fontSize: "15px", lineHeight: 1.5, margin: 0 }}>
+            {isNativeApp
+              ? "Take a photo of a physical card and QrMingle will extract the contact details into a new digital card."
+              : "Upload a business card image and QrMingle will extract the contact details into a new digital card."}
+          </p>
+        </section>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", width: "100%" }}>
+          {isNativeApp ? (
+            <>
+              <Button
+                onClick={() => scanBusinessCard(CameraSource.Camera)}
+                disabled={isScanning || isCreating}
+                style={{ height: "52px", borderRadius: "14px", background: accent, color: "white", fontWeight: 700, fontSize: "15px" }}
+              >
+                {isScanning ? <Loader2 size={18} className="animate-spin" /> : <CameraIcon size={18} />}
+                Camera
+              </Button>
+              <Button
+                onClick={() => scanBusinessCard(CameraSource.Photos)}
+                disabled={isScanning || isCreating}
+                variant="outline"
+                style={{ height: "52px", borderRadius: "14px", fontWeight: 700, fontSize: "15px", background: "white" }}
+              >
+                <ImageIcon size={18} />
+                Photos
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={() => scanBusinessCard(CameraSource.Photos)}
+                disabled={isScanning || isCreating}
+                style={{ height: "52px", borderRadius: "14px", background: accent, color: "white", fontWeight: 700, fontSize: "15px" }}
+              >
+                {isScanning ? <Loader2 size={18} className="animate-spin" /> : <ImageIcon size={18} />}
+                Upload Image
+              </Button>
+              <Button
+                onClick={() => scanBusinessCard(CameraSource.Camera)}
+                disabled={isScanning || isCreating}
+                variant="outline"
+                style={{ height: "52px", borderRadius: "14px", fontWeight: 700, fontSize: "15px", background: "white" }}
+              >
+                <CameraIcon size={18} />
+                Camera
+              </Button>
+            </>
+          )}
         </div>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px" }}>
-          <div style={{ fontSize: "24px" }}>2️⃣</div>
-          <p style={{ fontSize: "14px", color: "#475569" }}>Point it at a <strong>QRMingle QR code</strong></p>
-        </div>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-          <div style={{ fontSize: "24px" }}>3️⃣</div>
-          <p style={{ fontSize: "14px", color: "#475569" }}>Tap the notification to <strong>view their profile</strong></p>
-        </div>
+
+        {imageDataUrl && (
+          <div style={{
+            border: "1px solid #e2e8f0",
+            borderRadius: "16px",
+            padding: "10px",
+            background: "white",
+            boxShadow: "0 8px 28px rgba(15,23,42,0.06)",
+          }}>
+            <img
+              src={imageDataUrl}
+              alt="Scanned business card"
+              style={{ width: "100%", borderRadius: "12px", display: "block", maxHeight: "190px", objectFit: "cover" }}
+            />
+          </div>
+        )}
+
+        {imageDataUrl && !contact && !isScanning && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <Button
+              onClick={() => setShowCropper(true)}
+              variant="outline"
+              style={{ height: "46px", borderRadius: "14px", fontWeight: 700, background: "white" }}
+            >
+              Crop Again
+            </Button>
+            <Button
+              onClick={() => analyzeBusinessCard(imageDataUrl)}
+              style={{ height: "46px", borderRadius: "14px", background: accent, color: "white", fontWeight: 800 }}
+            >
+              Scan Image
+            </Button>
+          </div>
+        )}
+
+        {isScanning && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "16px",
+            borderRadius: "16px",
+            background: "#eef2ff",
+            color: "#3730a3",
+            fontSize: "14px",
+            fontWeight: 600,
+          }}>
+            <Sparkles size={18} />
+            Reading the business card...
+          </div>
+        )}
+
+        {contact && (
+          <section style={{
+            background: "white",
+            border: "1px solid #e2e8f0",
+            borderRadius: "18px",
+            padding: "18px",
+            boxShadow: "0 10px 30px rgba(15,23,42,0.07)",
+            minWidth: 0,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#16a34a", fontSize: "13px", fontWeight: 800, marginBottom: "12px" }}>
+              <Check size={16} />
+              Details extracted
+            </div>
+            <div style={{ fontSize: "22px", fontWeight: 800, color: "#0f172a", lineHeight: 1.15, overflowWrap: "anywhere" }}>
+              {contact.name || contact.company || "Scanned Contact"}
+            </div>
+            <div style={{ color: "#64748b", fontSize: "15px", marginTop: "6px", overflowWrap: "anywhere" }}>
+              {contact.title || contact.company || "New contact"}
+            </div>
+            {contact.bio && (
+              <p style={{ color: "#475569", fontSize: "14px", lineHeight: 1.45, margin: "12px 0 0" }}>{contact.bio}</p>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "16px" }}>
+              {(contact.suggestedLinks || []).map((link, index) => (
+                <div key={`${link.platform}-${index}`} style={{
+                  display: "grid",
+                  gridTemplateColumns: "86px minmax(0, 1fr)",
+                  gap: "8px",
+                  fontSize: "13px",
+                  color: "#475569",
+                  minWidth: 0,
+                }}>
+                  <strong style={{ color: "#0f172a" }}>{link.platform}</strong>
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{link.url}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "18px" }}>
+              <Button
+                onClick={() => {
+                  setContact(null);
+                  setImageDataUrl(null);
+                  setShowCropper(false);
+                }}
+                disabled={isCreating}
+                variant="outline"
+                style={{ height: "48px", borderRadius: "14px", fontWeight: 700 }}
+              >
+                <RotateCcw size={16} />
+                Retake
+              </Button>
+              <Button
+                onClick={createCard}
+                disabled={isCreating}
+                style={{ height: "48px", borderRadius: "14px", background: accent, color: "white", fontWeight: 800 }}
+              >
+                {isCreating ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                Create
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {!contact && !isScanning && (
+          <section style={{
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: "16px",
+            padding: "16px",
+            color: "#475569",
+            fontSize: "14px",
+            lineHeight: 1.45,
+          }}>
+            <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+              <QrCode size={20} color="#64748b" style={{ flexShrink: 0, marginTop: "2px" }} />
+              <div>
+                QR codes still work with the iPhone Camera app. This tab now focuses on physical business cards.
+              </div>
+            </div>
+          </section>
+        )}
       </div>
-      <p style={{ fontSize: "12px", color: "#94a3b8", textAlign: "center" }}>
-        Built-in QR scanner coming in a future update
-      </p>
+
+      {imageDataUrl && (
+        <ImageCropper
+          image={imageDataUrl}
+          open={showCropper}
+          onClose={() => setShowCropper(false)}
+          onCropComplete={(croppedImageData) => {
+            const normalizedImage = normalizeImageDataUrl(croppedImageData);
+            setImageDataUrl(normalizedImage);
+            analyzeBusinessCard(normalizedImage);
+          }}
+          aspect={1.72}
+          title="Frame the Business Card"
+          actionLabel="Crop & Scan"
+        />
+      )}
     </div>
   );
 }

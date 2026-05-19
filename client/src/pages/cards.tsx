@@ -16,6 +16,8 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const PENDING_CREATED_PROFILE_ID_KEY = "cardsPendingCreatedProfileId";
+
 export default function CardsPage() {
   const { user, isEffectivelyPremium } = useAuth();
   const { toast } = useToast();
@@ -27,7 +29,11 @@ export default function CardsPage() {
   });
   const [showEditor, setShowEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
-  const [pendingCreatedProfileId, setPendingCreatedProfileId] = useState<number | null>(null);
+  const [pendingCreatedProfileId, setPendingCreatedProfileId] = useState<number | null>(() => {
+    const saved = sessionStorage.getItem(PENDING_CREATED_PROFILE_ID_KEY);
+    const parsed = saved ? parseInt(saved, 10) : NaN;
+    return Number.isFinite(parsed) ? parsed : null;
+  });
   const [profileToDelete, setProfileToDelete] = useState<number | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [touchStartX, setTouchStartX] = useState(0);
@@ -122,6 +128,7 @@ export default function CardsPage() {
     if (createdIndex === -1) return;
     setCurrentIndex(createdIndex);
     sessionStorage.setItem("cardsCurrentIndex", String(createdIndex));
+    sessionStorage.removeItem(PENDING_CREATED_PROFILE_ID_KEY);
     setPendingCreatedProfileId(null);
   }, [pendingCreatedProfileId, profiles]);
 
