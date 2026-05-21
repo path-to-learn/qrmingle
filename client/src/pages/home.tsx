@@ -230,17 +230,23 @@ export default function Home() {
 
   return (
     <div style={{
-      minHeight: "100vh",
+      height: "100dvh",
+      minHeight: "100dvh",
       background: "linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%)",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
+      justifyContent: "space-between",
+      width: "100vw",
+      maxWidth: "100vw",
       paddingLeft: "24px",
       paddingRight: "24px",
       paddingTop: "env(safe-area-inset-top)",
       paddingBottom: "env(safe-area-inset-bottom)",
       position: "relative",
-      overflow: "hidden",
+      overflowX: "hidden",
+      overflowY: "hidden",
+      boxSizing: "border-box",
     }}>
 
       {/* Background glow orbs */}
@@ -258,7 +264,8 @@ export default function Home() {
       {/* ── Logo ── */}
       <div style={{
         display: "flex", alignItems: "center", gap: "12px",
-        paddingTop: "52px", marginBottom: "24px",
+        paddingTop: "clamp(28px, 5dvh, 46px)", marginBottom: "10px",
+        flexShrink: 0,
       }}>
         <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="512" height="512" rx="256" fill="rgba(255,255,255,0.18)"/>
@@ -286,7 +293,7 @@ export default function Home() {
       </div>
 
       {/* ── Rotating tagline ── */}
-      <div style={{ textAlign: "center", marginBottom: "20px", minHeight: "64px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <div style={{ textAlign: "center", marginBottom: "10px", minHeight: "74px", display: "flex", flexDirection: "column", justifyContent: "center", flexShrink: 0 }}>
         <h1 style={{
           color: "white", fontSize: "24px", fontWeight: 800,
           lineHeight: 1.25, margin: 0, letterSpacing: "-0.5px",
@@ -306,8 +313,10 @@ export default function Home() {
         ref={carouselRef}
         className="welcome-scroll"
         style={{
-          width: "calc(100vw + 24px)",
-          marginLeft: "-24px",
+          width: "100vw",
+          maxWidth: "100vw",
+          marginLeft: "calc(50% - 50vw)",
+          marginRight: "calc(50% - 50vw)",
           overflowX: "auto",
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch" as any,
@@ -316,7 +325,8 @@ export default function Home() {
           padding: "10px 24px 14px",
           msOverflowStyle: "none" as any,
           scrollbarWidth: "none" as any,
-          flex: 1,
+          flex: "0 1 min(32dvh, 320px)",
+          minHeight: "250px",
           alignItems: "center",
         }}
       >
@@ -329,7 +339,7 @@ export default function Home() {
       </div>
 
       {/* Scroll hint dots */}
-      <div style={{ display: "flex", gap: "5px", marginTop: "12px", marginBottom: "20px" }}>
+      <div style={{ display: "flex", gap: "5px", marginTop: "8px", marginBottom: "14px", flexShrink: 0 }}>
         {DEMO_CARDS.map((card, i) => (
           <div key={i} style={{
             width: i === 0 ? "20px" : "5px", height: "5px", borderRadius: "99px",
@@ -348,7 +358,8 @@ export default function Home() {
             background: "linear-gradient(135deg, #92400e 0%, #d97706 50%, #92400e 100%)",
             borderRadius: "18px",
             padding: "18px 20px",
-            marginBottom: "20px",
+            marginBottom: "18px",
+            flexShrink: 0,
             cursor: "pointer",
             boxShadow: "0 8px 32px rgba(217,119,6,0.45)",
             display: "flex", alignItems: "center", gap: "14px",
@@ -374,7 +385,8 @@ export default function Home() {
       <div style={{
         width: "100%", maxWidth: "380px",
         textAlign: "center",
-        paddingBottom: "44px",
+        paddingBottom: "max(24px, env(safe-area-inset-bottom))",
+        flexShrink: 0,
       }}>
         <button
           onClick={() => navigate("/register")}

@@ -64,6 +64,7 @@ function OfflineBanner() {
 // Router component
 function AppRouter() {
   const [location, navigate] = useLocation();
+  const isFullScreenRoute = ["/", "/login", "/register"].includes(location);
 
   // Handle Universal Links (iOS deep links) — navigate to the path when app opens via URL
   useEffect(() => {
@@ -94,8 +95,31 @@ function AppRouter() {
     };
   }, []);
 
+  useEffect(() => {
+    const className = "qrmingle-fullscreen-lock";
+    document.documentElement.classList.toggle(className, isFullScreenRoute);
+    document.body.classList.toggle(className, isFullScreenRoute);
+
+    return () => {
+      document.documentElement.classList.remove(className);
+      document.body.classList.remove(className);
+    };
+  }, [isFullScreenRoute]);
+
   return (
-    <div data-horizontal-lock className="min-h-screen flex flex-col" style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0, touchAction: "pan-y" }}>
+    <div
+      data-horizontal-lock
+      className="min-h-screen flex flex-col"
+      style={{
+        overflowX: "hidden",
+        overflowY: isFullScreenRoute ? "hidden" : undefined,
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        height: isFullScreenRoute ? "100dvh" : undefined,
+        touchAction: "pan-y",
+      }}
+    >
       {!["/", "/login", "/register"].includes(location) && (
         location === "/profiles"
           ? <div className="profiles-header-wrap"><Header /></div>
@@ -103,14 +127,20 @@ function AppRouter() {
       )}
       {/* overflow-y on main, overflow-x on inner div — keeps them separate to avoid iOS WebKit scroll quirk */}
       <main data-horizontal-lock className="main-content flex-1 min-h-0 overflow-y-auto max-w-full" style={{
+        ["--route-overflow-y" as string]: isFullScreenRoute ? "hidden" : "auto",
         paddingBottom: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "80px",
         paddingTop: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "8px",
         paddingLeft: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         paddingRight: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
         overflowX: "hidden",
-        height: location === "/profiles" ? "calc(100dvh - 60px - env(safe-area-inset-bottom))" : undefined,
+        overflowY: isFullScreenRoute ? "hidden" : undefined,
+        height: isFullScreenRoute
+          ? "100dvh"
+          : location === "/profiles"
+            ? "calc(100dvh - 60px - env(safe-area-inset-bottom))"
+            : undefined,
       }}>
-      <div data-horizontal-lock style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0 }}>
+      <div data-horizontal-lock style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0, height: isFullScreenRoute ? "100%" : undefined }}>
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
           <Route path="/" component={Home} />

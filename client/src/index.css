@@ -6,6 +6,7 @@
   --primary: 239 84% 67%;
   --primary-foreground: 0 0% 100%;
   --ring: 239 84% 67%;
+  --qrmingle-auth-gradient: linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%);
 }
 
 @layer base {
@@ -95,6 +96,37 @@ img, video, canvas, input[type="range"] { max-width: 100%; }
   overflow-x: hidden;
 }
 
+html.qrmingle-fullscreen-lock {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  background: var(--qrmingle-auth-gradient);
+}
+
+body.qrmingle-fullscreen-lock {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: pan-x;
+  background: var(--qrmingle-auth-gradient);
+}
+
+html.qrmingle-fullscreen-lock #root {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden !important;
+  background: var(--qrmingle-auth-gradient);
+}
+
+.main-content {
+  overflow-y: var(--route-overflow-y, auto);
+}
+
 /* Hide scrollbar on welcome card carousel */
 .welcome-scroll::-webkit-scrollbar { display: none; }
 
@@ -118,6 +150,12 @@ img, video, canvas, input[type="range"] { max-width: 100%; }
 }
 
 @media (max-width: 767px) {
+  .native-auth-screen:focus-within {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+  }
+
   /* iOS auto-zooms focused form fields below 16px, which can leave WKWebView horizontally panned. */
   input,
   textarea,
