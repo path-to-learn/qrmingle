@@ -14,6 +14,13 @@ npm run db:push    # Push schema changes to the database via Drizzle Kit
 
 There are no automated tests. The `manual_test.py` and `test_*.py` files are one-off scripts, not a test suite.
 
+## Agent handoff / review notes
+
+- Use `AGENT_HANDOFF.local.md` for all Codex/Claude changelog, handoff, review, and verification notes.
+- Do not create alternate review-note files such as `CLAUDE_REVIEW_NOTES.md`, `REVIEW_NOTES.md`, or duplicate handoff docs.
+- Add a new versioned entry to `AGENT_HANDOFF.local.md` whenever making meaningful code changes, release decisions, or investigation findings.
+- `AGENT_HANDOFF.local.md` is local/ignored by design, so it may not appear in `git status`.
+
 ## Architecture
 
 **Stack**: React (TypeScript) + Express.js (TypeScript) + PostgreSQL (Neon serverless) + Capacitor (iOS)

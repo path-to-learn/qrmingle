@@ -14,6 +14,7 @@ export default function Header() {
   const [isLoginPage] = useRoute("/login");
   const [isRegisterPage] = useRoute("/register");
   const isAuthPage = isLoginPage || isRegisterPage;
+  const isNativeApp = Capacitor.isNativePlatform();
 
   const isInTrialMode = user && !user.isPremium && user.trialExpiresAt && new Date(user.trialExpiresAt) > new Date();
 
@@ -41,7 +42,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-10" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+    <header className="bg-white shadow-sm sticky top-0 z-10" style={{ paddingTop: isNativeApp ? 0 : "env(safe-area-inset-top)", width: "100%", maxWidth: "100vw", overflowX: "hidden" }}>
       {isInTrialMode && (
         <div className="text-white text-center text-sm py-1" style={{ background: "var(--app-accent, #6366f1)" }}>
           <div className="container mx-auto px-4 flex items-center justify-center">

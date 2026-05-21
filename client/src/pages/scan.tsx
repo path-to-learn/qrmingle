@@ -384,7 +384,7 @@ export default function Scan() {
             <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
               <QrCode size={20} color="#64748b" style={{ flexShrink: 0, marginTop: "2px" }} />
               <div>
-                QR codes still work with the iPhone Camera app. This tab now focuses on physical business cards.
+                To scan QR codes, use the iPhone Camera app. Use this tab to turn physical business cards into digital cards.
               </div>
             </div>
           </section>

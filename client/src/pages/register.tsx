@@ -58,35 +58,60 @@ export default function Register() {
   // ── iOS layout ──────────────────────────────────────────────────────
   if (isCapacitor) {
     return (
-      <div style={{
-        minHeight: "100vh",
+      <div className="native-auth-screen" style={{
+        height: "100dvh",
+        minHeight: "100dvh",
         background: GRADIENT,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        justifyContent: "center",
+        width: "100vw",
+        maxWidth: "100vw",
         paddingLeft: "24px",
         paddingRight: "24px",
-        paddingTop: "env(safe-area-inset-top)",
-        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingTop: "max(24px, env(safe-area-inset-top))",
+        paddingBottom: "calc(32px + env(safe-area-inset-bottom))",
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "hidden",
+        boxSizing: "border-box",
       }}>
         {/* Glow orbs */}
         <div style={{ position: "absolute", top: "5%", left: "-20%", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(99,102,241,0.2)", filter: "blur(70px)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: "10%", right: "-15%", width: "250px", height: "250px", borderRadius: "50%", background: "rgba(139,92,246,0.15)", filter: "blur(60px)", pointerEvents: "none" }} />
 
         {/* Back button */}
-        <div style={{ width: "100%", paddingTop: "16px", marginBottom: "8px" }}>
+        <div style={{
+          position: "absolute",
+          top: "max(12px, env(safe-area-inset-top))",
+          left: "20px",
+          zIndex: 2,
+        }}>
           <button
             onClick={() => navigate("/")}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "15px", padding: "8px 0", WebkitTapHighlightColor: "transparent" }}
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "999px",
+              color: "rgba(255,255,255,0.78)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "2px",
+              fontSize: "14px",
+              fontWeight: 600,
+              padding: "8px 12px 8px 8px",
+              WebkitTapHighlightColor: "transparent",
+              backdropFilter: "blur(12px)",
+            }}
           >
-            <ChevronLeft size={20} /> {t('register.back')}
+            <ChevronLeft size={18} /> {t('register.back')}
           </button>
         </div>
 
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "22px", flexShrink: 0 }}>
           <svg width="36" height="36" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="512" height="512" rx="256" fill="rgba(255,255,255,0.18)"/>
             <g opacity="0.95">
@@ -103,13 +128,13 @@ export default function Register() {
         </div>
 
         {/* Heading */}
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <div style={{ textAlign: "center", marginBottom: "22px", flexShrink: 0 }}>
           <h1 style={{ color: "white", fontSize: "26px", fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>{t('register.title')}</h1>
           <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "8px" }}>{t('register.subtitle')}</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleRegister} style={{ width: "100%", maxWidth: "380px" }}>
+        <form onSubmit={handleRegister} style={{ width: "100%", maxWidth: "380px", flexShrink: 0 }}>
           <div style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", borderRadius: "24px", padding: "24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
             <div style={{ marginBottom: "14px" }}>
               <label style={labelStyle}>{t('register.username')}</label>

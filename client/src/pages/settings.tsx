@@ -43,7 +43,7 @@ export default function Settings() {
   ];
 
   return (
-    <div style={{ paddingBottom: "80px", overflowX: "hidden", width: "100%" }}>
+    <div style={{ paddingBottom: "80px", overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}>
       {/* Profile header */}
       <div style={{
         background: "var(--app-accent, #6366f1)",
@@ -53,6 +53,8 @@ export default function Settings() {
         gap: "16px",
         borderRadius: "0 0 24px 24px",
         marginBottom: "16px",
+        maxWidth: "100%",
+        boxSizing: "border-box",
       }}>
         <Avatar style={{ width: "64px", height: "64px" }}>
           <AvatarFallback style={{
@@ -82,9 +84,11 @@ export default function Settings() {
         display: "flex",
         alignItems: "center",
         gap: "10px",
+        minWidth: 0,
+        boxSizing: "border-box",
       }}>
         <span style={{ fontSize: "20px" }}>🔒</span>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: "13px", fontWeight: 600, color: "#15803d" }}>{t('settings.privacy.title')}</div>
           <div style={{ fontSize: "12px", color: "#166534", marginTop: "2px" }}>{t('settings.privacy.sub')}</div>
         </div>
@@ -97,6 +101,7 @@ export default function Settings() {
         background: "white",
         border: "1px solid #f1f5f9",
         borderRadius: "12px",
+        boxSizing: "border-box",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
           <div style={{
@@ -108,7 +113,7 @@ export default function Settings() {
           </div>
           <span style={{ fontSize: "15px", fontWeight: 500, color: "#1e293b" }}>{t('settings.language')}</span>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px", minWidth: 0 }}>
           {LANGUAGES.map((lang) => {
             const isActive = i18n.language?.startsWith(lang.code);
             return (
@@ -130,6 +135,8 @@ export default function Settings() {
                   alignItems: "center",
                   gap: "3px",
                   WebkitTapHighlightColor: "transparent",
+                  minWidth: 0,
+                  overflow: "hidden",
                 }}
               >
                 <span style={{ fontSize: "20px" }}>{lang.flag}</span>
@@ -137,6 +144,10 @@ export default function Settings() {
                   fontSize: "10px",
                   fontWeight: isActive ? 700 : 500,
                   color: isActive ? "var(--app-accent, #6366f1)" : "#64748b",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  maxWidth: "100%",
                 }}>{lang.label}</span>
               </button>
             );
