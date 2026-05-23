@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { isAdmin } from "@/lib/video";
+import type { LucideIcon } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -35,7 +36,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { Loader2 } from "lucide-react";
+import { Activity, CreditCard, Globe2, Loader2, LockKeyhole } from "lucide-react";
 
 // Types for analytics data
 interface ProfileType {
@@ -76,6 +77,134 @@ interface AnalyticsData {
   timeRange?: string;
 }
 
+type AnalyticsBenefit = {
+  Icon: LucideIcon;
+  title: string;
+  description: string;
+};
+
+const ANALYTICS_BENEFITS: AnalyticsBenefit[] = [
+  {
+    Icon: Activity,
+    title: "Scan activity over time",
+    description: "See when people open your card after meetings, events, or campaigns.",
+  },
+  {
+    Icon: CreditCard,
+    title: "Top-performing card",
+    description: "Know which profile gets the most attention so you share the right one.",
+  },
+  {
+    Icon: Globe2,
+    title: "Device and location insights",
+    description: "Understand where your network is growing and how people view your card.",
+  },
+];
+
+function LockedAnalyticsUpsell() {
+  return (
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      textAlign: "center",
+      padding: "10px 0 4px",
+      minWidth: 0,
+    }}>
+      <div style={{
+        width: "68px",
+        height: "68px",
+        borderRadius: "20px",
+        background: "rgba(99,102,241,0.12)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: "18px",
+      }}>
+        <LockKeyhole size={32} style={{ color: "var(--app-accent, #6366f1)" }} />
+      </div>
+
+      <h3 style={{
+        fontSize: "24px",
+        lineHeight: 1.15,
+        fontWeight: 800,
+        color: "#0f172a",
+        margin: "0 0 10px",
+      }}>
+        Unlock card analytics
+      </h3>
+      <p style={{
+        color: "#64748b",
+        fontSize: "15px",
+        lineHeight: 1.5,
+        margin: "0 0 22px",
+        maxWidth: "340px",
+      }}>
+        Stop guessing. See how often your QR cards are scanned, which card gets the most attention, and where your network is growing.
+      </p>
+
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        width: "100%",
+        maxWidth: "420px",
+        marginBottom: "24px",
+        textAlign: "left",
+      }}>
+        {ANALYTICS_BENEFITS.map(({ Icon, title, description }) => (
+          <div key={title} style={{
+            display: "grid",
+            gridTemplateColumns: "42px minmax(0, 1fr)",
+            gap: "12px",
+            alignItems: "center",
+            padding: "12px",
+            border: "1px solid #e2e8f0",
+            borderRadius: "12px",
+            background: "#f8fafc",
+            minWidth: 0,
+          }}>
+            <div style={{
+              width: "42px",
+              height: "42px",
+              borderRadius: "12px",
+              background: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 1px 3px rgba(15,23,42,0.08)",
+            }}>
+              <Icon size={20} style={{ color: "var(--app-accent, #6366f1)" }} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginBottom: "3px" }}>
+                {title}
+              </div>
+              <div style={{ fontSize: "13px", lineHeight: 1.35, color: "#64748b" }}>
+                {description}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Link to="/premium" style={{ width: "100%", maxWidth: "320px" }}>
+        <Button style={{
+          width: "100%",
+          minHeight: "48px",
+          borderRadius: "14px",
+          background: "var(--app-accent, #6366f1)",
+          color: "white",
+          fontWeight: 800,
+          border: "none",
+        }}>
+          Upgrade to Premium
+        </Button>
+      </Link>
+    </div>
+  );
+}
+
 export default function Analytics() {
   const { user, isEffectivelyPremium } = useAuth();
   const isPremium = isEffectivelyPremium();
@@ -88,7 +217,7 @@ export default function Analytics() {
     isLoading: isLoadingProfiles,
   } = useQuery<ProfileType[]>({
     queryKey: [`/api/profiles?userId=${user?.id}`],
-    enabled: !!user,
+    enabled: !!user && isPremium,
   });
 
   // Fetch analytics for selected profile
@@ -97,7 +226,7 @@ export default function Analytics() {
     isLoading: isLoadingAnalytics,
   } = useQuery<AnalyticsData>({
     queryKey: [`/api/analytics/profile/${selectedProfile}`],
-    enabled: !!selectedProfile,
+    enabled: !!selectedProfile && isPremium,
   });
   
   // Set time range when analytics data is received
@@ -167,22 +296,18 @@ export default function Analytics() {
     );
   }
 
+  if (!isPremium) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-bold mb-6">QR Code Analytics</h2>
+        <LockedAnalyticsUpsell />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-bold mb-6">QR Code Analytics</h2>
-      
-      {!isPremium && (
-        <div style={{ background: "#fffbeb", border: "1px solid #fde68a", padding: "14px 16px", marginBottom: "24px", borderRadius: "10px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "20px" }}>👑</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "#92400e" }}>Premium feature</div>
-            <div style={{ fontSize: "12px", color: "#78350f", marginTop: "2px" }}>Upgrade to see scan activity charts, device breakdown, and country insights.</div>
-          </div>
-          <Link to="/premium">
-            <Button size="sm" style={{ background: "#f59e0b", color: "white", border: "none", fontSize: "12px" }}>Upgrade</Button>
-          </Link>
-        </div>
-      )}
 
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -250,19 +375,6 @@ export default function Analytics() {
         ) : isLoadingAnalytics ? (
           <div className="h-64 bg-muted/20 rounded-lg p-4 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : !isPremium ? (
-          <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden" }}>
-            {/* Blurred placeholder */}
-            <div style={{ filter: "blur(4px)", pointerEvents: "none", opacity: 0.4, height: "200px", background: "linear-gradient(135deg, #e0e7ff 0%, #f0fdf4 100%)", borderRadius: "12px" }} />
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-              <span style={{ fontSize: "32px" }}>🔒</span>
-              <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "15px" }}>Charts locked</div>
-              <div style={{ fontSize: "13px", color: "#64748b", textAlign: "center", maxWidth: "220px" }}>Upgrade to Premium to unlock scan activity, device, and country charts.</div>
-              <Link to="/premium">
-                <Button size="sm" style={{ background: "#f59e0b", color: "white", border: "none" }}>Upgrade to Premium</Button>
-              </Link>
-            </div>
           </div>
         ) : (
           <Tabs defaultValue="activity" className="w-full">
