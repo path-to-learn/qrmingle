@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Cropper from 'react-easy-crop';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,22 +26,30 @@ const createCroppedImage = (
     return '';
   }
 
-  canvas.width = crop.width;
-  canvas.height = crop.height;
+  const sourceX = Math.max(0, Math.round(crop.x));
+  const sourceY = Math.max(0, Math.round(crop.y));
+  const sourceWidth = Math.max(1, Math.round(crop.width));
+  const sourceHeight = Math.max(1, Math.round(crop.height));
+
+  canvas.width = sourceWidth;
+  canvas.height = sourceHeight;
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
   ctx.drawImage(
     image,
-    crop.x,
-    crop.y,
-    crop.width,
-    crop.height,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
     0,
     0,
-    crop.width,
-    crop.height
+    sourceWidth,
+    sourceHeight
   );
 
-  return canvas.toDataURL('image/jpeg', 0.9);
+  return canvas.toDataURL('image/jpeg', 0.95);
 };
 
 export default function ImageCropper({
@@ -56,6 +64,13 @@ export default function ImageCropper({
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+  }, [image, open]);
 
   const onCropChange = (location: { x: number; y: number }) => {
     setCrop(location);
@@ -126,7 +141,7 @@ export default function ImageCropper({
         
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleCropImage}>{actionLabel}</Button>
+          <Button onClick={handleCropImage} disabled={!croppedAreaPixels}>{actionLabel}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -181,7 +181,11 @@ function AppRouter() {
           <Route path="/help" component={Help} />
           <Route path="/about" component={About} />
           <Route path="/reviews" component={Reviews} />
-          <Route path="/settings" component={Settings} />
+          <Route path="/settings">
+            <RequireAuth>
+              <Settings />
+            </RequireAuth>
+          </Route>
           <Route path="/scan" component={Scan} />
           <Route component={NotFound} />
         </Switch>

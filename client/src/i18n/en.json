@@ -63,17 +63,42 @@
     "freeAccount": "Free account",
     "premiumMember": "✓ Premium member",
     "language": "Language",
+    "sections": {
+      "account": "Account",
+      "preferences": "Preferences",
+      "support": "Support",
+      "legal": "Legal",
+      "session": "Session",
+      "danger": "Danger Zone"
+    },
     "privacy": {
       "title": "Your data is private",
       "sub": "Never sold · No ads · Delete anytime"
     },
     "menu": {
       "upgrade": "Upgrade to Premium",
+      "upgradeSub": "Unlock analytics and more",
+      "managePremium": "Manage Premium",
+      "managePremiumSub": "Premium is active",
+      "restorePurchase": "Restore Purchase",
+      "restoringPurchase": "Checking App Store...",
+      "restorePurchaseSub": "Recover a previous Premium purchase",
       "admin": "Admin Panel",
       "reviews": "Reviews",
+      "reviewsSub": "Read and share QrMingle reviews",
       "help": "Help Center",
+      "contactSupport": "Contact Support",
       "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
       "about": "About"
+    },
+    "restore": {
+      "noneTitle": "Nothing to restore",
+      "noneDescription": "No previous Premium purchase was found.",
+      "successTitle": "Purchase restored",
+      "successDescription": "Premium is active again.",
+      "failedTitle": "Restore failed",
+      "failedDescription": "Please try again."
     },
     "logout": "Logout",
     "deleteAccount": "Delete Account",

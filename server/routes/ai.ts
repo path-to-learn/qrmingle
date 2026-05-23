@@ -17,9 +17,81 @@ Only include suggestedLinks for platforms the user actually mentions. Return val
   tips: `You are a friendly profile coach for a digital business card app. Given a profile's details, return ONLY a valid JSON array of 2-3 short encouraging suggestions (strings) to improve the profile. Be positive and specific, not generic. No markdown, no explanation — just a JSON array of strings.`,
 };
 
+function extractBalancedJson(text: string, openChar: "{" | "[", closeChar: "}" | "]") {
+  const start = text.indexOf(openChar);
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < text.length; index++) {
+    const char = text[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = inString;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === openChar) depth++;
+    if (char === closeChar) depth--;
+
+    if (depth === 0) {
+      return text.slice(start, index + 1);
+    }
+  }
+
+  return null;
+}
+
 function parseAiJson(raw: string) {
-  const text = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-  return JSON.parse(text);
+  const text = raw.trim();
+  const fencedJson = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1]?.trim();
+  const candidates = [
+    fencedJson,
+    text,
+    extractBalancedJson(text, "{", "}"),
+    extractBalancedJson(text, "[", "]"),
+  ].filter(Boolean) as string[];
+
+  let lastError: unknown;
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("No JSON found in AI response.");
+}
+
+function isLikelyNonCardResponse(raw: string) {
+  const text = raw.toLowerCase();
+  return [
+    "not a business card",
+    "not an actual business card",
+    "doesn't contain a business card",
+    "does not contain a business card",
+    "no business card",
+    "personal photo",
+    "selfie",
+    "no visible contact",
+    "no contact details",
+    "cannot extract contact",
+  ].some((phrase) => text.includes(phrase));
 }
 
 function normalizeBusinessCardResult(result: any) {
@@ -39,7 +111,7 @@ function normalizeBusinessCardResult(result: any) {
 
   return {
     name,
-    title: title || company || "New Contact",
+    title,
     company,
     bio,
     suggestedLinks: socialLinks,
@@ -171,13 +243,17 @@ aiRouter.post("/business-card-ocr", requireAuth, async (req, res) => {
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 700,
+      temperature: 0,
       system: `You extract contact details from business card photos for QrMingle. Return ONLY valid JSON with:
 - "name": person's full name, or empty string if unclear
 - "title": role/job title, max 60 chars
 - "company": company name, or empty string
 - "bio": short professional line, max 150 chars
 - "suggestedLinks": array of { "platform": one of Email, Phone, Website, LinkedIn, Twitter, Instagram, Facebook, GitHub, YouTube, TikTok, WhatsApp, Telegram, "url": value }
-Use only information visible on the card. Do not invent missing links.`,
+Use only information visible on the card. Do not invent missing links.
+If the image is not a business card/contact card or readable contact details are not visible, return exactly:
+{"name":"","title":"","company":"","bio":"","suggestedLinks":[]}
+Do not include markdown, code fences, or explanation.`,
       messages: [
         {
           role: "user",
@@ -192,7 +268,7 @@ Use only information visible on the card. Do not invent missing links.`,
             },
             {
               type: "text",
-              text: "Extract the contact details from this business card image.",
+              text: "Extract the contact details from this business card image. Return JSON only.",
             },
           ] as any,
         },
@@ -205,11 +281,17 @@ Use only information visible on the card. Do not invent missing links.`,
       result = normalizeBusinessCardResult(parseAiJson(raw));
     } catch {
       console.error("Business card OCR JSON parse failed. Raw response:", raw);
-      return res.status(500).json({ message: "AI could not read that card clearly. Please retake the photo." });
+      const isNonCard = isLikelyNonCardResponse(raw);
+      const message = isNonCard
+        ? "This does not look like a business card. Please crop the card so it fills the frame and try again."
+        : "AI returned an unexpected scan response. Please try again.";
+      return res.status(isNonCard ? 422 : 502).json({ message });
     }
 
-    if (!result.name && result.suggestedLinks.length === 0) {
-      return res.status(422).json({ message: "No contact details were found. Please retake the photo in better light." });
+    if (!result.name && !result.company && result.suggestedLinks.length === 0) {
+      return res.status(422).json({
+        message: "No readable contact details were found. Crop closer so the card text fills the frame and try again.",
+      });
     }
 
     await storage.incrementAiAssistCount(userId);

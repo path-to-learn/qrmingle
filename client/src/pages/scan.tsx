@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Camera as CameraIcon, Check, IdCard, Image as ImageIcon, Loader2, QrCode, RotateCcw, Sparkles, UserPlus } from "lucide-react";
+import { AlertCircle, Camera as CameraIcon, Check, IdCard, Image as ImageIcon, Loader2, QrCode, RotateCcw, Sparkles, UserPlus } from "lucide-react";
 import { Camera as CameraPlugin, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
 import { useLocation } from "wouter";
@@ -20,6 +20,12 @@ type ScannedContact = {
   company?: string;
   bio?: string;
   suggestedLinks: ScannedLink[];
+};
+
+type ScanError = {
+  title: string;
+  message: string;
+  expected: boolean;
 };
 
 const accent = "var(--app-accent, #6366f1)";
@@ -48,6 +54,38 @@ function normalizeLink(link: ScannedLink): ScannedLink {
     url = `https://${url}`;
   }
   return { platform, url };
+}
+
+function formatScanError(error: any): ScanError {
+  const rawMessage = String(error?.message || "Could not scan this business card.");
+  const message = rawMessage.replace(/^\d{3}:\s*/, "");
+  const lowerMessage = message.toLowerCase();
+
+  if (lowerMessage.includes("expected pattern")) {
+    return {
+      title: "Image format issue",
+      message: "Crop again or choose a PNG/JPEG card photo.",
+      expected: false,
+    };
+  }
+
+  if (
+    lowerMessage.includes("no readable contact details") ||
+    lowerMessage.includes("does not look like a business card") ||
+    lowerMessage.includes("no contact details")
+  ) {
+    return {
+      title: "No card details found",
+      message: "Use a business-card or contact-card photo where the text fills the frame.",
+      expected: true,
+    };
+  }
+
+  return {
+    title: "Scan failed",
+    message,
+    expected: false,
+  };
 }
 
 function buildProfilePayload(contact: ScannedContact): ProfileFormData {
@@ -85,6 +123,7 @@ export default function Scan() {
   const isNativeApp = Capacitor.isNativePlatform();
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [contact, setContact] = useState<ScannedContact | null>(null);
+  const [scanError, setScanError] = useState<ScanError | null>(null);
   const [showCropper, setShowCropper] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -92,6 +131,7 @@ export default function Scan() {
   const analyzeBusinessCard = async (dataUrl: string) => {
     setIsScanning(true);
     setContact(null);
+    setScanError(null);
 
     try {
       const res = await apiRequest("POST", "/api/ai/business-card-ocr", {
@@ -101,12 +141,12 @@ export default function Scan() {
       setContact(data.result);
       toast({ title: "Card details found", description: "Review the details before creating a card." });
     } catch (error: any) {
-      const rawMessage = error?.message || "Could not scan this business card.";
-      const message = rawMessage.includes("expected pattern")
-        ? "The image format was rejected. Please crop again or choose a PNG/JPEG from Photos."
-        : rawMessage;
-      if (!message.toLowerCase().includes("cancel")) {
-        toast({ title: "Scan failed", description: message, variant: "destructive" });
+      const scanFailure = formatScanError(error);
+      if (!scanFailure.message.toLowerCase().includes("cancel")) {
+        setScanError(scanFailure);
+        if (!scanFailure.expected) {
+          toast({ title: scanFailure.title, description: scanFailure.message, variant: "destructive" });
+        }
       }
     } finally {
       setIsScanning(false);
@@ -116,13 +156,14 @@ export default function Scan() {
   const scanBusinessCard = async (source: CameraSource) => {
     if (isScanning) return;
     setContact(null);
+    setScanError(null);
 
     try {
       const photo = await CameraPlugin.getPhoto({
         source,
         resultType: CameraResultType.DataUrl,
-        quality: 72,
-        width: 1600,
+        quality: 90,
+        width: 2200,
         allowEditing: false,
         promptLabelHeader: "Business Card",
         promptLabelPhoto: "Choose Photo",
@@ -230,7 +271,7 @@ export default function Scan() {
                 style={{ height: "52px", borderRadius: "14px", fontWeight: 700, fontSize: "15px", background: "white" }}
               >
                 <ImageIcon size={18} />
-                Photos
+                Card Photo
               </Button>
             </>
           ) : (
@@ -241,7 +282,7 @@ export default function Scan() {
                 style={{ height: "52px", borderRadius: "14px", background: accent, color: "white", fontWeight: 700, fontSize: "15px" }}
               >
                 {isScanning ? <Loader2 size={18} className="animate-spin" /> : <ImageIcon size={18} />}
-                Upload Image
+                Upload Card
               </Button>
               <Button
                 onClick={() => scanBusinessCard(CameraSource.Camera)}
@@ -267,7 +308,7 @@ export default function Scan() {
             <img
               src={imageDataUrl}
               alt="Scanned business card"
-              style={{ width: "100%", borderRadius: "12px", display: "block", maxHeight: "190px", objectFit: "cover" }}
+              style={{ width: "100%", borderRadius: "12px", display: "block", maxHeight: "190px", objectFit: "contain", background: "#f8fafc" }}
             />
           </div>
         )}
@@ -288,6 +329,27 @@ export default function Scan() {
               Scan Image
             </Button>
           </div>
+        )}
+
+        {scanError && !contact && !isScanning && (
+          <section style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "10px",
+            padding: "12px 14px",
+            borderRadius: "14px",
+            background: scanError.expected ? "#fffbeb" : "#fef2f2",
+            border: `1px solid ${scanError.expected ? "#fde68a" : "#fecaca"}`,
+            color: scanError.expected ? "#92400e" : "#991b1b",
+            fontSize: "13px",
+            lineHeight: 1.4,
+          }}>
+            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: "1px" }} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 800, marginBottom: "2px" }}>{scanError.title}</div>
+              <div>{scanError.message}</div>
+            </div>
+          </section>
         )}
 
         {isScanning && (
@@ -350,6 +412,7 @@ export default function Scan() {
                 onClick={() => {
                   setContact(null);
                   setImageDataUrl(null);
+                  setScanError(null);
                   setShowCropper(false);
                 }}
                 disabled={isCreating}
@@ -384,7 +447,7 @@ export default function Scan() {
             <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
               <QrCode size={20} color="#64748b" style={{ flexShrink: 0, marginTop: "2px" }} />
               <div>
-                To scan QR codes, use the iPhone Camera app. Use this tab to turn physical business cards into digital cards.
+                To scan QR codes, use the iPhone Camera app. For this tab, use a business-card or contact-card photo where the text fills the frame.
               </div>
             </div>
           </section>
