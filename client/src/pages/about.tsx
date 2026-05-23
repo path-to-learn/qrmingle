@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function AboutPage() {
   const releaseDate = "April 2025";
+  const supportEmail = "support@qrmingle.com";
   
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
@@ -115,8 +116,8 @@ export default function AboutPage() {
               <div className="flex items-start">
                 <Mail className="h-5 w-5 mr-2 text-slate-500" />
                 <div>
-                  <strong>Developer Contact</strong>
-                  <p className="text-muted-foreground">For verification purposes, contact Prashant Dathwal at <span className="font-medium">prashant.dathwal@gmail.com</span></p>
+                  <strong>Support Contact</strong>
+                  <p className="text-muted-foreground">For product support or verification requests, contact QrMingle at <span className="font-medium">{supportEmail}</span>.</p>
                 </div>
               </div>
             </div>
@@ -139,7 +140,7 @@ export default function AboutPage() {
                 </a>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <a href="mailto:prashant.dathwal@gmail.com">
+                <a href={`mailto:${supportEmail}`}>
                   <Mail className="h-4 w-4 mr-2" />
                   Contact
                 </a>
