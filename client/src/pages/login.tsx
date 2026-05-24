@@ -37,8 +37,8 @@ export default function Login() {
   if (isCapacitor) {
     return (
       <div className="native-auth-screen" style={{
-        height: "100dvh",
-        minHeight: "100dvh",
+        height: "100%",
+        minHeight: "100%",
         background: GRADIENT,
         display: "flex",
         flexDirection: "column",
@@ -54,11 +54,9 @@ export default function Login() {
         overflowX: "hidden",
         overflowY: "hidden",
         boxSizing: "border-box",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
       }}>
-        {/* Glow orbs */}
-        <div style={{ position: "absolute", top: "5%", left: "-20%", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(99,102,241,0.2)", filter: "blur(70px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "10%", right: "-15%", width: "250px", height: "250px", borderRadius: "50%", background: "rgba(139,92,246,0.15)", filter: "blur(60px)", pointerEvents: "none" }} />
-
         {/* Back button */}
         <div style={{
           position: "absolute",
@@ -81,7 +79,6 @@ export default function Login() {
               fontWeight: 600,
               padding: "8px 12px 8px 8px",
               WebkitTapHighlightColor: "transparent",
-              backdropFilter: "blur(12px)",
             }}
           >
             <ChevronLeft size={18} /> {t('login.back')}
@@ -113,7 +110,7 @@ export default function Login() {
 
         {/* Form card */}
         <form onSubmit={handleLogin} style={{ width: "100%", maxWidth: "380px", flexShrink: 0 }}>
-          <div style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", borderRadius: "24px", padding: "28px 24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
+          <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: "24px", padding: "28px 24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
             <div style={{ marginBottom: "16px" }}>
               <label style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", fontWeight: 600, display: "block", marginBottom: "8px" }}>{t('login.username')}</label>
               <input
@@ -121,6 +118,11 @@ export default function Login() {
                 placeholder={t('login.usernamePlaceholder')}
                 value={username}
                 onChange={e => setUsername(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                inputMode="email"
+                enterKeyHint="next"
                 disabled={loginMutation.isPending}
                 style={{
                   width: "100%", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)",
@@ -136,6 +138,10 @@ export default function Login() {
                 placeholder={t('login.passwordPlaceholder')}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="go"
                 disabled={loginMutation.isPending}
                 style={{
                   width: "100%", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)",

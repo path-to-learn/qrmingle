@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
@@ -87,7 +87,7 @@ const DEMO_CARDS: DemoCard[] = [
   },
 ];
 
-function MiniCard({ card }: { card: DemoCard }) {
+function MiniCard({ card, isActive = false }: { card: DemoCard; isActive?: boolean }) {
   const { badge, displayName, title, accent, gradient, initial, qrSlug, links } = card;
   return (
     <div style={{
@@ -95,7 +95,14 @@ function MiniCard({ card }: { card: DemoCard }) {
       width: "272px",
       borderRadius: "20px",
       overflow: "hidden",
-      boxShadow: "0 16px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.1)",
+      transform: isActive ? "scaleX(1.08) scaleY(1.05)" : "scale(0.92)",
+      transformOrigin: "center center",
+      opacity: isActive ? 1 : 0.72,
+      filter: isActive ? "saturate(1.06)" : "saturate(0.78) brightness(0.92)",
+      transition: "transform 260ms ease, opacity 260ms ease, filter 260ms ease, box-shadow 260ms ease",
+      boxShadow: isActive
+        ? "0 22px 56px rgba(0,0,0,0.52), 0 0 0 2px rgba(255,255,255,0.72)"
+        : "0 12px 34px rgba(0,0,0,0.34), 0 0 0 1px rgba(255,255,255,0.12)",
     }}>
       {/* Hero section */}
       <div style={{ height: "136px", background: gradient, position: "relative" }}>
@@ -172,6 +179,7 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [taglineVisible, setTaglineVisible] = useState(true);
+  const [activeCardSlot, setActiveCardSlot] = useState(0);
   const TAGLINES = t('home.taglines', { returnObjects: true }) as string[];
 
   useEffect(() => {
@@ -191,16 +199,40 @@ export default function Home() {
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
+  const scrollRafRef = useRef<number | null>(null);
+
+  const updateActiveCard = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+
+    const containerRect = el.getBoundingClientRect();
+    const centerX = containerRect.left + containerRect.width / 2;
+    let closestSlot = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    el.querySelectorAll<HTMLElement>("[data-demo-card-slot]").forEach((cardEl) => {
+      const rect = cardEl.getBoundingClientRect();
+      const cardCenter = rect.left + rect.width / 2;
+      const distance = Math.abs(cardCenter - centerX);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestSlot = Number(cardEl.dataset.demoCardSlot ?? 0);
+      }
+    });
+
+    setActiveCardSlot((current) => (current === closestSlot ? current : closestSlot));
+  }, []);
 
   useEffect(() => {
     const el = carouselRef.current;
     if (!el) return;
     let frameId: number;
     let resumeTimer: ReturnType<typeof setTimeout>;
+    const initialUpdateTimer = window.setTimeout(updateActiveCard, 0);
 
     const tick = () => {
       if (!pausedRef.current) {
-        el.scrollLeft += 0.45;
+        el.scrollLeft += 0.38;
         // Seamless loop — when we've scrolled through the first copy, jump back
         if (el.scrollLeft >= el.scrollWidth / 2) {
           el.scrollLeft -= el.scrollWidth / 2;
@@ -215,16 +247,31 @@ export default function Home() {
       clearTimeout(resumeTimer);
       resumeTimer = setTimeout(() => { pausedRef.current = false; }, 2500);
     };
+
+    const onScroll = () => {
+      if (scrollRafRef.current !== null) return;
+      scrollRafRef.current = window.requestAnimationFrame(() => {
+        scrollRafRef.current = null;
+        updateActiveCard();
+      });
+    };
+
     el.addEventListener("touchstart", pause, { passive: true });
     el.addEventListener("mousedown", pause);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", updateActiveCard);
 
     return () => {
       cancelAnimationFrame(frameId);
       clearTimeout(resumeTimer);
+      clearTimeout(initialUpdateTimer);
+      if (scrollRafRef.current !== null) cancelAnimationFrame(scrollRafRef.current);
       el.removeEventListener("touchstart", pause);
       el.removeEventListener("mousedown", pause);
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", updateActiveCard);
     };
-  }, []);
+  }, [updateActiveCard]);
 
   if (user) return null;
 
@@ -321,19 +368,32 @@ export default function Home() {
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch" as any,
           display: "flex",
-          gap: "14px",
-          padding: "10px 24px 14px",
+          gap: "18px",
+          paddingTop: "24px",
+          paddingBottom: "24px",
+          paddingLeft: "max(24px, calc((100vw - 272px) / 2))",
+          paddingRight: "max(24px, calc((100vw - 272px) / 2))",
           msOverflowStyle: "none" as any,
           scrollbarWidth: "none" as any,
-          flex: "0 1 min(32dvh, 320px)",
-          minHeight: "250px",
+          scrollSnapType: "x proximity",
+          flex: "0 1 min(34dvh, 340px)",
+          minHeight: "282px",
           alignItems: "center",
         }}
       >
         {/* Cards duplicated for seamless infinite loop */}
         {[...DEMO_CARDS, ...DEMO_CARDS].map((card, i) => (
-          <div key={`${card.qrSlug}-${i}`} style={{ flexShrink: 0 }}>
-            <MiniCard card={card} />
+          <div
+            key={`${card.qrSlug}-${i}`}
+            data-demo-card-slot={i}
+            style={{
+              flexShrink: 0,
+              scrollSnapAlign: "center",
+              paddingTop: "6px",
+              paddingBottom: "6px",
+            }}
+          >
+            <MiniCard card={card} isActive={i === activeCardSlot} />
           </div>
         ))}
       </div>
@@ -342,8 +402,8 @@ export default function Home() {
       <div style={{ display: "flex", gap: "5px", marginTop: "8px", marginBottom: "14px", flexShrink: 0 }}>
         {DEMO_CARDS.map((card, i) => (
           <div key={i} style={{
-            width: i === 0 ? "20px" : "5px", height: "5px", borderRadius: "99px",
-            background: i === 0 ? "white" : "rgba(255,255,255,0.3)",
+            width: activeCardSlot % DEMO_CARDS.length === i ? "20px" : "5px", height: "5px", borderRadius: "99px",
+            background: activeCardSlot % DEMO_CARDS.length === i ? "white" : "rgba(255,255,255,0.3)",
             transition: "all 0.3s",
           }} />
         ))}

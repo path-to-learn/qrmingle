@@ -59,8 +59,8 @@ export default function Register() {
   if (isCapacitor) {
     return (
       <div className="native-auth-screen" style={{
-        height: "100dvh",
-        minHeight: "100dvh",
+        height: "100%",
+        minHeight: "100%",
         background: GRADIENT,
         display: "flex",
         flexDirection: "column",
@@ -76,11 +76,9 @@ export default function Register() {
         overflowX: "hidden",
         overflowY: "hidden",
         boxSizing: "border-box",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
       }}>
-        {/* Glow orbs */}
-        <div style={{ position: "absolute", top: "5%", left: "-20%", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(99,102,241,0.2)", filter: "blur(70px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "10%", right: "-15%", width: "250px", height: "250px", borderRadius: "50%", background: "rgba(139,92,246,0.15)", filter: "blur(60px)", pointerEvents: "none" }} />
-
         {/* Back button */}
         <div style={{
           position: "absolute",
@@ -103,7 +101,6 @@ export default function Register() {
               fontWeight: 600,
               padding: "8px 12px 8px 8px",
               WebkitTapHighlightColor: "transparent",
-              backdropFilter: "blur(12px)",
             }}
           >
             <ChevronLeft size={18} /> {t('register.back')}
@@ -135,18 +132,18 @@ export default function Register() {
 
         {/* Form */}
         <form onSubmit={handleRegister} style={{ width: "100%", maxWidth: "380px", flexShrink: 0 }}>
-          <div style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", borderRadius: "24px", padding: "24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
+          <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: "24px", padding: "24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
             <div style={{ marginBottom: "14px" }}>
               <label style={labelStyle}>{t('register.username')}</label>
-              <input type="email" placeholder={t('register.usernamePlaceholder')} value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
+              <input type="email" placeholder={t('register.usernamePlaceholder')} value={username} onChange={e => setUsername(e.target.value)} autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="email" enterKeyHint="next" disabled={registerMutation.isPending} style={inputStyle} />
             </div>
             <div style={{ marginBottom: "14px" }}>
               <label style={labelStyle}>{t('register.password')}</label>
-              <input type="password" placeholder={t('register.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
+              <input type="password" placeholder={t('register.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" disabled={registerMutation.isPending} style={inputStyle} />
             </div>
             <div>
               <label style={labelStyle}>{t('register.confirmPassword')}</label>
-              <input type="password" placeholder={t('register.confirmPlaceholder')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={registerMutation.isPending} style={inputStyle} />
+              <input type="password" placeholder={t('register.confirmPlaceholder')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="go" disabled={registerMutation.isPending} style={inputStyle} />
             </div>
           </div>
 
