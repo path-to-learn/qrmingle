@@ -44,7 +44,7 @@ const SECTIONS = [
   {
     title: "Payments and purchases",
     body:
-      "Premium purchases are processed by Apple App Store in the iOS app and may be processed by Stripe on the web. QrMingle stores purchase status so Premium features can be unlocked, but we do not store your full card number.",
+      "Premium purchases are processed by Apple App Store in the iOS app. QrMingle stores purchase status so Premium features can be unlocked, but we do not store your full card number. If web purchases are enabled later, they may be processed by Stripe or another payment provider.",
   },
   {
     title: "Passwords and sessions",
@@ -67,7 +67,7 @@ const SECTIONS = [
       "Neon/PostgreSQL for account, card, analytics, review, and session data",
       "AI service provider for card-assist and business-card extraction requests",
       "SendGrid for transactional email such as password reset",
-      "Apple App Store and Stripe for purchase processing, depending on platform",
+      "Apple App Store for iOS purchase processing",
     ],
   },
   {

@@ -336,7 +336,7 @@ Adding a new theme = drop a new config file + register it. Zero server changes.
 `POST /api/start-premium-trial` creates a Stripe trial subscription. Stripe must not be presented inside the iOS app for digital premium features.
 
 ### iOS — Apple IAP / StoreKit 2
-The iOS purchase flow is implemented through the custom Capacitor `IAPPlugin`, `client/src/lib/iap.ts`, and `client/src/pages/premium.tsx`. `POST /api/iap/verify` and `POST /api/iap/restore` mark the user premium after StoreKit transactions. Before paid App Store launch, validate the App Store Connect product, sandbox/TestFlight purchase and restore, and review server-side transaction verification hardening.
+The iOS purchase flow is implemented through the custom Capacitor `IAPPlugin`, `client/src/lib/iap.ts`, and `client/src/pages/premium.tsx`. Current launch pricing is `$2.99` monthly (`com.qrmingle.app.pro.monthly`), `$19.99` yearly (`com.qrmingle.app.pro.yearly`), and `$39.99` lifetime (`com.qrmingle.app.pro.lifetime`). `POST /api/iap/verify` and `POST /api/iap/restore` mark the user premium after StoreKit transactions. Before paid App Store launch, complete App Store Connect monetization setup, validate sandbox/TestFlight purchase and restore, submit the IAPs/subscriptions with the app for review, and add subscription entitlement lifecycle hardening.
 
 ---
 

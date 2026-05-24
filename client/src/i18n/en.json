@@ -111,7 +111,7 @@
   },
   "cards": {
     "title": "My Cards",
-    "subtitle": "{{count}} of 3 profiles",
+    "subtitle": "{{count}} of {{limit}} free card profiles",
     "loading": "Loading…",
     "newCard": "New Card",
     "createFirst": "Create Your First Card",

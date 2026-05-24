@@ -36,7 +36,7 @@ const FAQS = [
   {
     question: "How many cards can I create?",
     answer:
-      "QrMingle currently supports up to 3 cards per account. This keeps the app simple while still letting you create separate cards for work, events, and personal networking.",
+      "Free accounts can create 2 card profiles. QrMingle Pro unlocks unlimited card profiles for work, events, personal networking, and other ways you introduce yourself.",
   },
   {
     question: "How do I customize my QR code and card design?",
@@ -61,7 +61,7 @@ const FAQS = [
   {
     question: "What does Premium unlock?",
     answer:
-      "Premium unlocks higher-value features such as full analytics, premium QR styling, more AI card-builder assistance, and priority support. If you bought Premium on iPhone, use Restore Purchase in Settings if it does not appear after reinstalling or switching devices.",
+      "Premium unlocks unlimited card profiles, unlimited AI profile-builder usage, analytics, premium QR styling, and priority support. If you bought Premium on iPhone, use Restore Purchase in Settings if it does not appear after reinstalling or switching devices.",
   },
   {
     question: "How do analytics work?",

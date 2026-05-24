@@ -74,7 +74,7 @@ Single source of truth for DB schema and Zod validation, imported by both server
 - For local iOS dev, update the `server.url` in `capacitor.config.ts` to your machine's local IP
 
 ### Profile limit
-Users can create up to 3 profiles. This is enforced server-side in `POST /api/profiles`. The `PROFILE_LIMIT_REACHED` error type is used client-side to show a specific dialog.
+Free users can create up to 2 profiles. Premium users can create unlimited profiles. This is enforced server-side in `POST /api/profiles`; shared limits and product IDs live in `shared/premium.ts`. The `PROFILE_LIMIT_REACHED` error type is used client-side to show a specific upgrade dialog.
 
 ### iOS / WebKit horizontal overflow — known gotcha
 iOS WebKit has a recurring horizontal overflow bug. The global CSS in `index.css` already applies `* { max-width: 100% }`, `overflow-x: hidden` on html/body, and `.flex-col { width: 100% }`.

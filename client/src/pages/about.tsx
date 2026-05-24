@@ -1,157 +1,184 @@
-import { Link } from "wouter";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription,
-  CardFooter
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  Github, 
-  Linkedin, 
-  Mail, 
-  Calendar, 
-  Award, 
-  Code, 
-  FileText,
-  Shield
+import {
+  BarChart3,
+  CreditCard,
+  Heart,
+  Mail,
+  QrCode,
+  ScanLine,
+  Share2,
 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+
+const accent = "var(--app-accent, #6366f1)";
+
+const FEATURES = [
+  {
+    icon: CreditCard,
+    title: "Digital cards",
+    body: "Create polished cards for work, events, personal networking, and community profiles.",
+  },
+  {
+    icon: QrCode,
+    title: "QR sharing",
+    body: "Share a card with a QR code or link. The person receiving it does not need the app.",
+  },
+  {
+    icon: ScanLine,
+    title: "Card scanning",
+    body: "Turn a physical business card or contact-card photo into a draft digital card.",
+  },
+  {
+    icon: BarChart3,
+    title: "Analytics",
+    body: "See card engagement so you can understand which cards are getting attention.",
+  },
+];
 
 export default function AboutPage() {
-  const releaseDate = "April 2025";
   const supportEmail = "support@qrmingle.com";
-  
+  const appVersion = "1.0.0";
+
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl">
-      <Card className="mb-8">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold mb-2">About QrMingle</CardTitle>
-          <CardDescription className="text-lg">
-            The story behind the application and its development
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-center mb-8">
-            <div className="max-w-xl text-center">
-              <div className="mb-4 text-sm text-muted-foreground flex items-center justify-center">
-                <Calendar className="h-4 w-4 mr-1" /> Initial Release: {releaseDate}
-              </div>
-              <p className="text-lg mb-4">
-                QrMingle is a digital contact card application developed by Prashant Dathwal. The platform enables professionals and individuals to create and share personalized 
-                QR code-based contact profiles that work seamlessly across all devices.
-              </p>
-              <div className="flex justify-center gap-4 mt-4">
-                <img 
-                  src="/signature.png" 
-                  alt="Prashant Dathwal's Signature" 
-                  className="h-16 opacity-90"
-                  onError={(e) => {
-                    // In case the signature image isn't available
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            </div>
+    <main style={{
+      maxWidth: "760px",
+      margin: "0 auto",
+      padding: "24px 16px calc(104px + env(safe-area-inset-bottom))",
+      overflowX: "hidden",
+    }}>
+      <section style={{
+        background: `linear-gradient(135deg, ${accent}, #8b5cf6)`,
+        borderRadius: "22px",
+        padding: "28px 22px",
+        color: "white",
+        marginBottom: "18px",
+        boxShadow: "0 18px 42px rgba(99,102,241,0.22)",
+      }}>
+        <div style={{
+          width: "48px",
+          height: "48px",
+          borderRadius: "14px",
+          background: "rgba(255,255,255,0.18)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: "14px",
+        }}>
+          <Share2 size={26} />
+        </div>
+        <h1 style={{ fontSize: "26px", lineHeight: 1.15, fontWeight: 800, margin: "0 0 8px" }}>
+          About QrMingle
+        </h1>
+        <p style={{ fontSize: "14px", lineHeight: 1.55, opacity: 0.92, margin: 0, maxWidth: "580px" }}>
+          QrMingle helps you create digital contact cards that can be shared instantly with a QR code or link.
+        </p>
+      </section>
+
+      <section style={{
+        background: "white",
+        border: "1px solid #eef2f7",
+        borderRadius: "18px",
+        padding: "18px",
+        marginBottom: "18px",
+        boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
+      }}>
+        <p style={{ color: "#334155", fontSize: "15px", lineHeight: 1.65, margin: 0 }}>
+          Create cards for work, events, personal networking, or fan and community profiles, then share them without asking anyone to install an app.
+        </p>
+      </section>
+
+      <section style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gap: "10px",
+        marginBottom: "18px",
+      }}>
+        {FEATURES.map(({ icon: Icon, title, body }) => (
+          <div key={title} style={{
+            background: "white",
+            border: "1px solid #eef2f7",
+            borderRadius: "16px",
+            padding: "14px",
+            boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
+            minWidth: 0,
+          }}>
+            <Icon size={22} style={{ color: accent, marginBottom: "10px" }} />
+            <div style={{ color: "#0f172a", fontSize: "14px", fontWeight: 800, marginBottom: "5px" }}>{title}</div>
+            <div style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.45 }}>{body}</div>
           </div>
-          
-          <Separator />
-          
-          <div className="grid md:grid-cols-2 gap-8 pt-4">
-            <div>
-              <h3 className="text-xl font-semibold mb-3 flex items-center">
-                <Code className="h-5 w-5 mr-2 text-primary" /> Development Journey
-              </h3>
-              <p className="text-muted-foreground mb-3">
-                QrMingle was designed and developed by Prashant Dathwal as a solution to the inefficiency
-                of traditional business card exchanges. The application was built using:
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>React with TypeScript for the frontend</li>
-                <li>Node.js and Python backend services</li>
-                <li>PostgreSQL database for data persistence</li>
-                <li>Modern UI components with Tailwind CSS</li>
-                <li>QR code generation with custom styling options</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="text-xl font-semibold mb-3 flex items-center">
-                <Award className="h-5 w-5 mr-2 text-primary" /> Intellectual Property
-              </h3>
-              <p className="text-muted-foreground mb-3">
-                QrMingle represents original work with protected intellectual property:
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>Copyright © 2023-2025 Prashant Dathwal. All rights reserved.</li>
-                <li>Patent pending for QR code generation and profile management system</li>
-                <li>Registered trademark application for "QrMingle"</li>
-                <li>DMCA protected codebase and design assets</li>
-              </ul>
-            </div>
+        ))}
+      </section>
+
+      <section style={{
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "18px",
+        padding: "16px",
+        marginBottom: "18px",
+        display: "grid",
+        gap: "12px",
+      }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "42px minmax(0, 1fr)",
+          gap: "12px",
+          alignItems: "start",
+        }}>
+          <div style={{
+            width: "42px",
+            height: "42px",
+            borderRadius: "12px",
+            background: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 1px 4px rgba(15,23,42,0.08)",
+          }}>
+            <Heart size={20} style={{ color: accent }} />
           </div>
-          
-          <Separator />
-          
-          <div className="rounded-lg bg-slate-50 p-6 mt-6">
-            <h3 className="text-xl font-semibold mb-4 flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-primary" /> Verification & Documentation
-            </h3>
-            <p className="mb-4">
-              The authenticity and ownership of QrMingle can be verified through the following channels:
+          <div style={{ minWidth: 0 }}>
+            <h2 style={{ color: "#0f172a", fontSize: "15px", fontWeight: 800, margin: "0 0 5px" }}>
+              Built by Prashant Dathwal
+            </h2>
+            <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.5, margin: 0 }}>
+              Built with love <span aria-label="heart" style={{ color: "#ef4444", fontWeight: 800 }}>♥</span> from Sunnyvale, CA.
             </p>
-            
-            <div className="grid sm:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-start">
-                <FileText className="h-5 w-5 mr-2 text-slate-500" />
-                <div>
-                  <strong>Source Code Repository</strong>
-                  <p className="text-muted-foreground">Private repository with documented development history dating back to initial commit on January 15, 2023.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <Mail className="h-5 w-5 mr-2 text-slate-500" />
-                <div>
-                  <strong>Support Contact</strong>
-                  <p className="text-muted-foreground">For product support or verification requests, contact QrMingle at <span className="font-medium">{supportEmail}</span>.</p>
-                </div>
-              </div>
-            </div>
           </div>
-        </CardContent>
-        
-        <CardFooter className="flex justify-center pt-2 pb-6">
-          <div className="flex flex-col items-center">
-            <div className="flex space-x-4 mb-3">
-              <Button variant="outline" size="sm" asChild>
-                <a href="https://github.com/path-to-learn" target="_blank" rel="noopener noreferrer">
-                  <Github className="h-4 w-4 mr-2" />
-                  GitHub
-                </a>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <a href="https://www.linkedin.com/in/prashantd/" target="_blank" rel="noopener noreferrer">
-                  <Linkedin className="h-4 w-4 mr-2" />
-                  LinkedIn
-                </a>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <a href={`mailto:${supportEmail}`}>
-                  <Mail className="h-4 w-4 mr-2" />
-                  Contact
-                </a>
-              </Button>
-            </div>
-            <Link href="/">
-              <span className="text-sm text-primary hover:underline">Back to Home</span>
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+        </div>
+      </section>
+
+      <section style={{
+        background: "white",
+        border: "1px solid #eef2f7",
+        borderRadius: "18px",
+        padding: "16px",
+        display: "grid",
+        gridTemplateColumns: "42px minmax(0, 1fr)",
+        gap: "12px",
+        alignItems: "start",
+        boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
+      }}>
+        <div style={{
+          width: "42px",
+          height: "42px",
+          borderRadius: "12px",
+          background: "#f8fafc",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <Mail size={20} style={{ color: accent }} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <h2 style={{ color: "#0f172a", fontSize: "15px", fontWeight: 800, margin: "0 0 5px" }}>
+            Support
+          </h2>
+          <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.5, margin: 0 }}>
+            Email <a href={`mailto:${supportEmail}`} style={{ color: accent, fontWeight: 700 }}>{supportEmail}</a> for product support or account questions.
+          </p>
+          <p style={{ color: "#94a3b8", fontSize: "12px", lineHeight: 1.4, margin: "10px 0 0" }}>
+            Version {appVersion}. Copyright © 2026 QrMingle. All rights reserved.
+          </p>
+        </div>
+      </section>
+    </main>
   );
 }

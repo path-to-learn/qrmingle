@@ -38,6 +38,7 @@ import { getTeamById } from "@/data/themes";
 import { useAuth } from "@/hooks/use-auth";
 import { API_BASE, capacitorHeaders } from "@/lib/queryClient";
 import { scheduleHorizontalReset } from "@/lib/viewport";
+import { FREE_AI_ASSIST_LIMIT } from "@shared/premium";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -55,7 +56,7 @@ export default function ProfileEditor({
   isPremium = false,
 }: ProfileEditorProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refetchUser } = useAuth();
   const [previewUrl, setPreviewUrl] = useState<string>(
     profileData?.photoUrl || ""
   );
@@ -87,8 +88,7 @@ export default function ProfileEditor({
   }, [showAiModal]);
 
   const assistsUsed = user?.aiAssistCount ?? 0;
-  const FREE_LIMIT = 2;
-  const canUseAi = isPremium || assistsUsed < FREE_LIMIT;
+  const canUseAi = isPremium || assistsUsed < FREE_AI_ASSIST_LIMIT;
   const isNativeApp = Capacitor.isNativePlatform();
 
   const openAiModal = () => {
@@ -148,6 +148,7 @@ export default function ProfileEditor({
         return;
       }
       const { result } = data;
+      await refetchUser();
       await waitForKeyboardToSettle();
       if (result.name) form.setValue('name', result.name);
       if (result.name) form.setValue('displayName', result.name);
@@ -341,7 +342,7 @@ export default function ProfileEditor({
         <div style={{ padding: '0 24px 16px' }}>
           <button
             type="button"
-            onClick={canUseAi ? openAiModal : () => toast({ title: 'Free limit reached', description: 'Upgrade to Premium for unlimited AI assists.' })}
+            onClick={canUseAi ? openAiModal : () => toast({ title: 'Free limit reached', description: 'Upgrade to QrMingle Pro for unlimited AI profile-builder uses.' })}
             style={{
               width: '100%', padding: '13px 16px',
               background: canUseAi ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : '#f1f5f9',
@@ -357,7 +358,7 @@ export default function ProfileEditor({
             Fill profile with AI
             {!isPremium && (
               <span style={{ fontSize: '12px', fontWeight: 500, opacity: 0.75, marginLeft: '4px' }}>
-                · {assistsUsed}/{FREE_LIMIT} free
+                · {assistsUsed}/{FREE_AI_ASSIST_LIMIT} free
               </span>
             )}
           </button>
@@ -407,7 +408,7 @@ export default function ProfileEditor({
                 <div style={{ fontWeight: 800, fontSize: '22px', color: '#111827', lineHeight: 1.15 }}>Build with AI</div>
                 {!isPremium && (
                   <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
-                    {assistsUsed}/{FREE_LIMIT} free uses
+                    {assistsUsed}/{FREE_AI_ASSIST_LIMIT} free use{FREE_AI_ASSIST_LIMIT === 1 ? "" : "s"}
                   </div>
                 )}
               </div>

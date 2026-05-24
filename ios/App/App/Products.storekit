@@ -28,6 +28,21 @@
       "productID" : "com.qrmingle.app.premium",
       "referenceName" : "Premium",
       "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "39.99",
+      "familyShareable" : false,
+      "internalID" : "5E31E295",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "QrMingle Pro Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.qrmingle.app.pro.lifetime",
+      "referenceName" : "QrMingle Pro Lifetime",
+      "type" : "NonConsumable"
     }
   ],
   "settings" : {
@@ -45,7 +60,93 @@
     "_timeRate" : 0
   },
   "subscriptionGroups" : [
+    {
+      "id" : "F8264DE7",
+      "localizations" : [
 
+      ],
+      "name" : "QrMingle Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "2.99",
+              "displayPrice" : "2.99",
+              "internalID" : "2AEC9C60",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "0D197DB9",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Unlock unlimited cards, AI profile builder, analytics, and premium QR styles.",
+              "displayName" : "QrMingle Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.qrmingle.app.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "QrMingle Pro Monthly",
+          "subscriptionGroupID" : "F8264DE7",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "19.99",
+              "displayPrice" : "19.99",
+              "internalID" : "A00A0252",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "2B1BE80C",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "",
+              "displayName" : "QrMingle Pro Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.qrmingle.app.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "QrMingle Pro Yearly",
+          "subscriptionGroupID" : "F8264DE7",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
   ],
   "version" : {
     "major" : 5,

@@ -5,10 +5,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { PlusIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormData } from "@shared/schema";
+import { FREE_PROFILE_LIMIT } from "@shared/premium";
 import ProfileCard, { getCardAccent } from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { celebrateCreation } from "@/lib/confetti";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { scheduleHorizontalReset } from "@/lib/viewport";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -22,6 +24,7 @@ export default function CardsPage() {
   const { user, isEffectivelyPremium } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(() => {
     const saved = sessionStorage.getItem("cardsCurrentIndex");
@@ -186,7 +189,20 @@ export default function CardsPage() {
     ? getCardAccent(profiles[currentIndex].name, profiles[currentIndex].cardColor)
     : "#6366f1";
 
+  const isPremium = isEffectivelyPremium();
+  const canCreateCard = isPremium || profiles.length < FREE_PROFILE_LIMIT;
+  const profileUsageText = isPremium
+    ? `${profiles.length} card profile${profiles.length === 1 ? "" : "s"}`
+    : `${profiles.length} of ${FREE_PROFILE_LIMIT} free card profiles`;
+
   const openNewCard = () => { setEditingProfileId(null); setShowEditor(true); };
+  const handleNewCard = () => {
+    if (!canCreateCard) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    openNewCard();
+  };
 
   return (
     <>
@@ -197,20 +213,20 @@ export default function CardsPage() {
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b", margin: 0 }}>{t('cards.title')}</h1>
             <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>
-              {isLoading ? t('cards.loading') : t('cards.subtitle', { count: profiles.length })}
+              {isLoading ? t('cards.loading') : profileUsageText}
             </p>
           </div>
-          {!isLoading && profiles.length < 3 && (
+          {!isLoading && (
             <button
-              onClick={openNewCard}
+              onClick={handleNewCard}
               style={{
-                background: accent, color: "white", border: "none",
+                background: canCreateCard ? accent : "#0f172a", color: "white", border: "none",
                 borderRadius: "12px", padding: "10px 20px",
                 fontSize: "14px", fontWeight: 600, cursor: "pointer",
                 display: "flex", alignItems: "center", gap: "6px",
               }}
             >
-              <PlusIcon size={16} /> {t('cards.newCard')}
+              <PlusIcon size={16} /> {canCreateCard ? t('cards.newCard') : "Upgrade"}
             </button>
           )}
         </div>
@@ -220,7 +236,7 @@ export default function CardsPage() {
           <div style={{ color: "#64748b", padding: "40px 0" }}>Loading…</div>
         ) : profiles.length === 0 ? (
           <div
-            onClick={openNewCard}
+            onClick={handleNewCard}
             style={{
               width: "380px", background: "linear-gradient(160deg, #6366f1 0%, #8b5cf6 100%)",
               borderRadius: "20px", minHeight: "280px",
@@ -293,7 +309,7 @@ export default function CardsPage() {
           </div>
         ) : profiles.length === 0 ? (
           <div
-            onClick={openNewCard}
+            onClick={handleNewCard}
             style={{
               background: "linear-gradient(160deg, #6366f1 0%, #8b5cf6 100%)",
               borderRadius: "20px", minHeight: "280px",
@@ -344,13 +360,13 @@ export default function CardsPage() {
                 <ChevronRight size={20} />
               </button>
             </div>
-            <button onClick={openNewCard} style={{
-              background: accent, border: "none", borderRadius: "99px",
+            <button onClick={handleNewCard} style={{
+              background: canCreateCard ? accent : "#0f172a", border: "none", borderRadius: "99px",
               padding: "8px 18px", display: "flex", alignItems: "center", gap: "6px",
               minWidth: 0, maxWidth: "50%", overflow: "hidden",
               cursor: "pointer", color: "white", fontWeight: 600, fontSize: "13px",
             }}>
-              <PlusIcon size={16} style={{ flexShrink: 0 }} /> <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t('cards.newCard')}</span>
+              <PlusIcon size={16} style={{ flexShrink: 0 }} /> <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{canCreateCard ? t('cards.newCard') : "Upgrade"}</span>
             </button>
           </div>
         )}
@@ -383,7 +399,7 @@ export default function CardsPage() {
               scheduleHorizontalReset();
             }}
             isEditing={!!editingProfileId}
-            isPremium={isEffectivelyPremium()}
+            isPremium={isPremium}
           />
         </div>
       )}
@@ -408,10 +424,15 @@ export default function CardsPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Profile Limit Reached</AlertDialogTitle>
-            <AlertDialogDescription>You have reached the limit of 3 profiles.</AlertDialogDescription>
+            <AlertDialogDescription>
+              Free accounts include {FREE_PROFILE_LIMIT} card profiles. Upgrade to QrMingle Pro for unlimited cards, unlimited AI profile-builder use, and analytics.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Got It</AlertDialogCancel>
+            <AlertDialogCancel>Not Now</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate("/premium")}>
+              Upgrade
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -2,10 +2,9 @@ import express from "express";
 import { storage } from "../storage";
 import { requireAuth } from "../middleware";
 import { checkIsPremium } from "../lib/premium";
+import { FREE_AI_ASSIST_LIMIT } from "@shared/premium";
 
 export const aiRouter = express.Router();
-
-const FREE_ASSIST_LIMIT = 2;
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   writer: `You are a professional profile writer for a digital business card app called QrMingle. Given a short description, return ONLY a valid JSON object (no markdown, no explanation) with these fields:
@@ -162,9 +161,9 @@ aiRouter.post("/card-assist", requireAuth, async (req, res) => {
 
     const isPremium = checkIsPremium(user);
 
-    if (!isPremium && (user.aiAssistCount ?? 0) >= FREE_ASSIST_LIMIT) {
+    if (!isPremium && (user.aiAssistCount ?? 0) >= FREE_AI_ASSIST_LIMIT) {
       return res.status(403).json({
-        message: `You've used your ${FREE_ASSIST_LIMIT} free AI assists. Upgrade to Premium for unlimited.`,
+        message: `You've used your ${FREE_AI_ASSIST_LIMIT} free AI profile-builder use. Upgrade to QrMingle Pro for unlimited.`,
         type: "AI_LIMIT_REACHED",
       });
     }
@@ -214,13 +213,6 @@ aiRouter.post("/business-card-ocr", requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isPremium = checkIsPremium(user);
-
-    if (!isPremium && (user.aiAssistCount ?? 0) >= FREE_ASSIST_LIMIT) {
-      return res.status(403).json({
-        message: `You've used your ${FREE_ASSIST_LIMIT} free AI assists. Upgrade to Premium for unlimited.`,
-        type: "AI_LIMIT_REACHED",
-      });
-    }
 
     const { imageDataUrl } = req.body as { imageDataUrl?: string };
     const parsedImage = parseImageDataUrl(imageDataUrl);
@@ -294,10 +286,7 @@ Do not include markdown, code fences, or explanation.`,
       });
     }
 
-    await storage.incrementAiAssistCount(userId);
-    const assistsUsed = (user.aiAssistCount ?? 0) + 1;
-
-    res.json({ result, assistsUsed, isPremium });
+    res.json({ result, isPremium });
   } catch (error) {
     console.error("Business card OCR error:", error);
     const message = error instanceof Error && error.message.includes("expected pattern")

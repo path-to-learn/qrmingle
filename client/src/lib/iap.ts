@@ -1,4 +1,7 @@
 import { registerPlugin } from '@capacitor/core';
+import { PREMIUM_PRODUCT_IDS } from '@shared/premium';
+
+export { PREMIUM_PLANS, PREMIUM_PLAN_ORDER, PREMIUM_PRODUCT_IDS } from '@shared/premium';
 
 export interface IAPProduct {
   id: string;
@@ -22,4 +25,4 @@ interface IAPPlugin {
 }
 
 export const IAP = registerPlugin<IAPPlugin>('IAP');
-export const PREMIUM_PRODUCT_ID = 'com.qrmingle.app.premium';
+export const PREMIUM_PRODUCT_ID = PREMIUM_PRODUCT_IDS.lifetime;

@@ -40,7 +40,7 @@ function buildApp(userId: number) {
 }
 
 const freeUserAt0 = { id: 1, isPremium: false, isAdmin: false, username: "free@test.com", aiAssistCount: 0 };
-const freeUserAt2 = { id: 1, isPremium: false, isAdmin: false, username: "free@test.com", aiAssistCount: 2 };
+const freeUserAt1 = { id: 1, isPremium: false, isAdmin: false, username: "free@test.com", aiAssistCount: 1 };
 const premiumUser = { id: 2, isPremium: true, isAdmin: false, username: "paid@test.com", aiAssistCount: 99 };
 
 beforeEach(() => {
@@ -65,8 +65,8 @@ describe("POST /ai/card-assist — assist limit", () => {
     expect(mockStorage.incrementAiAssistCount).toHaveBeenCalledWith(1);
   });
 
-  it("blocks a free user who has used all 2 free assists", async () => {
-    mockStorage.getUser.mockResolvedValue(freeUserAt2);
+  it("blocks a free user who has used their free profile-builder use", async () => {
+    mockStorage.getUser.mockResolvedValue(freeUserAt1);
 
     const res = await request(buildApp(1))
       .post("/ai/card-assist")

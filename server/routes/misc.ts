@@ -7,6 +7,7 @@ import { storage } from "../storage";
 import { requireAuth } from "../middleware";
 import { authLimiter, contactLimiter } from "../limiters";
 import sgMail from "@sendgrid/mail";
+import { isPremiumProductId } from "@shared/premium";
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -25,6 +26,24 @@ const contactFormSchema = z.object({
   email: z.string().email().max(200),
   message: z.string().min(1).max(2000),
 });
+
+function decodeStoreKitPayload(jwsRepresentation: string) {
+  const parts = jwsRepresentation.split(".");
+  if (parts.length !== 3) return null;
+  return JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+}
+
+function hasActivePremiumEntitlement(payload: any) {
+  if (!payload?.productId || !isPremiumProductId(payload.productId)) return false;
+  if (payload.revocationDate) return false;
+
+  if (payload.expiresDate) {
+    const expiresAt = Number(payload.expiresDate);
+    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return false;
+  }
+
+  return true;
+}
 
 miscRouter.post("/forgot-password", authLimiter, async (req, res) => {
   try {
@@ -118,13 +137,11 @@ miscRouter.post("/iap/verify", requireAuth, async (req, res) => {
   if (!jwsRepresentation) return res.status(400).json({ message: "jwsRepresentation is required" });
 
   try {
-    const parts = jwsRepresentation.split(".");
-    if (parts.length !== 3) return res.status(400).json({ message: "Invalid JWS format" });
+    const payload = decodeStoreKitPayload(jwsRepresentation);
+    if (!payload) return res.status(400).json({ message: "Invalid JWS format" });
 
-    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
-
-    if (payload.productId !== "com.qrmingle.app.premium") {
-      return res.status(400).json({ message: "Unexpected product ID" });
+    if (!hasActivePremiumEntitlement(payload)) {
+      return res.status(400).json({ message: "No active Premium entitlement found" });
     }
 
     const userId = (req.user as any).id;
@@ -145,10 +162,8 @@ miscRouter.post("/iap/restore", requireAuth, async (req, res) => {
 
   try {
     for (const tx of transactions) {
-      const parts = tx.jwsRepresentation.split(".");
-      if (parts.length !== 3) continue;
-      const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
-      if (payload.productId === "com.qrmingle.app.premium") {
+      const payload = decodeStoreKitPayload(tx.jwsRepresentation);
+      if (payload && hasActivePremiumEntitlement(payload)) {
         const userId = (req.user as any).id;
         await storage.updateUserPremiumStatus(userId, true);
         return res.json({ restored: true });

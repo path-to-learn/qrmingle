@@ -1,6 +1,6 @@
 # iOS Release Tracker
 
-Last updated: 2026-05-18 | Stable tag: `v1.1-stable`
+Last updated: 2026-05-24 | Stable tag: `v1.1-stable`
 
 ## Completed ✅
 
@@ -11,6 +11,7 @@ Last updated: 2026-05-18 | Stable tag: `v1.1-stable`
 | F3 | Forgot password — SendGrid reset emails (admin-triggered + self-serve) |
 | F4 | Multilingual support (EN, ES, FR, PT, AR, JA) |
 | F6 | Scan physical business card → AI extracts details → create QrMingle card — verified on iPhone (2026-05-18) |
+| P1 | Premium pricing model + free limits — `$2.99` monthly, `$19.99` yearly, `$39.99` lifetime; free tier is 2 card profiles + 1 AI profile-builder use |
 | T2 | Railway migration + Neon DB + DNS cutover |
 | T3 | Universal Links — AASA served from Express, Associated Domains entitlement in Xcode |
 | E1 | `ANTHROPIC_API_KEY` set in Railway prod env |
@@ -20,8 +21,11 @@ Last updated: 2026-05-18 | Stable tag: `v1.1-stable`
 
 | Item | Owner | Description |
 |------|-------|-------------|
-| A3 | Prashant | App Store Connect — screenshots, age rating questionnaire, app description, pricing, privacy policy URL |
-| A4 | Prashant + agents | Validate StoreKit production readiness — App Store Connect product, sandbox/TestFlight purchase, restore, and server verification review |
+| A3 | Prashant | App Store Connect listing — screenshots, age rating questionnaire, app description, privacy policy URL |
+| A4 | Prashant | App Store Connect monetization setup — create `QrMingle Pro` subscription group, add monthly/yearly/lifetime products with exact product IDs, complete Paid Apps Agreement, tax, and banking |
+| A5 | Prashant + agents | StoreKit payment QA — verify `Products.storekit` prices, sandbox/TestFlight product loading, purchase Monthly/Yearly/Lifetime, cancel purchase sheet, and Restore Purchase |
+| A6 | Agents | Subscription entitlement lifecycle hardening — add App Store Server Notifications or periodic entitlement refresh so expired/canceled/refunded subscriptions cannot remain Premium forever |
+| A7 | Prashant + agents | Submit IAPs/subscriptions with app for App Review — products must be Ready to Submit/approved before paid launch |
 
 ## Post-Launch (not blockers) 🗓️
 
