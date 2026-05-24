@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
   webDir: 'dist/public',
   // DEV ONLY — uncomment for local dev, comment out for demo/release builds:
   // server: {
-  //   url: 'http://10.0.0.23:5000',
+  //   url: 'http://10.0.0.179:5000',
   //   cleartext: true
   // },
   ios: {
