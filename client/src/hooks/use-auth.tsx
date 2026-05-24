@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/auth/validate'],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   // Update user state when query data changes
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Login successful",
         description: "Welcome back!",
       });
-      setLocation("/");
+      setLocation("/profiles");
     },
     onError: (error: Error) => {
       toast({
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Registration successful",
         description: "Your account has been created.",
       });
-      setLocation("/");
+      setLocation("/profiles");
     },
     onError: (error: Error) => {
       toast({
