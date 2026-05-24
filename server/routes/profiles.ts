@@ -6,6 +6,7 @@ import { storage } from "../storage";
 import { profileFormSchema } from "@shared/schema";
 import { requireAuth } from "../middleware";
 import { checkIsPremium, getVisitorIp } from "../lib/premium";
+import { FREE_PROFILE_LIMIT } from "@shared/premium";
 
 export const profilesRouter = express.Router();
 
@@ -45,14 +46,11 @@ profilesRouter.post("/", requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isUserPremium = checkIsPremium(user);
-    const profileLimit = isUserPremium ? 5 : 2;
     const userProfiles = await storage.getProfilesByUserId(userId);
 
-    if (userProfiles.length >= profileLimit) {
+    if (!isUserPremium && userProfiles.length >= FREE_PROFILE_LIMIT) {
       return res.status(403).json({
-        message: isUserPremium
-          ? "You have reached the maximum of 5 profiles."
-          : "Free accounts can have up to 2 profiles. Upgrade to Premium for up to 5.",
+        message: `Free accounts can have up to ${FREE_PROFILE_LIMIT} card profiles. Upgrade to QrMingle Pro for unlimited profiles.`,
         type: "PROFILE_LIMIT_REACHED",
       });
     }

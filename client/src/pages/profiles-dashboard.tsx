@@ -12,6 +12,7 @@ import ProfileEditor from "@/components/profile/ProfileEditor";
 import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProfileFormData } from "@shared/schema";
+import { FREE_PROFILE_LIMIT } from "@shared/premium";
 import { useToast } from "@/hooks/use-toast";
 import { celebrateCreation } from "@/lib/confetti";
 import {
@@ -300,7 +301,7 @@ export default function ProfilesDashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle>Profile Limit Reached</AlertDialogTitle>
             <AlertDialogDescription>
-              You have reached the current limit of 3 profiles. To create more space, try deleting profiles you no longer need. Additional profiles will be available in future premium plans.
+              Free accounts include {FREE_PROFILE_LIMIT} card profiles. Upgrade to QrMingle Pro for unlimited card profiles, unlimited AI profile-builder use, and analytics.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

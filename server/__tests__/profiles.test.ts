@@ -85,7 +85,7 @@ describe("POST /profiles — profile creation limit", () => {
     const res = await request(buildApp(1)).post("/profiles").send(validProfileBody);
     expect(res.status).toBe(403);
     expect(res.body.type).toBe("PROFILE_LIMIT_REACHED");
-    expect(res.body.message).toMatch(/2 profiles/);
+    expect(res.body.message).toMatch(/2 card profiles/);
   });
 
   it("allows a premium user to create a 3rd profile", async () => {
@@ -97,14 +97,13 @@ describe("POST /profiles — profile creation limit", () => {
     expect(res.status).toBe(201);
   });
 
-  it("blocks a premium user from creating a 6th profile", async () => {
+  it("allows a premium user to create beyond the free profile limit", async () => {
     mockStorage.getUser.mockResolvedValue(premiumUser);
     mockStorage.getProfilesByUserId.mockResolvedValue([{}, {}, {}, {}, {}]);
+    mockStorage.createProfile.mockResolvedValue({ id: 12, ...validProfileBody, userId: 2, slug: "test-premium" });
 
     const res = await request(buildApp(2)).post("/profiles").send(validProfileBody);
-    expect(res.status).toBe(403);
-    expect(res.body.type).toBe("PROFILE_LIMIT_REACHED");
-    expect(res.body.message).toMatch(/5 profiles/);
+    expect(res.status).toBe(201);
   });
 
   it("returns 401 when not authenticated", async () => {
