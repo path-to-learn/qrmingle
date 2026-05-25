@@ -64,7 +64,9 @@ function OfflineBanner() {
 // Router component
 function AppRouter() {
   const [location, navigate] = useLocation();
-  const isFullScreenRoute = ["/", "/login", "/register"].includes(location);
+  const currentPath = location.split("?")[0];
+  const fullScreenRoutes = ["/", "/login", "/register", "/forgot-password"];
+  const isFullScreenRoute = fullScreenRoutes.includes(currentPath);
 
   // Handle Universal Links (iOS deep links) — navigate to the path when app opens via URL
   useEffect(() => {
@@ -120,23 +122,23 @@ function AppRouter() {
         touchAction: "pan-y",
       }}
     >
-      {!["/", "/login", "/register"].includes(location) && (
-        location === "/profiles"
+      {!fullScreenRoutes.includes(currentPath) && (
+        currentPath === "/profiles"
           ? <div className="profiles-header-wrap"><Header /></div>
           : <Header />
       )}
       {/* overflow-y on main, overflow-x on inner div — keeps them separate to avoid iOS WebKit scroll quirk */}
       <main data-horizontal-lock className="main-content flex-1 min-h-0 overflow-y-auto max-w-full" style={{
         ["--route-overflow-y" as string]: isFullScreenRoute ? "hidden" : "auto",
-        paddingBottom: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "80px",
-        paddingTop: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "8px",
-        paddingLeft: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
-        paddingRight: ["/", "/profiles", "/login", "/register"].includes(location) ? "0" : "12px",
+        paddingBottom: [...fullScreenRoutes, "/profiles"].includes(currentPath) ? "0" : "80px",
+        paddingTop: [...fullScreenRoutes, "/profiles"].includes(currentPath) ? "0" : "8px",
+        paddingLeft: [...fullScreenRoutes, "/profiles"].includes(currentPath) ? "0" : "12px",
+        paddingRight: [...fullScreenRoutes, "/profiles"].includes(currentPath) ? "0" : "12px",
         overflowX: "hidden",
         overflowY: isFullScreenRoute ? "hidden" : undefined,
         height: isFullScreenRoute
           ? "100dvh"
-          : location === "/profiles"
+          : currentPath === "/profiles"
             ? "calc(100dvh - 60px - env(safe-area-inset-bottom))"
             : undefined,
       }}>

@@ -7,8 +7,18 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 import { ArrowLeftIcon, MailIcon, KeyIcon, LockIcon, CheckCircleIcon } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import Home from "@/pages/home";
 
 export default function ForgotPassword() {
+  if (!Capacitor.isNativePlatform()) {
+    return <Home authMode="forgot" />;
+  }
+
+  return <NativeForgotPassword />;
+}
+
+function NativeForgotPassword() {
   const [location, setLocation] = useLocation();
   const search = useSearch(); // reactive — updates when wouter navigates (e.g. Universal Link deep link)
   const urlToken = new URLSearchParams(search).get("token") || "";
