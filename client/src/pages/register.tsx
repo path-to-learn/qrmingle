@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { useLocation, Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Capacitor } from "@capacitor/core";
+import Home from "@/pages/home";
 
 const GRADIENT = "linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%)";
 
@@ -173,40 +171,5 @@ export default function Register() {
     );
   }
 
-  // ── Web layout (unchanged) ───────────────────────────────────────────
-  return (
-    <div className="flex justify-center items-center py-8">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create an Account</CardTitle>
-          <CardDescription>Enter your details to create a new account</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleRegister}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">Email</label>
-              <Input id="username" type="email" placeholder="Enter your email" value={username} onChange={e => setUsername(e.target.value)} disabled={registerMutation.isPending} />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Password</label>
-              <Input id="password" type="password" placeholder="Choose a password" value={password} onChange={e => setPassword(e.target.value)} disabled={registerMutation.isPending} />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</label>
-              <Input id="confirmPassword" type="password" placeholder="Confirm your password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={registerMutation.isPending} />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
-            <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-              {registerMutation.isPending ? "Creating account..." : "Sign Up"}
-            </Button>
-            <p className="text-sm text-center text-muted-foreground mt-2">
-              Already have an account?{" "}
-              <Link href="/login"><span className="text-primary hover:underline cursor-pointer">Login here</span></Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
-  );
+  return <Home authMode="register" />;
 }
