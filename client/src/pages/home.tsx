@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
+import { useLocation, useSearch } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRight,
+  CheckCircle2,
   Github,
   Globe,
   Instagram,
+  KeyRound,
   Linkedin,
+  LockKeyhole,
   Mail,
   Phone,
   QrCode,
@@ -140,7 +144,7 @@ const WEB_STORY_STEPS: WebStoryStep[] = [
   },
 ];
 
-type WebAuthMode = "login" | "register";
+type WebAuthMode = "login" | "register" | "forgot";
 
 const isNativeApp = Capacitor.isNativePlatform();
 
@@ -558,22 +562,44 @@ function WebHome({ authMode }: { authMode?: WebAuthMode }) {
 
 function WebAuthModal({ mode }: { mode: WebAuthMode }) {
   const [, navigate] = useLocation();
+  const search = useSearch();
   const { loginMutation, registerMutation } = useAuth();
   const { toast } = useToast();
   const emailRef = useRef<HTMLInputElement | null>(null);
+  const newPasswordRef = useRef<HTMLInputElement | null>(null);
+  const urlToken = new URLSearchParams(search).get("token") || "";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [resetToken, setResetToken] = useState(urlToken);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [forgotStage, setForgotStage] = useState<"request" | "sent" | "reset" | "complete">(urlToken ? "reset" : "request");
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
   const isLogin = mode === "login";
-  const isPending = isLogin ? loginMutation.isPending : registerMutation.isPending;
+  const isRegister = mode === "register";
+  const isForgot = mode === "forgot";
+  const isPending = isLogin ? loginMutation.isPending : isRegister ? registerMutation.isPending : forgotSubmitting;
 
   const close = useCallback(() => navigate("/"), [navigate]);
   const switchMode = useCallback((nextMode: WebAuthMode) => {
-    navigate(nextMode === "login" ? "/login" : "/register");
+    const pathByMode: Record<WebAuthMode, string> = {
+      login: "/login",
+      register: "/register",
+      forgot: "/forgot-password",
+    };
+    navigate(pathByMode[nextMode]);
   }, [navigate]);
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => emailRef.current?.focus(), 90);
+    const timeout = window.setTimeout(() => {
+      if (isForgot && forgotStage === "reset") {
+        newPasswordRef.current?.focus();
+      } else {
+        emailRef.current?.focus();
+      }
+    }, 90);
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") close();
     };
@@ -583,14 +609,24 @@ function WebAuthModal({ mode }: { mode: WebAuthMode }) {
       window.clearTimeout(timeout);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [close, mode]);
+  }, [close, forgotStage, isForgot, mode]);
+
+  useEffect(() => {
+    if (mode !== "forgot") return;
+    const tokenFromUrl = new URLSearchParams(search).get("token") || "";
+    if (tokenFromUrl) {
+      setResetToken(tokenFromUrl);
+      setForgotStage("reset");
+    }
+  }, [mode, search]);
 
   const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (isForgot) return;
 
-    if (!username || !password || (!isLogin && !confirmPassword)) {
+    if (!username || !password || (isRegister && !confirmPassword)) {
       toast({
         title: "Missing details",
         description: "Please fill in all fields before continuing.",
@@ -608,7 +644,7 @@ function WebAuthModal({ mode }: { mode: WebAuthMode }) {
       return;
     }
 
-    if (!isLogin && password !== confirmPassword) {
+    if (isRegister && password !== confirmPassword) {
       toast({
         title: "Passwords do not match",
         description: "Please confirm the same password.",
@@ -622,6 +658,570 @@ function WebAuthModal({ mode }: { mode: WebAuthMode }) {
     } else {
       registerMutation.mutate({ username, password });
     }
+  };
+
+  const handleForgotRequest = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!forgotEmail) {
+      toast({
+        title: "Missing email",
+        description: "Enter the email address for your QrMingle account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isValidEmail(forgotEmail)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setForgotSubmitting(true);
+    try {
+      await apiRequest("POST", "/api/forgot-password", { email: forgotEmail });
+      setForgotStage("sent");
+      toast({
+        title: "Reset link requested",
+        description: "If that account exists, a reset link has been sent.",
+      });
+    } catch (error) {
+      console.error("Password reset request failed:", error);
+      toast({
+        title: "Could not request reset",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setForgotSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const tokenToUse = resetToken.trim();
+
+    if (!tokenToUse) {
+      toast({
+        title: "Missing reset token",
+        description: "Use the reset link from your email, or paste the reset token.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newPassword) {
+      toast({
+        title: "Missing password",
+        description: "Enter a new password for your account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== newPasswordConfirm) {
+      toast({
+        title: "Passwords do not match",
+        description: "Please confirm the same new password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setForgotSubmitting(true);
+    try {
+      await apiRequest("POST", "/api/reset-password", {
+        token: tokenToUse,
+        newPassword,
+      });
+      setForgotStage("complete");
+      toast({
+        title: "Password reset complete",
+        description: "You can now sign in with your new password.",
+      });
+    } catch (error) {
+      console.error("Password reset failed:", error);
+      toast({
+        title: "Reset failed",
+        description: "The reset link may be invalid or expired.",
+        variant: "destructive",
+      });
+    } finally {
+      setForgotSubmitting(false);
+    }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    border: "1px solid #dbe4ef",
+    borderRadius: "12px",
+    padding: "14px 15px",
+    color: "#0f172a",
+    fontSize: "16px",
+    outline: "none",
+    boxSizing: "border-box",
+    background: isPending ? "#f8fafc" : "white",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "grid",
+    gap: "7px",
+    color: "#334155",
+    fontSize: "13px",
+    fontWeight: 850,
+  };
+
+  const renderAuthContent = () => (
+    <>
+      <h2 style={{ margin: 0, color: "#0f172a", fontSize: "32px", lineHeight: 1.05, fontWeight: 900 }}>
+        {isLogin ? "Welcome back" : "Create your account"}
+      </h2>
+      <p style={{ margin: "10px 0 26px", color: "#64748b", fontSize: "16px", lineHeight: 1.5 }}>
+        {isLogin
+          ? "Sign in to manage your cards and scans."
+          : "Start with two free QR card profiles."}
+      </p>
+
+      <form onSubmit={handleSubmit}>
+        <div style={{ display: "grid", gap: "15px" }}>
+          <label style={labelStyle}>
+            Email
+            <input
+              ref={emailRef}
+              type="email"
+              placeholder="you@example.com"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              disabled={isPending}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="email"
+              style={inputStyle}
+            />
+          </label>
+
+          <label style={labelStyle}>
+            Password
+            <input
+              type="password"
+              placeholder={isLogin ? "Enter your password" : "Choose a password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={isPending}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              style={inputStyle}
+            />
+          </label>
+
+          {isRegister && (
+            <label style={labelStyle}>
+              Confirm password
+              <input
+                type="password"
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                disabled={isPending}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                style={inputStyle}
+              />
+            </label>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isPending}
+          style={{
+            width: "100%",
+            border: "none",
+            borderRadius: "14px",
+            padding: "15px 18px",
+            marginTop: "22px",
+            background: "linear-gradient(135deg, #4f46e5 0%, #14b8a6 100%)",
+            color: "white",
+            fontSize: "16px",
+            fontWeight: 900,
+            cursor: isPending ? "default" : "pointer",
+            opacity: isPending ? 0.72 : 1,
+            boxShadow: "0 16px 38px rgba(79,70,229,0.2)",
+          }}
+        >
+          {isPending
+            ? isLogin ? "Signing in..." : "Creating account..."
+            : isLogin ? "Sign In" : "Create Account"}
+        </button>
+      </form>
+
+      <div style={{ marginTop: "18px", display: "grid", gap: "10px", textAlign: "center" }}>
+        {isLogin && (
+          <button
+            type="button"
+            onClick={() => switchMode("forgot")}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "#4f46e5",
+              fontSize: "14px",
+              fontWeight: 750,
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            Forgot password?
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => switchMode(isLogin ? "register" : "login")}
+          style={{
+            border: "none",
+            background: "transparent",
+            color: "#64748b",
+            fontSize: "14px",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          <span style={{ color: "#0f172a", fontWeight: 850 }}>
+            {isLogin ? "Sign Up" : "Sign In"}
+          </span>
+        </button>
+      </div>
+    </>
+  );
+
+  const renderForgotContent = () => {
+    if (forgotStage === "complete") {
+      return (
+        <>
+          <div style={{
+            width: "54px",
+            height: "54px",
+            borderRadius: "16px",
+            background: "#ecfdf5",
+            color: "#047857",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "18px",
+          }}>
+            <CheckCircle2 size={28} />
+          </div>
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: "32px", lineHeight: 1.05, fontWeight: 900 }}>
+            Password reset complete
+          </h2>
+          <p style={{ margin: "10px 0 24px", color: "#64748b", fontSize: "16px", lineHeight: 1.5 }}>
+            Your password has been updated. Sign in with the new password to continue.
+          </p>
+          <button
+            type="button"
+            onClick={() => switchMode("login")}
+            style={{
+              width: "100%",
+              border: "none",
+              borderRadius: "14px",
+              padding: "15px 18px",
+              background: "linear-gradient(135deg, #4f46e5 0%, #14b8a6 100%)",
+              color: "white",
+              fontSize: "16px",
+              fontWeight: 900,
+              cursor: "pointer",
+              boxShadow: "0 16px 38px rgba(79,70,229,0.2)",
+            }}
+          >
+            Go to Sign In
+          </button>
+        </>
+      );
+    }
+
+    if (forgotStage === "reset") {
+      return (
+        <>
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: "32px", lineHeight: 1.05, fontWeight: 900 }}>
+            Set a new password
+          </h2>
+          <p style={{ margin: "10px 0 22px", color: "#64748b", fontSize: "16px", lineHeight: 1.5 }}>
+            Enter a new password for your QrMingle account.
+          </p>
+
+          <form onSubmit={handleResetPassword}>
+            <div style={{ display: "grid", gap: "15px" }}>
+              {urlToken ? (
+                <div style={{
+                  display: "flex",
+                  gap: "10px",
+                  alignItems: "center",
+                  border: "1px solid #bbf7d0",
+                  background: "#f0fdf4",
+                  color: "#047857",
+                  borderRadius: "12px",
+                  padding: "12px 14px",
+                  fontSize: "13px",
+                  fontWeight: 750,
+                }}>
+                  <CheckCircle2 size={18} />
+                  Reset link verified
+                </div>
+              ) : (
+                <label style={labelStyle}>
+                  Reset token
+                  <input
+                    type="text"
+                    placeholder="Paste your reset token"
+                    value={resetToken}
+                    onChange={(event) => setResetToken(event.target.value)}
+                    disabled={isPending}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    style={inputStyle}
+                  />
+                </label>
+              )}
+
+              <label style={labelStyle}>
+                New password
+                <input
+                  ref={newPasswordRef}
+                  type="password"
+                  placeholder="Enter a new password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  disabled={isPending}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Confirm new password
+                <input
+                  type="password"
+                  placeholder="Confirm your new password"
+                  value={newPasswordConfirm}
+                  onChange={(event) => setNewPasswordConfirm(event.target.value)}
+                  disabled={isPending}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              style={{
+                width: "100%",
+                border: "none",
+                borderRadius: "14px",
+                padding: "15px 18px",
+                marginTop: "22px",
+                background: "linear-gradient(135deg, #4f46e5 0%, #14b8a6 100%)",
+                color: "white",
+                fontSize: "16px",
+                fontWeight: 900,
+                cursor: isPending ? "default" : "pointer",
+                opacity: isPending ? 0.72 : 1,
+                boxShadow: "0 16px 38px rgba(79,70,229,0.2)",
+              }}
+            >
+              {isPending ? "Resetting password..." : "Reset Password"}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={() => setForgotStage("request")}
+            style={{
+              width: "100%",
+              border: "none",
+              background: "transparent",
+              color: "#64748b",
+              fontSize: "14px",
+              cursor: "pointer",
+              padding: "16px 0 0",
+            }}
+          >
+            Request a new reset link
+          </button>
+        </>
+      );
+    }
+
+    if (forgotStage === "sent") {
+      return (
+        <>
+          <div style={{
+            width: "54px",
+            height: "54px",
+            borderRadius: "16px",
+            background: "#eef2ff",
+            color: "#4f46e5",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "18px",
+          }}>
+            <Mail size={28} />
+          </div>
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: "32px", lineHeight: 1.05, fontWeight: 900 }}>
+            Check your email
+          </h2>
+          <p style={{ margin: "10px 0 22px", color: "#64748b", fontSize: "16px", lineHeight: 1.5 }}>
+            If an account exists for <strong>{forgotEmail}</strong>, a reset link has been sent. It expires in 1 hour.
+          </p>
+          <div style={{
+            display: "grid",
+            gap: "10px",
+          }}>
+            <button
+              type="button"
+              onClick={() => switchMode("login")}
+              style={{
+                width: "100%",
+                border: "none",
+                borderRadius: "14px",
+                padding: "15px 18px",
+                background: "linear-gradient(135deg, #4f46e5 0%, #14b8a6 100%)",
+                color: "white",
+                fontSize: "16px",
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: "0 16px 38px rgba(79,70,229,0.2)",
+              }}
+            >
+              Back to Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => setForgotStage("reset")}
+              style={{
+                width: "100%",
+                border: "1px solid #dbe4ef",
+                borderRadius: "14px",
+                padding: "14px 18px",
+                background: "white",
+                color: "#4f46e5",
+                fontSize: "15px",
+                fontWeight: 850,
+                cursor: "pointer",
+              }}
+            >
+              I have a reset token
+            </button>
+          </div>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <h2 style={{ margin: 0, color: "#0f172a", fontSize: "32px", lineHeight: 1.05, fontWeight: 900 }}>
+          Reset your password
+        </h2>
+        <p style={{ margin: "10px 0 26px", color: "#64748b", fontSize: "16px", lineHeight: 1.5 }}>
+          Enter your account email and we will send a secure reset link.
+        </p>
+
+        <form onSubmit={handleForgotRequest}>
+          <label style={labelStyle}>
+            Email
+            <input
+              ref={emailRef}
+              type="email"
+              placeholder="you@example.com"
+              value={forgotEmail}
+              onChange={(event) => setForgotEmail(event.target.value)}
+              disabled={isPending}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="email"
+              style={inputStyle}
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={isPending}
+            style={{
+              width: "100%",
+              border: "none",
+              borderRadius: "14px",
+              padding: "15px 18px",
+              marginTop: "22px",
+              background: "linear-gradient(135deg, #4f46e5 0%, #14b8a6 100%)",
+              color: "white",
+              fontSize: "16px",
+              fontWeight: 900,
+              cursor: isPending ? "default" : "pointer",
+              opacity: isPending ? 0.72 : 1,
+              boxShadow: "0 16px 38px rgba(79,70,229,0.2)",
+            }}
+          >
+            {isPending ? "Sending reset link..." : "Send Reset Link"}
+          </button>
+        </form>
+
+        <div style={{ marginTop: "18px", display: "grid", gap: "10px", textAlign: "center" }}>
+          <button
+            type="button"
+            onClick={() => setForgotStage("reset")}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "#4f46e5",
+              fontSize: "14px",
+              fontWeight: 750,
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            I already have a reset token
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("login")}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "#64748b",
+              fontSize: "14px",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            Remembered it? <span style={{ color: "#0f172a", fontWeight: 850 }}>Sign In</span>
+          </button>
+        </div>
+      </>
+    );
   };
 
   return (
@@ -683,10 +1283,12 @@ function WebAuthModal({ mode }: { mode: WebAuthMode }) {
               <span style={{ fontSize: "26px", fontWeight: 900 }}>QrMingle</span>
             </div>
             <h2 style={{ margin: 0, fontSize: "clamp(32px, 4vw, 48px)", lineHeight: 1.02, fontWeight: 900 }}>
-              Keep the conversation moving.
+              {isForgot ? "Get back to your cards securely." : "Keep the conversation moving."}
             </h2>
             <p style={{ margin: "18px 0 0", color: "rgba(255,255,255,0.78)", fontSize: "17px", lineHeight: 1.55 }}>
-              Create, scan, share, and manage your QR cards without leaving the landing experience.
+              {isForgot
+                ? "Request a reset link, set a new password, and return to QrMingle without leaving the portal."
+                : "Create, scan, share, and manage your QR cards without leaving the landing experience."}
             </p>
           </div>
 
@@ -703,9 +1305,19 @@ function WebAuthModal({ mode }: { mode: WebAuthMode }) {
               included
             </div>
             <div style={{ display: "grid", gap: "10px", marginTop: "12px", fontSize: "14px", fontWeight: 750 }}>
-              <div>2 free profiles to start</div>
-              <div>AI profile-builder trial</div>
-              <div>Shareable public QR links</div>
+              {isForgot ? (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Mail size={15} /> Email reset link</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><LockKeyhole size={15} /> Secure password update</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><LogIn size={15} /> Back to sign in</div>
+                </>
+              ) : (
+                <>
+                  <div>2 free profiles to start</div>
+                  <div>AI profile-builder trial</div>
+                  <div>Shareable public QR links</div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -751,6 +1363,7 @@ function WebAuthModal({ mode }: { mode: WebAuthMode }) {
               {([
                 { key: "login" as const, label: "Sign In", Icon: LogIn },
                 { key: "register" as const, label: "Sign Up", Icon: UserPlus },
+                { key: "forgot" as const, label: "Reset", Icon: KeyRound },
               ]).map(({ key, label, Icon }) => {
                 const active = mode === key;
                 return (
@@ -780,158 +1393,7 @@ function WebAuthModal({ mode }: { mode: WebAuthMode }) {
               })}
             </div>
 
-            <h2 style={{ margin: 0, color: "#0f172a", fontSize: "32px", lineHeight: 1.05, fontWeight: 900 }}>
-              {isLogin ? "Welcome back" : "Create your account"}
-            </h2>
-            <p style={{ margin: "10px 0 26px", color: "#64748b", fontSize: "16px", lineHeight: 1.5 }}>
-              {isLogin
-                ? "Sign in to manage your cards and scans."
-                : "Start with two free QR card profiles."}
-            </p>
-
-            <form onSubmit={handleSubmit}>
-              <div style={{ display: "grid", gap: "15px" }}>
-                <label style={{ display: "grid", gap: "7px", color: "#334155", fontSize: "13px", fontWeight: 850 }}>
-                  Email
-                  <input
-                    ref={emailRef}
-                    type="email"
-                    placeholder="you@example.com"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    disabled={isPending}
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    inputMode="email"
-                    style={{
-                      width: "100%",
-                      border: "1px solid #dbe4ef",
-                      borderRadius: "12px",
-                      padding: "14px 15px",
-                      color: "#0f172a",
-                      fontSize: "16px",
-                      outline: "none",
-                      boxSizing: "border-box",
-                      background: isPending ? "#f8fafc" : "white",
-                    }}
-                  />
-                </label>
-
-                <label style={{ display: "grid", gap: "7px", color: "#334155", fontSize: "13px", fontWeight: 850 }}>
-                  Password
-                  <input
-                    type="password"
-                    placeholder={isLogin ? "Enter your password" : "Choose a password"}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    disabled={isPending}
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    style={{
-                      width: "100%",
-                      border: "1px solid #dbe4ef",
-                      borderRadius: "12px",
-                      padding: "14px 15px",
-                      color: "#0f172a",
-                      fontSize: "16px",
-                      outline: "none",
-                      boxSizing: "border-box",
-                      background: isPending ? "#f8fafc" : "white",
-                    }}
-                  />
-                </label>
-
-                {!isLogin && (
-                  <label style={{ display: "grid", gap: "7px", color: "#334155", fontSize: "13px", fontWeight: 850 }}>
-                    Confirm password
-                    <input
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
-                      disabled={isPending}
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      style={{
-                        width: "100%",
-                        border: "1px solid #dbe4ef",
-                        borderRadius: "12px",
-                        padding: "14px 15px",
-                        color: "#0f172a",
-                        fontSize: "16px",
-                        outline: "none",
-                        boxSizing: "border-box",
-                        background: isPending ? "#f8fafc" : "white",
-                      }}
-                    />
-                  </label>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isPending}
-                style={{
-                  width: "100%",
-                  border: "none",
-                  borderRadius: "14px",
-                  padding: "15px 18px",
-                  marginTop: "22px",
-                  background: "linear-gradient(135deg, #4f46e5 0%, #14b8a6 100%)",
-                  color: "white",
-                  fontSize: "16px",
-                  fontWeight: 900,
-                  cursor: isPending ? "default" : "pointer",
-                  opacity: isPending ? 0.72 : 1,
-                  boxShadow: "0 16px 38px rgba(79,70,229,0.2)",
-                }}
-              >
-                {isPending
-                  ? isLogin ? "Signing in..." : "Creating account..."
-                  : isLogin ? "Sign In" : "Create Account"}
-              </button>
-            </form>
-
-            <div style={{ marginTop: "18px", display: "grid", gap: "10px", textAlign: "center" }}>
-              {isLogin && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/forgot-password")}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    color: "#4f46e5",
-                    fontSize: "14px",
-                    fontWeight: 750,
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                >
-                  Forgot password?
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => switchMode(isLogin ? "register" : "login")}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: "#64748b",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  padding: 0,
-                }}
-              >
-                {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-                <span style={{ color: "#0f172a", fontWeight: 850 }}>
-                  {isLogin ? "Sign Up" : "Sign In"}
-                </span>
-              </button>
-            </div>
+            {isForgot ? renderForgotContent() : renderAuthContent()}
           </div>
         </div>
       </div>
