@@ -143,7 +143,9 @@ function AppRouter() {
       <div data-horizontal-lock style={{ overflowX: "hidden", width: "100%", maxWidth: "100%", minWidth: 0, height: isFullScreenRoute ? "100%" : undefined }}>
         <Switch>
           {/* The component at "/" will now only be the welcome/tutorial page */}
-          <Route path="/" component={Home} />
+          <Route path="/">
+            <Home />
+          </Route>
           
           {/* Profiles dashboard will be the main area for managing profiles */}
           <Route path="/profiles">

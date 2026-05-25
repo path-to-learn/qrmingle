@@ -130,6 +130,127 @@ html.qrmingle-fullscreen-lock #root {
 /* Hide scrollbar on welcome card carousel */
 .welcome-scroll::-webkit-scrollbar { display: none; }
 
+@keyframes qrmingleWebFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
+}
+
+@keyframes qrmingleWebScan {
+  0% { transform: translateY(-110%); opacity: 0; }
+  18% { opacity: 1; }
+  82% { opacity: 1; }
+  100% { transform: translateY(760%); opacity: 0; }
+}
+
+@keyframes qrmingleWebScanTight {
+  0% { transform: translateY(-160px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(180px); opacity: 0; }
+}
+
+@keyframes qrmingleWebCardEnter {
+  0% { opacity: 0; transform: translateY(18px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes qrmingleWebStoryCopyEnter {
+  0% { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(6px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes qrmingleWebStoryFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -9px; }
+}
+
+@keyframes qrmingleWebQrPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+@keyframes qrmingleWebAiGlow {
+  0%, 100% { box-shadow: 0 24px 58px rgba(15,23,42,0.14), 0 0 0 rgba(124,58,237,0); }
+  50% { box-shadow: 0 24px 58px rgba(15,23,42,0.14), 0 0 44px rgba(124,58,237,0.18); }
+}
+
+@keyframes qrmingleWebCursorBlink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
+.web-floating-card {
+  animation: qrmingleWebFloat 6s ease-in-out infinite;
+}
+
+.web-floating-card-delay {
+  animation-delay: -2.4s;
+}
+
+.web-scan-beam {
+  animation: qrmingleWebScan 4.6s ease-in-out infinite;
+}
+
+.web-scan-beam-tight {
+  animation: qrmingleWebScanTight 2.8s ease-in-out infinite;
+}
+
+.web-story-card-enter {
+  animation: qrmingleWebCardEnter 360ms ease both;
+}
+
+.web-story-copy-enter {
+  animation: qrmingleWebStoryCopyEnter 260ms ease both;
+}
+
+.web-story-float {
+  animation: qrmingleWebStoryFloat 4.8s ease-in-out infinite;
+}
+
+.web-story-qr-pulse {
+  animation: qrmingleWebQrPulse 2.6s ease-in-out infinite;
+}
+
+.web-story-ai-glow {
+  animation: qrmingleWebAiGlow 3.2s ease-in-out infinite;
+}
+
+.web-story-cursor::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 4px;
+  background: #7c3aed;
+  vertical-align: -0.15em;
+  animation: qrmingleWebCursorBlink 1s step-end infinite;
+}
+
+@media (max-width: 760px) {
+  .web-auth-dialog {
+    grid-template-columns: 1fr !important;
+    overflow-y: auto !important;
+  }
+
+  .web-auth-rail {
+    min-height: 260px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .web-floating-card,
+  .web-scan-beam,
+  .web-scan-beam-tight,
+  .web-story-card-enter,
+  .web-story-copy-enter,
+  .web-story-float,
+  .web-story-qr-pulse,
+  .web-story-ai-glow,
+  .web-story-cursor::after {
+    animation: none !important;
+  }
+}
+
 /* ── Responsive web overrides ─────────────────────────────────────── */
 @media (min-width: 768px) {
   /* Hide mobile bottom tab bar on desktop */
