@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Capacitor } from "@capacitor/core";
 import Home from "@/pages/home";
-
-const GRADIENT = "linear-gradient(170deg, #0f0c29 0%, #1e1b4b 30%, #312e81 60%, #4338ca 85%, #6366f1 100%)";
+import NativeAuthShell, { NativeAuthField, NativeAuthPill } from "@/components/auth/NativeAuthShell";
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -42,132 +40,80 @@ export default function Register() {
     registerMutation.mutate({ username, password });
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)",
-    borderRadius: "12px", padding: "14px 16px", fontSize: "16px",
-    color: "white", outline: "none", boxSizing: "border-box",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    color: "rgba(255,255,255,0.75)", fontSize: "13px", fontWeight: 600,
-    display: "block", marginBottom: "8px",
-  };
-
-  // ── iOS layout ──────────────────────────────────────────────────────
   if (isCapacitor) {
     return (
-      <div className="native-auth-screen" style={{
-        height: "100%",
-        minHeight: "100%",
-        background: GRADIENT,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100vw",
-        maxWidth: "100vw",
-        paddingLeft: "24px",
-        paddingRight: "24px",
-        paddingTop: "max(24px, env(safe-area-inset-top))",
-        paddingBottom: "calc(32px + env(safe-area-inset-bottom))",
-        position: "relative",
-        overflowX: "hidden",
-        overflowY: "hidden",
-        boxSizing: "border-box",
-        transform: "translateZ(0)",
-        WebkitTransform: "translateZ(0)",
-      }}>
-        {/* Back button */}
-        <div style={{
-          position: "absolute",
-          top: "max(12px, env(safe-area-inset-top))",
-          left: "20px",
-          zIndex: 2,
-        }}>
-          <button
-            onClick={() => navigate("/")}
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "999px",
-              color: "rgba(255,255,255,0.78)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "2px",
-              fontSize: "14px",
-              fontWeight: 600,
-              padding: "8px 12px 8px 8px",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <ChevronLeft size={18} /> {t('register.back')}
-          </button>
-        </div>
-
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "22px", flexShrink: 0 }}>
-          <svg width="36" height="36" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="512" height="512" rx="256" fill="rgba(255,255,255,0.18)"/>
-            <g opacity="0.95">
-              <rect x="144" y="144" width="80" height="80" rx="16" fill="white"/><rect x="160" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.3)"/>
-              <rect x="288" y="144" width="80" height="80" rx="16" fill="white"/><rect x="304" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.3)"/>
-              <rect x="144" y="288" width="80" height="80" rx="16" fill="white"/><rect x="160" y="304" width="48" height="48" rx="8" fill="rgba(255,255,255,0.3)"/>
-              <rect x="240" y="144" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
-              <rect x="240" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)"/>
-              <rect x="288" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.6)"/>
-              <rect x="144" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.6)"/>
-            </g>
-          </svg>
-          <span style={{ color: "white", fontSize: "24px", fontWeight: 800, letterSpacing: "-0.5px" }}>QrMingle</span>
-        </div>
-
-        {/* Heading */}
-        <div style={{ textAlign: "center", marginBottom: "22px", flexShrink: 0 }}>
-          <h1 style={{ color: "white", fontSize: "26px", fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>{t('register.title')}</h1>
-          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "8px" }}>{t('register.subtitle')}</p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleRegister} style={{ width: "100%", maxWidth: "380px", flexShrink: 0 }}>
-          <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: "24px", padding: "24px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: "16px" }}>
-            <div style={{ marginBottom: "14px" }}>
-              <label style={labelStyle}>{t('register.username')}</label>
-              <input type="email" placeholder={t('register.usernamePlaceholder')} value={username} onChange={e => setUsername(e.target.value)} autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="email" enterKeyHint="next" disabled={registerMutation.isPending} style={inputStyle} />
-            </div>
-            <div style={{ marginBottom: "14px" }}>
-              <label style={labelStyle}>{t('register.password')}</label>
-              <input type="password" placeholder={t('register.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="next" disabled={registerMutation.isPending} style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>{t('register.confirmPassword')}</label>
-              <input type="password" placeholder={t('register.confirmPlaceholder')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="go" disabled={registerMutation.isPending} style={inputStyle} />
-            </div>
-          </div>
-
-          <button
-            type="submit"
+      <NativeAuthShell
+        chip="Start in seconds"
+        title={<>Create your first<br />shareable card.</>}
+        subtitle={<>Use AI, scan a card, or start clean. Your QR profile is ready to edit.</>}
+        activeMode="register"
+        onModeChange={(mode) => navigate(mode === "login" ? "/login" : "/register")}
+        onBack={() => navigate("/")}
+        backLabel={t('register.back')}
+        onSubmit={handleRegister}
+        primaryLabel={registerMutation.isPending ? t('register.submitting') : t('register.submit')}
+        isSubmitting={registerMutation.isPending}
+        footer={
+          <>
+            {t('register.haveAccount')}{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              style={{ background: "transparent", border: "none", color: "#4f46e5", cursor: "pointer", font: "inherit", fontWeight: 700, padding: 0 }}
+            >
+              {t('register.signIn')}
+            </button>
+            <div style={{ marginTop: "28px" }}>Create now. Refine your card after signup.</div>
+          </>
+        }
+      >
+        <div style={{ display: "grid", gap: "14px" }}>
+          <NativeAuthField
+            label={t('register.username')}
+            icon="email"
+            type="email"
+            placeholder={t('register.usernamePlaceholder')}
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            inputMode="email"
+            enterKeyHint="next"
             disabled={registerMutation.isPending}
-            style={{
-              width: "100%", background: "white", color: "#1e293b",
-              border: "none", borderRadius: "16px", padding: "18px",
-              fontSize: "17px", fontWeight: 700, cursor: "pointer",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-              WebkitTapHighlightColor: "transparent",
-              opacity: registerMutation.isPending ? 0.7 : 1,
-            }}
-          >
-            {registerMutation.isPending ? t('register.submitting') : t('register.submit')}
-          </button>
-        </form>
-
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "15px", marginTop: "24px", textAlign: "center" }}>
-          {t('register.haveAccount')}{" "}
-          <span onClick={() => navigate("/login")} style={{ color: "white", fontWeight: 700, cursor: "pointer" }}>
-            {t('register.signIn')}
-          </span>
-        </p>
-      </div>
+          />
+          <NativeAuthField
+            label={t('register.password')}
+            icon="password"
+            type="password"
+            placeholder={t('register.passwordPlaceholder')}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="next"
+            disabled={registerMutation.isPending}
+          />
+          <NativeAuthField
+            label={t('register.confirmPassword')}
+            icon="password"
+            type="password"
+            placeholder={t('register.confirmPlaceholder')}
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="go"
+            disabled={registerMutation.isPending}
+          />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+            <NativeAuthPill tone="green">2 free AI assists</NativeAuthPill>
+            <NativeAuthPill>3 profiles</NativeAuthPill>
+          </div>
+        </div>
+      </NativeAuthShell>
     );
   }
 

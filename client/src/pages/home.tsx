@@ -1816,7 +1816,557 @@ function WebStoryVisual({ activeIndex }: { activeIndex: number }) {
   );
 }
 
+type NativeHomeFrame = {
+  chip: string;
+  title: [string, string];
+  accent: string;
+};
+
+const NATIVE_HOME_FRAMES: NativeHomeFrame[] = [
+  { chip: "Live preview", title: ["Your QR card,", "ready to share."], accent: "#6366f1" },
+  { chip: "AI builder", title: ["Describe it.", "QrMingle drafts it."], accent: "#6366f1" },
+  { chip: "Card scanner", title: ["Scan a card.", "Save the details."], accent: "#6366f1" },
+];
+
+function NativeBrandLogo({ color = "#6366f1" }: { color?: string }) {
+  return (
+    <svg width="38" height="38" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="512" height="512" rx="256" fill={color} />
+      <g opacity="0.95">
+        <rect x="144" y="144" width="80" height="80" rx="16" fill="white" />
+        <rect x="160" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.35)" />
+        <rect x="288" y="144" width="80" height="80" rx="16" fill="white" />
+        <rect x="304" y="160" width="48" height="48" rx="8" fill="rgba(255,255,255,0.35)" />
+        <rect x="144" y="288" width="80" height="80" rx="16" fill="white" />
+        <rect x="160" y="304" width="48" height="48" rx="8" fill="rgba(255,255,255,0.35)" />
+        <rect x="240" y="144" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)" />
+        <rect x="240" y="192" width="32" height="32" rx="6" fill="rgba(255,255,255,0.5)" />
+        <rect x="240" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)" />
+        <rect x="288" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.6)" />
+        <rect x="336" y="240" width="32" height="32" rx="6" fill="rgba(255,255,255,0.45)" />
+        <rect x="336" y="288" width="32" height="32" rx="6" fill="rgba(255,255,255,0.55)" />
+        <rect x="336" y="336" width="32" height="32" rx="6" fill="rgba(255,255,255,0.7)" />
+      </g>
+    </svg>
+  );
+}
+
+function NativeQrPreview({ color = "#6366f1", size = 56 }: { color?: string; size?: number }) {
+  return (
+    <div style={{
+      background: "white",
+      border: "1px solid #e2e8f0",
+      borderRadius: "14px",
+      boxShadow: "0 8px 18px rgba(15,23,42,0.06)",
+      padding: "6px",
+      flexShrink: 0,
+    }}>
+      <QRCodeSVG value="https://qrmingle.com/p/sara-gonzalez" size={size} fgColor={color} bgColor="white" level="L" />
+    </div>
+  );
+}
+
+function NativeContactRow({ Icon, text, color }: { Icon: LucideIcon; text: string; color: string }) {
+  return (
+    <div style={{ alignItems: "center", display: "flex", gap: "12px", minWidth: 0 }}>
+      <div style={{
+        alignItems: "center",
+        background: color,
+        borderRadius: "999px",
+        display: "flex",
+        height: "30px",
+        justifyContent: "center",
+        width: "30px",
+        flexShrink: 0,
+      }}>
+        <Icon color="white" size={15} strokeWidth={2.3} />
+      </div>
+      <span style={{
+        color: "#475569",
+        fontSize: "13px",
+        fontWeight: 650,
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {text}
+      </span>
+    </div>
+  );
+}
+
+function NativeProfilePreview({
+  accent = "#6366f1",
+  compact = false,
+}: {
+  accent?: string;
+  compact?: boolean;
+}) {
+  return (
+    <div style={{
+      background: "white",
+      border: "1px solid #e8edf5",
+      borderRadius: "22px",
+      boxShadow: "0 10px 24px rgba(15,23,42,0.08)",
+      maxWidth: compact ? "220px" : "286px",
+      overflow: "hidden",
+      width: "100%",
+    }}>
+      <div style={{
+        background: "linear-gradient(135deg, #6478f8 0%, #6366f1 58%, #8b5cf6 100%)",
+        height: compact ? "58px" : "78px",
+        position: "relative",
+      }}>
+        <svg viewBox="0 0 360 54" preserveAspectRatio="none" style={{ bottom: -1, display: "block", height: "34px", left: 0, position: "absolute", width: "100%" }}>
+          <path d="M0 25 C72 50 190 3 360 30 L360 54 L0 54 Z" fill="white" />
+        </svg>
+      </div>
+
+      <div style={{ padding: compact ? "14px 16px 16px" : "18px 20px 20px" }}>
+        <div style={{ alignItems: "flex-start", display: "flex", gap: "12px", marginBottom: compact ? "12px" : "16px" }}>
+          <div style={{
+            borderLeft: `4px solid ${accent}`,
+            flex: "1 1 0",
+            minWidth: 0,
+            paddingLeft: "12px",
+          }}>
+            <h3 style={{
+              color: "#172033",
+              fontSize: compact ? "19px" : "24px",
+              fontWeight: 800,
+              lineHeight: 1.05,
+              margin: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {compact ? "Maya Patel" : "Sara Gonzalez"}
+            </h3>
+            <p style={{
+              color: "#64748b",
+              fontSize: compact ? "12px" : "14px",
+              fontWeight: 600,
+              margin: "6px 0 0",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {compact ? "Product Designer" : "Lead Designer"}
+            </p>
+          </div>
+          <NativeQrPreview color={accent} size={compact ? 46 : 56} />
+        </div>
+
+        <div style={{ display: "grid", gap: compact ? "10px" : "14px" }}>
+          <NativeContactRow Icon={Mail} text={compact ? "maya@novalabs.design" : "maya@novalabs.design"} color={accent} />
+          <NativeContactRow Icon={compact ? Globe : Linkedin} text={compact ? "linkedin.com/in/mayapatel" : "linkedin.com/in/mayapatel"} color={accent} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NativeHomeVisual({ activeFrame }: { activeFrame: number }) {
+  if (activeFrame === 1) {
+    return (
+      <div style={{
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        height: "100%",
+        justifyContent: "center",
+        padding: "0 24px",
+      }}>
+        <div style={{
+          background: "rgba(255,255,255,0.96)",
+          border: "1px solid #e8edf5",
+          borderRadius: "20px",
+          boxShadow: "0 10px 26px rgba(15,23,42,0.07)",
+          padding: "18px 20px",
+          width: "100%",
+          maxWidth: "318px",
+        }}>
+          <div style={{
+            background: "#eef2ff",
+            borderRadius: "999px",
+            color: "#6366f1",
+            display: "inline-flex",
+            fontSize: "12px",
+            fontWeight: 750,
+            marginBottom: "12px",
+            padding: "7px 13px",
+          }}>
+            AI prompt
+          </div>
+          <div style={{ alignItems: "center", display: "flex", gap: "14px" }}>
+            <p style={{ color: "#172033", flex: 1, fontSize: "14px", fontWeight: 650, lineHeight: 1.45, margin: 0 }}>
+              Product designer at Nova Labs. Add email, LinkedIn, and website.
+            </p>
+            <CheckCircle2 color="#6366f1" size={34} strokeWidth={2.3} />
+          </div>
+        </div>
+
+        <div style={{ position: "relative", width: "220px" }}>
+          <NativeProfilePreview accent="#6366f1" compact />
+          <div style={{
+            background: "white",
+            border: "1px solid #e8edf5",
+            borderRadius: "999px",
+            color: "#6366f1",
+            fontSize: "12px",
+            fontWeight: 750,
+            padding: "8px 13px",
+            position: "absolute",
+            right: "-10px",
+            top: "12px",
+          }}>
+            Draft ready
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeFrame === 2) {
+    return (
+      <div style={{
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+        height: "100%",
+        justifyContent: "center",
+        padding: "0 24px",
+      }}>
+        <div style={{
+          background: "white",
+          border: "1px solid #e8edf5",
+          borderRadius: "22px",
+          boxShadow: "0 10px 26px rgba(15,23,42,0.07)",
+          padding: "20px",
+          width: "100%",
+          maxWidth: "318px",
+        }}>
+          <div style={{
+            background: "#eef2ff",
+            borderRadius: "999px",
+            color: "#6366f1",
+            display: "inline-flex",
+            fontSize: "12px",
+            fontWeight: 750,
+            marginBottom: "16px",
+            padding: "7px 14px",
+          }}>
+            Business card
+          </div>
+          <div style={{ alignItems: "center", display: "flex", gap: "14px" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ color: "#172033", fontSize: "24px", fontWeight: 800, margin: 0 }}>Alex Rivera</h3>
+              <p style={{ color: "#6366f1", fontSize: "14px", fontWeight: 700, margin: "8px 0 10px" }}>Events Producer</p>
+              <p style={{ color: "#64748b", fontSize: "13px", fontWeight: 650, margin: 0 }}>alex@events.co</p>
+            </div>
+            <NativeQrPreview color="#6366f1" size={58} />
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(3, 1fr)", maxWidth: "318px", width: "100%" }}>
+          {[
+            ["1", "Scan", "#6366f1"],
+            ["2", "Review", "#6366f1"],
+            ["3", "Save", "#6366f1"],
+          ].map(([step, label, color]) => (
+            <div key={step} style={{
+              background: "white",
+              border: "1px solid #e8edf5",
+              borderRadius: "16px",
+              boxShadow: "0 8px 18px rgba(15,23,42,0.05)",
+              padding: "12px 8px",
+              textAlign: "center",
+            }}>
+              <div style={{ color, fontSize: "18px", fontWeight: 800 }}>{step}</div>
+              <div style={{ color: "#334155", fontSize: "12px", fontWeight: 750, marginTop: "6px" }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      alignItems: "center",
+      display: "flex",
+      height: "100%",
+      justifyContent: "center",
+      padding: "0 24px",
+    }}>
+      <div style={{ position: "relative", width: "min(300px, 100%)" }}>
+        <NativeProfilePreview />
+        <div style={{
+          background: "rgba(255,255,255,0.95)",
+          border: "1px solid #e8edf5",
+          borderRadius: "999px",
+          boxShadow: "0 8px 18px rgba(15,23,42,0.07)",
+          color: "#6366f1",
+          fontSize: "12px",
+          fontWeight: 750,
+          left: "18px",
+          padding: "8px 13px",
+          position: "absolute",
+          top: "28px",
+        }}>
+          Card ready
+        </div>
+        <div style={{
+          background: "rgba(255,255,255,0.95)",
+          border: "1px solid #e8edf5",
+          borderRadius: "999px",
+          bottom: "28px",
+          boxShadow: "0 8px 18px rgba(15,23,42,0.07)",
+          color: "#6366f1",
+          fontSize: "12px",
+          fontWeight: 750,
+          padding: "8px 13px",
+          position: "absolute",
+          right: "14px",
+        }}>
+          Share by QR
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NativeCardStackHero() {
+  return (
+    <div style={{
+      height: "100%",
+      minHeight: 0,
+      position: "relative",
+      width: "100%",
+      maxWidth: "360px",
+    }}>
+      <div style={{
+        background: "linear-gradient(145deg, #e0f2fe 0%, #eef2ff 100%)",
+        border: "1px solid rgba(148,163,184,0.18)",
+        borderRadius: "24px",
+        bottom: "20%",
+        boxShadow: "0 16px 32px rgba(15,23,42,0.10)",
+        height: "225px",
+        left: "8%",
+        position: "absolute",
+        transform: "rotate(-11deg)",
+        width: "66%",
+      }}>
+        <div style={{ background: "#dbeafe", borderRadius: "18px", height: "40px", margin: "18px" }} />
+        <div style={{ background: "rgba(255,255,255,0.7)", borderRadius: "999px", height: "46px", margin: "18px", width: "46px" }} />
+      </div>
+
+      <div style={{
+        background: "linear-gradient(145deg, #fff7ed 0%, #ffe4e6 100%)",
+        border: "1px solid rgba(148,163,184,0.18)",
+        borderRadius: "24px",
+        bottom: "17%",
+        boxShadow: "0 16px 32px rgba(15,23,42,0.10)",
+        height: "230px",
+        position: "absolute",
+        right: "7%",
+        transform: "rotate(9deg)",
+        width: "66%",
+      }}>
+        <div style={{ background: "#fed7aa", borderRadius: "18px", height: "42px", margin: "18px" }} />
+        <div style={{ background: "rgba(255,255,255,0.76)", borderRadius: "999px", height: "48px", margin: "18px", width: "48px" }} />
+      </div>
+
+      <div style={{
+        background: "white",
+        border: "1px solid #e8edf5",
+        borderRadius: "28px",
+        boxShadow: "0 24px 46px rgba(15,23,42,0.16)",
+        left: "50%",
+        overflow: "hidden",
+        position: "absolute",
+        top: "50%",
+        transform: "translate(-50%, -50%) rotate(4deg)",
+        width: "min(280px, 76vw)",
+      }}>
+        <div style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)", height: "96px", position: "relative" }}>
+          <div style={{
+            alignItems: "center",
+            background: "rgba(255,255,255,0.95)",
+            borderRadius: "999px",
+            display: "flex",
+            height: "52px",
+            justifyContent: "center",
+            left: "22px",
+            position: "absolute",
+            top: "62px",
+            width: "52px",
+          }}>
+            <span style={{ color: "#6366f1", fontSize: "22px", fontWeight: 700 }}>S</span>
+          </div>
+          <div style={{ position: "absolute", right: "16px", top: "16px" }}>
+            <NativeQrPreview color="#6366f1" size={58} />
+          </div>
+        </div>
+
+        <div style={{ padding: "38px 22px 24px" }}>
+          <h3 style={{ color: "#172033", fontSize: "24px", fontWeight: 700, lineHeight: 1.08, margin: 0 }}>
+            Sara Morgan
+          </h3>
+          <p style={{ color: "#64748b", fontSize: "14px", fontWeight: 650, margin: "7px 0 18px" }}>
+            Product Lead
+          </p>
+
+          <div style={{ display: "grid", gap: "12px" }}>
+            <NativeContactRow Icon={Mail} text="sara@qrmingle.com" color="#6366f1" />
+            <NativeContactRow Icon={Linkedin} text="linkedin.com/in/sara" color="#6366f1" />
+            <NativeContactRow Icon={QrCode} text="qrmingle.com/p/sara" color="#6366f1" />
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        background: "rgba(255,255,255,0.92)",
+        border: "1px solid #e8edf5",
+        borderRadius: "999px",
+        bottom: "8%",
+        boxShadow: "0 12px 28px rgba(15,23,42,0.10)",
+        color: "#6366f1",
+        fontSize: "12px",
+        fontWeight: 650,
+        left: "50%",
+        padding: "8px 14px",
+        position: "absolute",
+        transform: "translateX(-50%)",
+        whiteSpace: "nowrap",
+      }}>
+        AI, scan, and QR sharing
+      </div>
+    </div>
+  );
+}
+
+function NativeLandingHome() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (user) navigate("/profiles");
+  }, [user, navigate]);
+
+  if (user) return null;
+
+  return (
+    <div
+      style={{
+        background: "linear-gradient(180deg, #ffffff 0%, #f7f7ff 56%, #f8fafc 100%)",
+        color: "#0f172a",
+        display: "flex",
+        flexDirection: "column",
+        height: "100dvh",
+        minHeight: "100dvh",
+        overflowX: "hidden",
+        overflowY: "auto",
+        position: "relative",
+        width: "100%",
+      }}
+    >
+      <div
+        style={{
+          flex: "1 1 auto",
+          minHeight: 0,
+          position: "relative",
+          zIndex: 1,
+          paddingTop: "max(18px, env(safe-area-inset-top))",
+        }}
+      >
+        <NativeCardStackHero />
+      </div>
+
+      <div style={{
+        flexShrink: 0,
+        padding: "0 24px max(24px, env(safe-area-inset-bottom))",
+        position: "relative",
+        zIndex: 2,
+        textAlign: "center",
+      }}>
+        <div style={{ alignItems: "center", display: "flex", flexDirection: "column", gap: "10px", marginBottom: "18px" }}>
+          <NativeBrandLogo />
+          <span style={{ color: "#172033", fontSize: "18px", fontWeight: 700 }}>QrMingle</span>
+        </div>
+
+        <h1 style={{
+          color: "#0f172a",
+          fontSize: "clamp(26px, 7.4vw, 31px)",
+          fontWeight: 650,
+          lineHeight: 1.22,
+          margin: "0 auto",
+          maxWidth: "340px",
+        }}>
+          Create and share your digital card in seconds
+        </h1>
+
+        <p style={{
+          color: "#64748b",
+          fontSize: "14px",
+          fontWeight: 550,
+          lineHeight: 1.45,
+          margin: "14px auto 22px",
+          maxWidth: "310px",
+        }}>
+          Build with AI, scan business cards, and share by QR when you meet someone new.
+        </p>
+
+        <button
+          onClick={() => navigate("/register")}
+          style={{
+            background: "#6366f1",
+            border: "none",
+            borderRadius: "16px",
+            boxShadow: "0 12px 24px rgba(99,102,241,0.22)",
+            color: "white",
+            cursor: "pointer",
+            fontSize: "16px",
+            fontWeight: 700,
+            minHeight: "52px",
+            width: "100%",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          Create my card
+        </button>
+
+        <button
+          onClick={() => navigate("/login")}
+          style={{
+            background: "white",
+            border: "1px solid #e2e8f0",
+            borderRadius: "16px",
+            color: "#172033",
+            cursor: "pointer",
+            fontSize: "16px",
+            fontWeight: 650,
+            marginTop: "12px",
+            minHeight: "52px",
+            width: "100%",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          Sign in
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function NativeHome() {
+  return <NativeLandingHome />;
+}
+
+function LegacyNativeHome() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [, navigate] = useLocation();

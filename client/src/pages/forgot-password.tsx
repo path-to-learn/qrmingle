@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { ArrowLeftIcon, MailIcon, KeyIcon, LockIcon, CheckCircleIcon } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import Home from "@/pages/home";
+import NativeAuthShell, { NativeAuthField, NativeAuthPill } from "@/components/auth/NativeAuthShell";
 
 export default function ForgotPassword() {
   if (!Capacitor.isNativePlatform()) {
@@ -351,28 +352,174 @@ function NativeForgotPassword() {
     </CardContent>
   );
 
-  return (
-    <div className="flex justify-center items-center py-8">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>
-            {resetComplete ? "Password Reset Complete" : 
-             isResetMode ? "Reset Your Password" : 
-             isSuccess ? "Reset Token" : "Forgot Password"}
-          </CardTitle>
-          <CardDescription>
-            {resetComplete ? "Your password has been reset successfully" : 
-             isResetMode ? "Create a new password for your account" : 
-             isSuccess ? "Use the token to reset your password" : 
-             "Enter your username to receive a reset token"}
-          </CardDescription>
-        </CardHeader>
-        
-        {resetComplete ? renderResetSuccess() :
-         isResetMode ? renderResetPasswordForm() :
-         isSuccess ? renderTokenSuccess() :
-         renderForgotPasswordForm()}
-      </Card>
+  const resetTitle = resetComplete
+    ? <>Password reset<br />complete.</>
+    : isResetMode
+      ? <>Choose your<br />new password.</>
+      : isSuccess
+        ? <>Reset link is<br />ready.</>
+        : <>Reset access<br />without friction.</>;
+
+  const resetSubtitle = resetComplete
+    ? <>You can now sign in with your new password.</>
+    : isResetMode
+      ? <>Create a new password and get back to your QrMingle cards.</>
+      : isSuccess
+        ? <>Use the reset token below or continue straight to the password form.</>
+        : <>A calm reset flow that feels like part of the same QrMingle app.</>;
+
+  const shellSubmit = resetComplete || isSuccess ? undefined : isResetMode ? handleResetPassword : handleForgotPassword;
+  const shellPrimaryLabel = resetComplete
+    ? "Go to Login"
+    : isSuccess
+      ? resetToken ? "Reset My Password" : "Return to Login"
+      : isResetMode
+        ? isSubmitting ? "Resetting Password..." : "Reset Password"
+        : isSubmitting ? "Processing Request..." : "Send reset link";
+  const shellPrimaryAction = resetComplete
+    ? () => setLocation("/login")
+    : isSuccess
+      ? resetToken ? () => setIsResetMode(true) : () => setLocation("/login")
+      : undefined;
+
+  const resetContent = resetComplete ? (
+    <div style={{ alignItems: "flex-start", display: "flex", gap: "14px" }}>
+      <div style={{ alignItems: "center", background: "#dcfce7", borderRadius: "18px", display: "flex", height: "54px", justifyContent: "center", width: "54px", flexShrink: 0 }}>
+        <CheckCircleIcon color="#166534" size={28} />
+      </div>
+      <div>
+        <h3 style={{ color: "#172033", fontSize: "19px", fontWeight: 900, margin: 0 }}>Password Reset Complete</h3>
+        <p style={{ color: "#64748b", fontSize: "14px", fontWeight: 650, lineHeight: 1.45, margin: "8px 0 0" }}>
+          Your password has been reset successfully.
+        </p>
+      </div>
     </div>
+  ) : isResetMode ? (
+    <div style={{ display: "grid", gap: "14px" }}>
+      {(urlToken || token) && !resetToken ? (
+        <div style={{ alignItems: "center", background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: "16px", color: "#166534", display: "flex", gap: "10px", fontSize: "13px", fontWeight: 800, padding: "13px 14px" }}>
+          <CheckCircleIcon size={18} />
+          Reset link verified
+        </div>
+      ) : !resetToken && !urlToken ? (
+        <NativeAuthField
+          label="Reset Token"
+          icon="key"
+          type="text"
+          placeholder="Enter your reset token"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+          disabled={isSubmitting}
+          required
+        />
+      ) : null}
+      <NativeAuthField
+        label="New Password"
+        icon="password"
+        type="password"
+        placeholder="Enter your new password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        disabled={isSubmitting}
+        required
+      />
+      <NativeAuthField
+        label="Confirm Password"
+        icon="password"
+        type="password"
+        placeholder="Confirm your new password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        disabled={isSubmitting}
+        required
+      />
+    </div>
+  ) : isSuccess ? (
+    <div style={{ display: "grid", gap: "16px" }}>
+      {resetToken ? (
+        <>
+          <NativeAuthPill tone="green">Reset token created</NativeAuthPill>
+          <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "18px", color: "#172033", fontSize: "13px", fontWeight: 800, lineHeight: 1.45, padding: "16px", wordBreak: "break-all" }}>
+            {resetToken}
+          </div>
+          <p style={{ color: "#64748b", fontSize: "13px", fontWeight: 650, lineHeight: 1.5, margin: 0 }}>
+            Expires at: {new Date(expiresAt).toLocaleString()}
+          </p>
+        </>
+      ) : (
+        <div style={{ alignItems: "center", display: "flex", gap: "14px" }}>
+          <div style={{ alignItems: "center", background: "#eef2ff", borderRadius: "18px", display: "flex", height: "54px", justifyContent: "center", width: "54px", flexShrink: 0 }}>
+            <MailIcon color="#4f46e5" size={26} />
+          </div>
+          <p style={{ color: "#64748b", fontSize: "14px", fontWeight: 650, lineHeight: 1.45, margin: 0 }}>
+            If an account exists for <strong>{email}</strong>, the reset request has been processed.
+          </p>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div style={{ display: "grid", gap: "18px" }}>
+      <div style={{ alignItems: "center", display: "flex", gap: "14px" }}>
+        <div style={{ alignItems: "center", background: "#eef2ff", borderRadius: "18px", display: "flex", height: "54px", justifyContent: "center", width: "54px", flexShrink: 0 }}>
+          <KeyIcon color="#4f46e5" size={26} />
+        </div>
+        <div>
+          <h3 style={{ color: "#172033", fontSize: "19px", fontWeight: 900, margin: 0 }}>Secure reset</h3>
+          <p style={{ color: "#64748b", fontSize: "14px", fontWeight: 650, lineHeight: 1.45, margin: "8px 0 0" }}>
+            Enter your account email and we will send a reset link.
+          </p>
+        </div>
+      </div>
+      <NativeAuthField
+        label="Email"
+        icon="email"
+        type="text"
+        placeholder="Enter your email address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        disabled={isSubmitting}
+      />
+    </div>
+  );
+
+  return (
+    <NativeAuthShell
+      chip="Account recovery"
+      title={resetTitle}
+      subtitle={resetSubtitle}
+      activeMode="login"
+      onModeChange={(mode) => setLocation(mode === "login" ? "/login" : "/register")}
+      onBack={() => setLocation("/login")}
+      backLabel="Back"
+      onSubmit={shellSubmit}
+      onPrimaryAction={shellPrimaryAction}
+      primaryLabel={shellPrimaryLabel}
+      isSubmitting={isSubmitting}
+      footer={
+        <>
+          {!resetComplete && !isSuccess && isResetMode && !resetToken && (
+            <button
+              type="button"
+              onClick={() => setIsResetMode(false)}
+              style={{ background: "transparent", border: "none", color: "#4f46e5", cursor: "pointer", font: "inherit", fontWeight: 700, padding: 0 }}
+            >
+              Back to reset request
+            </button>
+          )}
+          <div style={{ marginTop: !resetComplete && !isSuccess && isResetMode && !resetToken ? "24px" : 0 }}>
+            <button
+              type="button"
+              onClick={() => setLocation("/login")}
+              style={{ background: "transparent", border: "none", color: "#4f46e5", cursor: "pointer", font: "inherit", fontWeight: 700, padding: 0 }}
+            >
+              Remembered it? Back to sign in
+            </button>
+          </div>
+          <div style={{ marginTop: "28px" }}>Your existing cards stay exactly as they are.</div>
+        </>
+      }
+    >
+      {resetContent}
+    </NativeAuthShell>
   );
 }
