@@ -237,6 +237,12 @@ html.qrmingle-fullscreen-lock #root {
   }
 }
 
+@media (max-width: 980px) {
+  .web-home-reviews-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .web-floating-card,
   .web-scan-beam,

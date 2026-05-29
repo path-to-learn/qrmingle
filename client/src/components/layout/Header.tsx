@@ -2,9 +2,17 @@ import { useState } from "react";
 import { Link, useRoute, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, BarChart2, Crown, Clock, Shield, ChevronDown, X } from "lucide-react";
+import { LogOut, User, BarChart2, Crown, Clock, Shield, ChevronDown } from "lucide-react";
 import { isAdmin } from "@/lib/video";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Capacitor } from "@capacitor/core";
 
 export default function Header() {
@@ -17,6 +25,7 @@ export default function Header() {
   const isNativeApp = Capacitor.isNativePlatform();
 
   const isInTrialMode = user && !user.isPremium && user.trialExpiresAt && new Date(user.trialExpiresAt) > new Date();
+  const isPremium = user ? isEffectivelyPremium() : false;
 
   const formatTrialExpiry = () => {
     if (!user?.trialExpiresAt) return '';
@@ -37,7 +46,7 @@ export default function Header() {
     menuItems.push({ icon: <Shield className="h-5 w-5" />, label: "Admin Panel", path: "/admin" });
   }
 
-  if (user && !user.isPremium) {
+  if (user && !isPremium) {
     menuItems.push({ icon: <Crown className="h-5 w-5" />, label: "Upgrade to Premium", path: "/premium" });
   }
 
@@ -84,79 +93,92 @@ export default function Header() {
         <div>
           {user ? (
             <>
-              {/* Avatar button - hidden on native app since Settings tab handles navigation */}
+              {/* Avatar account modal - hidden on native app since Settings tab handles navigation */}
               {!Capacitor.isNativePlatform() && (
-              <button
-                onClick={() => setShowMenu(true)}
-                style={{ WebkitTapHighlightColor: 'transparent', minHeight: '44px', minWidth: '44px', touchAction: 'manipulation' }}
-                className="flex items-center gap-1 p-2 rounded-lg"
-              >
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback style={{ background: "var(--app-accent, #6366f1)", color: "white" }} className="font-bold">
-                    {user.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-              )}
+                <Dialog open={showMenu} onOpenChange={setShowMenu}>
+                  <DialogTrigger asChild>
+                    <button
+                      style={{ WebkitTapHighlightColor: 'transparent', minHeight: '44px', minWidth: '44px', touchAction: 'manipulation' }}
+                      className="flex items-center gap-1 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                    >
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback style={{ background: "var(--app-accent, #6366f1)", color: "white" }} className="font-bold">
+                          {user.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="w-[calc(100vw-32px)] max-w-md border-0 p-0 overflow-hidden rounded-2xl shadow-2xl [&>button]:text-white [&>button]:hover:text-white">
+                    <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-slate-900 p-5 text-white">
+                      <DialogHeader className="text-left space-y-3">
+                        <div className="flex items-center gap-3 pr-8">
+                          <Avatar className="h-12 w-12 border border-white/25">
+                            <AvatarFallback className="bg-white/20 text-white font-bold text-lg">
+                              {user.username.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <DialogTitle className="text-xl font-semibold text-white">Account</DialogTitle>
+                            <DialogDescription className="text-indigo-100 truncate">
+                              {user.username}
+                            </DialogDescription>
+                          </div>
+                        </div>
+                        <div className="inline-flex w-fit items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+                          {isPremium ? "Premium active" : "Free account"}
+                        </div>
+                      </DialogHeader>
+                    </div>
 
-              {/* Mobile slide-in menu */}
-              {showMenu && (
-                <div className="fixed inset-0 z-50" style={{ touchAction: 'none' }}>
-                  {/* Backdrop */}
-                  <div
-                    className="absolute inset-0 bg-black/50"
-                    onClick={() => setShowMenu(false)}
-                  />
-                  {/* Menu panel */}
-                  <div className="absolute top-0 right-0 h-full w-72 bg-white shadow-2xl flex flex-col">
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-primary text-primary-foreground font-bold text-lg">
-                            {user.username.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium truncate max-w-[160px]">{user.username}</span>
+                    <div className="p-4">
+                      <div className="grid gap-2">
+                        {menuItems.map((item, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { navigate(item.path); setShowMenu(false); }}
+                            className="flex min-h-[56px] w-full items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-left transition-colors hover:bg-slate-50"
+                            style={{ touchAction: 'manipulation' }}
+                          >
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                              {item.icon}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block font-semibold text-slate-900">{item.label}</span>
+                              <span className="block text-xs text-slate-500">
+                                {item.label === "My Profiles"
+                                  ? "Manage and edit your QR cards"
+                                  : item.label === "Analytics"
+                                    ? "Review profile scans and activity"
+                                    : item.label === "Reviews"
+                                      ? "Read and share feedback"
+                                      : item.label === "Admin Panel"
+                                        ? "Open admin controls"
+                                        : "Unlock premium features"}
+                              </span>
+                            </span>
+                          </button>
+                        ))}
                       </div>
-                      <button
-                        onClick={() => setShowMenu(false)}
-                        className="p-2 rounded-lg hover:bg-muted"
-                        style={{ minHeight: '44px', minWidth: '44px' }}
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
-                    </div>
 
-                    {/* Menu items */}
-                    <div className="flex-1 p-3 space-y-1">
-                      {menuItems.map((item, i) => (
+                      <div className="mt-4 border-t border-slate-100 pt-4">
                         <button
-                          key={i}
-                          onClick={() => { navigate(item.path); setShowMenu(false); }}
-                          className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted text-left"
-                          style={{ minHeight: '52px', touchAction: 'manipulation' }}
+                          onClick={() => { logoutMutation.mutate(); setShowMenu(false); }}
+                          className="flex min-h-[52px] w-full items-center gap-3 rounded-xl bg-red-50 p-3 text-left text-red-600 transition-colors hover:bg-red-100"
+                          style={{ touchAction: 'manipulation' }}
+                          disabled={logoutMutation.isPending}
                         >
-                          <span className="text-muted-foreground">{item.icon}</span>
-                          <span className="font-medium">{item.label}</span>
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-red-600">
+                            <LogOut className="h-5 w-5" />
+                          </span>
+                          <span className="font-semibold">
+                            {logoutMutation.isPending ? "Logging out..." : "Logout"}
+                          </span>
                         </button>
-                      ))}
+                      </div>
                     </div>
-
-                    {/* Logout */}
-                    <div className="p-3 border-t">
-                      <button
-                        onClick={() => { logoutMutation.mutate(); setShowMenu(false); }}
-                        className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-red-50 text-red-600"
-                        style={{ minHeight: '52px', touchAction: 'manipulation' }}
-                      >
-                        <LogOut className="h-5 w-5" />
-                        <span className="font-medium">Logout</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  </DialogContent>
+                </Dialog>
               )}
             </>
           ) : (
