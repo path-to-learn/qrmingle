@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import type { Review } from "@shared/schema";
 import { useLocation, useSearch } from "wouter";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -18,6 +20,7 @@ import {
   QrCode,
   Share2,
   Sparkles,
+  Star,
   LogIn,
   UserPlus,
   X,
@@ -48,6 +51,8 @@ type WebStoryStep = {
   panel: string;
   Icon: LucideIcon;
 };
+
+type WebHomeReview = Pick<Review, "id" | "name" | "title" | "content" | "rating">;
 
 const DEMO_CARDS: DemoCard[] = [
   {
@@ -141,6 +146,33 @@ const WEB_STORY_STEPS: WebStoryStep[] = [
     accent: "#7c3aed",
     panel: "linear-gradient(135deg, #f5f3ff 0%, #fff7ed 100%)",
     Icon: Sparkles,
+  },
+];
+
+const WEB_HOME_REVIEW_FALLBACKS: WebHomeReview[] = [
+  {
+    id: 1,
+    name: "John Smith",
+    title: "CEO at TechCorp",
+    content:
+      "QrMingle has transformed how I network at conferences. The custom QR codes and beautiful profiles make sharing contact info effortless.",
+    rating: 5,
+  },
+  {
+    id: 2,
+    name: "Sarah Lee",
+    title: "Event Organizer",
+    content:
+      "As an event organizer, QrMingle has been a game-changer for networking. Our attendees love the ease of connecting and sharing contact info.",
+    rating: 5,
+  },
+  {
+    id: 3,
+    name: "Michael Chen",
+    title: "Student",
+    content:
+      "I use QrMingle for sharing my resume and portfolio links at job fairs. So much better than paper business cards!",
+    rating: 5,
   },
 ];
 
@@ -508,6 +540,11 @@ function WebHome({ authMode }: { authMode?: WebAuthMode }) {
           </button>
         )}
 
+        <WebReviewsSection
+          onCreateCard={() => navigate("/register")}
+          onReadReviews={() => navigate("/reviews")}
+        />
+
         <section style={{
           width: "100%",
           background: "#0f172a",
@@ -557,6 +594,262 @@ function WebHome({ authMode }: { authMode?: WebAuthMode }) {
       </main>
       {authMode && <WebAuthModal mode={authMode} />}
     </div>
+  );
+}
+
+function WebReviewsSection({
+  onCreateCard,
+  onReadReviews,
+}: {
+  onCreateCard: () => void;
+  onReadReviews: () => void;
+}) {
+  const { data: apiReviews = [], isLoading } = useQuery<Review[]>({
+    queryKey: ["/api/reviews"],
+    staleTime: 1000 * 60 * 5,
+  });
+  const reviews = (apiReviews.length > 0 ? apiReviews : WEB_HOME_REVIEW_FALLBACKS).slice(0, 3);
+  const averageRating = reviews.length
+    ? reviews.reduce((total, review) => total + (review.rating ?? 5), 0) / reviews.length
+    : 5;
+
+  return (
+    <section style={{
+      width: "100%",
+      background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
+      borderTop: "1px solid rgba(148,163,184,0.18)",
+      padding: "74px 28px 78px",
+      boxSizing: "border-box",
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: "1180px",
+        margin: "0 auto",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 0.72fr) minmax(0, 1fr)",
+        gap: "38px",
+        alignItems: "start",
+      }} className="web-home-reviews-grid">
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 12px",
+            borderRadius: "999px",
+            background: "rgba(99,102,241,0.1)",
+            color: "#4f46e5",
+            fontSize: "13px",
+            fontWeight: 850,
+            marginBottom: "18px",
+          }}>
+            <CheckCircle2 size={15} />
+            Community feedback
+          </div>
+          <h2 style={{
+            margin: 0,
+            color: "#0f172a",
+            fontSize: "clamp(32px, 4vw, 52px)",
+            lineHeight: 1.05,
+            fontWeight: 850,
+            letterSpacing: "0",
+            maxWidth: "520px",
+          }}>
+            Trusted by people who meet, share, and follow up.
+          </h2>
+          <p style={{
+            margin: "18px 0 0",
+            color: "#64748b",
+            fontSize: "18px",
+            lineHeight: 1.55,
+            maxWidth: "520px",
+          }}>
+            A softer look at why QrMingle works: less typing, cleaner intros, and one profile that keeps every link together.
+          </p>
+
+          <div style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "12px",
+            marginTop: "28px",
+          }}>
+            <button
+              onClick={onCreateCard}
+              style={{
+                border: "none",
+                background: "#6366f1",
+                color: "white",
+                borderRadius: "12px",
+                padding: "13px 17px",
+                fontSize: "15px",
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                boxShadow: "0 14px 30px rgba(99,102,241,0.22)",
+              }}
+            >
+              Create a free card
+              <ArrowRight size={17} />
+            </button>
+            <button
+              onClick={onReadReviews}
+              style={{
+                border: "1px solid rgba(100,116,139,0.22)",
+                background: "white",
+                color: "#334155",
+                borderRadius: "12px",
+                padding: "13px 17px",
+                fontSize: "15px",
+                fontWeight: 800,
+                cursor: "pointer",
+                boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
+              }}
+            >
+              Read all reviews
+            </button>
+          </div>
+        </div>
+
+        <div style={{
+          minWidth: 0,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
+          gap: "16px",
+        }}>
+          {isLoading && apiReviews.length === 0
+            ? [0, 1, 2].map((item) => (
+                <div key={item} style={{
+                  minHeight: "220px",
+                  borderRadius: "18px",
+                  background: "linear-gradient(110deg, #f8fafc 8%, #eef2ff 18%, #f8fafc 33%)",
+                  backgroundSize: "200% 100%",
+                  border: "1px solid rgba(148,163,184,0.16)",
+                }} />
+              ))
+            : reviews.map((review, index) => {
+                const rating = Math.max(0, Math.min(5, review.rating ?? 5));
+                const accent = ["#6366f1", "#0f766e", "#7c3aed"][index % 3];
+                const initials = review.name
+                  .split(" ")
+                  .map((part) => part[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2) || "Q";
+
+                return (
+                  <article key={`${review.id}-${review.name}`} style={{
+                    minWidth: 0,
+                    minHeight: "220px",
+                    borderRadius: "18px",
+                    background: "rgba(255,255,255,0.92)",
+                    border: "1px solid rgba(148,163,184,0.2)",
+                    boxShadow: "0 20px 44px rgba(15,23,42,0.08)",
+                    padding: "22px",
+                    boxSizing: "border-box",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "18px",
+                  }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "3px", marginBottom: "14px" }} aria-label={`${rating} out of 5 stars`}>
+                        {[0, 1, 2, 3, 4].map((starIndex) => (
+                          <Star
+                            key={starIndex}
+                            size={16}
+                            color={starIndex < rating ? "#f59e0b" : "#cbd5e1"}
+                            fill={starIndex < rating ? "#f59e0b" : "transparent"}
+                          />
+                        ))}
+                      </div>
+                      <p style={{
+                        margin: 0,
+                        color: "#334155",
+                        fontSize: "15px",
+                        lineHeight: 1.6,
+                      }}>
+                        "{review.content}"
+                      </p>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <div style={{
+                        width: "42px",
+                        height: "42px",
+                        borderRadius: "14px",
+                        background: `linear-gradient(135deg, ${accent}, rgba(99,102,241,0.72))`,
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "14px",
+                        fontWeight: 850,
+                        flexShrink: 0,
+                      }}>
+                        {initials}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{
+                          color: "#0f172a",
+                          fontSize: "15px",
+                          fontWeight: 850,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}>
+                          {review.name}
+                        </div>
+                        {review.title && (
+                          <div style={{
+                            color: "#64748b",
+                            fontSize: "13px",
+                            marginTop: "2px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}>
+                            {review.title}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+        </div>
+      </div>
+
+      <div style={{
+        width: "100%",
+        maxWidth: "1180px",
+        margin: "28px auto 0",
+        display: "flex",
+        justifyContent: "center",
+      }}>
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+          gap: "10px",
+          borderRadius: "999px",
+          background: "white",
+          border: "1px solid rgba(148,163,184,0.22)",
+          color: "#475569",
+          padding: "10px 14px",
+          boxShadow: "0 12px 28px rgba(15,23,42,0.06)",
+          fontSize: "13px",
+          fontWeight: 750,
+          textAlign: "center",
+        }}>
+          <span style={{ color: "#0f172a" }}>{averageRating.toFixed(1)} average rating</span>
+          <span style={{ width: "4px", height: "4px", borderRadius: "999px", background: "#cbd5e1" }} />
+          <span>{apiReviews.length > 0 ? `${apiReviews.length} approved reviews` : "early feedback preview"}</span>
+        </div>
+      </div>
+    </section>
   );
 }
 
