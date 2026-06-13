@@ -7,6 +7,7 @@ import {
   Mail, Phone, Globe, Link2, Linkedin, Twitter, Instagram, Facebook,
 } from "lucide-react";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
+import { getPublicProfileUrl } from "@/lib/profileUrl";
 import { saveToContacts, isMobileDevice } from "@/lib/vcard";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLink } from "@shared/schema";
@@ -89,7 +90,7 @@ export default function ProfileCard({
   const [, setLocation] = useLocation();
   const [showQr, setShowQr] = useState(false);
   const [qrExpanded, setQrExpanded] = useState(false);
-  const profileUrl = `${window.location.origin}/p/${slug}`;
+  const profileUrl = getPublicProfileUrl(slug);
   const accent = getCardAccent(name, cardColor);
   const themeTeam = themeId && teamId ? getTeamById(themeId, teamId) : null;
   // Scale photoSize (editor range 60-300) to card-appropriate size (44-88px)

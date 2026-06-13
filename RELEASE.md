@@ -1,6 +1,6 @@
 # iOS Release Tracker
 
-Last updated: 2026-05-24 | Stable tag: `v1.1-stable`
+Last updated: 2026-06-13 | Stable tag: `v1.1-stable`
 
 ## Completed ✅
 
@@ -17,23 +17,69 @@ Last updated: 2026-05-24 | Stable tag: `v1.1-stable`
 | E1 | `ANTHROPIC_API_KEY` set in Railway prod env |
 | iOS auth | X-Session-Id header auth bypasses WKWebView ITP on iOS standalone builds |
 
-## Before App Store Submission 🔲
+## Must Have During Launch / Before App Store Submission 🔲
 
-| Item | Owner | Description |
-|------|-------|-------------|
-| A3 | Prashant | App Store Connect listing — screenshots, age rating questionnaire, app description, privacy policy URL |
-| A4 | Prashant | App Store Connect monetization setup — create `QrMingle Pro` subscription group, add monthly/yearly/lifetime products with exact product IDs, complete Paid Apps Agreement, tax, and banking |
-| A5 | Prashant + agents | StoreKit payment QA — verify `Products.storekit` prices, sandbox/TestFlight product loading, purchase Monthly/Yearly/Lifetime, cancel purchase sheet, and Restore Purchase |
-| A6 | Agents | Subscription entitlement lifecycle hardening — add App Store Server Notifications or periodic entitlement refresh so expired/canceled/refunded subscriptions cannot remain Premium forever |
-| A7 | Prashant + agents | Submit IAPs/subscriptions with app for App Review — products must be Ready to Submit/approved before paid launch |
+| Order | Item | Owner | Description |
+|-------|------|-------|-------------|
+| 1 | A8 | Prashant + agents | TestFlight QR/share URL QA — verify inline QR, expanded QR, QR modal, share sheet, save contact, and QR widget all use `https://www.qrmingle.com/p/:slug` and open the correct public profile on another phone |
+| 2 | A3 | Prashant | App Store Connect listing — screenshots, age rating questionnaire, app description, privacy policy URL |
+| 3 | A4 | Prashant | App Store Connect monetization setup — create `QrMingle Pro` subscription group, add monthly/yearly/lifetime products with exact product IDs, complete Paid Apps Agreement, tax, and banking |
+| 4 | A5 | Prashant + agents | StoreKit payment QA — verify `Products.storekit` prices, sandbox/TestFlight product loading, purchase Monthly/Yearly/Lifetime, cancel purchase sheet, and Restore Purchase |
+| 5 | A6 | Agents | Subscription entitlement lifecycle hardening — add App Store Server Notifications or periodic entitlement refresh so expired/canceled/refunded subscriptions cannot remain Premium forever |
+| 6 | A7 | Prashant + agents | Submit IAPs/subscriptions with app for App Review — products must be Ready to Submit/approved before paid launch |
 
-## Post-Launch (not blockers) 🗓️
+## After Launch Backlog (sorted pickup order) 🗓️
 
-| Item | Description |
-|------|-------------|
-| ~~T1~~ | ~~Apple IAP / StoreKit 2~~ — **implemented** (IAPPlugin.swift + iap.ts + premium.tsx with getProducts/purchase/restore) |
-| T4 | Sign in with Apple — only required if Google/Facebook login is added |
-| F5 | Voice-to-card — speak → AI fills profile form |
+| Order | Item | Description |
+|-------|------|-------------|
+| Done | ~~T1~~ | ~~Apple IAP / StoreKit 2~~ — **implemented** (IAPPlugin.swift + iap.ts + premium.tsx with getProducts/purchase/restore) |
+| 1 | F7 | Apple Wallet offline contact pass — high-value differentiator. Add a signed `.pkpass` per profile with an offline vCard QR and QrMingle profile URL fallback, so users can share contact details from Apple Wallet when app login/internet is weak. Details below. |
+| 2 | F5 | Voice-to-card — speak → AI fills profile form |
+| 3 | T5 | Android port — backlog only; do not start Android implementation until Prashant explicitly reopens it. Planning reference: `ANDROID_PORT_PLAN.md` |
+| 4 | T4 | Sign in with Apple — only required if Google/Facebook login is added |
+
+### F7 — Apple Wallet Offline Contact Pass
+
+**Why it matters**
+- Solves the real networking failure case: user wants to share QrMingle but app login or internet is weak.
+- Differentiates QrMingle as "always shareable, even with poor internet".
+- Fits the iPhone mental model: open Apple Wallet, show pass, let the other person scan.
+
+**Expected behavior**
+- Each profile gets an `Add to Apple Wallet` action.
+- QrMingle generates a signed `.pkpass` file for that profile.
+- Apple Wallet pass displays QrMingle branding, profile name/title, and a scannable QR.
+- QR payload should primarily be an offline vCard containing name, title, email, phone, website, and selected social links.
+- QR payload should include the public QrMingle profile URL as fallback when internet is available.
+- User can share from Wallet even if the QrMingle app cannot log in at that moment.
+
+**Implementation tasks**
+- Add Apple Wallet Pass Type ID in Apple Developer.
+- Generate/download Pass Type certificate and store certificate/private key securely outside git.
+- Add pass assets: icon, logo, pass colors, and optional strip image.
+- Add backend route to generate a signed `.pkpass` for an authenticated user's profile.
+- Use existing `passkit-generator` dependency if it fits current needs.
+- Add profile action in iOS app: `Add to Apple Wallet`.
+- Map profile fields to a safe vCard payload.
+- Add fallback public URL to pass fields or QR payload.
+- Test pass generation, add-to-wallet flow, QR scan, and offline behavior on a real iPhone.
+
+**Security/permissions**
+- Requires Prashant involvement for Pass Type ID and certificate/private-key handling.
+- Do not commit certificates, private keys, passwords, or generated sensitive signing files.
+- Store pass signing material in secure local storage or Railway/environment secrets if server-generated.
+
+**Acceptance criteria**
+- A user can add a profile pass to Apple Wallet.
+- The pass remains usable after logout, app restart, or weak/no internet.
+- Scanning the Wallet QR can save/import basic contact details without loading QrMingle.
+- When internet is available, the QrMingle public profile URL remains reachable as the richer fallback.
+- Profile edits have a clear behavior: either regenerate pass manually or support pass update flow in a later phase.
+
+**Estimated effort**
+- Static Wallet pass with offline vCard QR: 1-2 working days.
+- Polished production version with UI, field mapping, error handling, and device QA: 2-4 working days.
+- Auto-updating Wallet passes after profile edits: 4-7 working days and should be a later phase unless required.
 
 ## Known Issues / Tech Debt
 

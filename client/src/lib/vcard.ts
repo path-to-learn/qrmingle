@@ -3,6 +3,7 @@
  */
 
 import type { SocialLink } from "@shared/schema";
+import { getPublicProfileUrl } from "@/lib/profileUrl";
 
 // Using a more generic type to accommodate different profile structures
 interface ProfileLike {
@@ -64,8 +65,8 @@ export function generateVCard(profile: ProfileLike, socialLinks: SocialLink[] | 
     vCardString.push(`NOTE:${escapedBio}`);
   }
 
-  // Add profile URL
-  vCardString.push(`URL:${window.location.href}`);
+  // Add public profile URL instead of the current WebView/app route.
+  vCardString.push(`URL:${getPublicProfileUrl(profile.slug)}`);
 
   // Add photo if exists
   if (profile.photoUrl) {
