@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { PlusIcon, Pencil, Trash2, Share, UserPlus, QrCode } from "lucide-react";
 import { QrCodeDisplay } from "@/components/ui/qr-code";
+import { getPublicProfileUrl } from "@/lib/profileUrl";
 import { saveToContacts } from "@/lib/vcard";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,7 +28,7 @@ function ProfileStoryCard({ profile, onEdit, onDelete, onSwipeLeft, onSwipeRight
   const { toast } = useToast();
 
   const bgGradient = bgGradients[(profile.name?.charCodeAt(0) || 0) % bgGradients.length];
-  const profileUrl = `${window.location.origin}/p/${profile.slug}`;
+  const profileUrl = getPublicProfileUrl(profile.slug);
 
   const handleDragEnd = (_: any, info: any) => {
     if (Math.abs(info.offset.x) > 100) {

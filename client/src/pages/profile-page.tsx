@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { QrWidgetGenerator } from "@/components/profile/QrWidgetGenerator";
+import { getPublicProfileUrl } from "@/lib/profileUrl";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Share, UserPlus,
@@ -125,7 +126,7 @@ export default function ProfilePage() {
   };
 
   const handleShare = () => {
-    const url = window.location.href;
+    const url = getPublicProfileUrl(profile?.slug || slug || "");
     if (navigator.share) {
       navigator.share({
         title: `${profile?.displayName}'s Contact`,
@@ -485,7 +486,7 @@ export default function ProfilePage() {
       <QrWidgetGenerator
         profileName={profile.name}
         profileDisplayName={profile.displayName}
-        qrCodeUrl={window.location.href}
+        qrCodeUrl={getPublicProfileUrl(profile.slug)}
         open={showQrWidget}
         onOpenChange={setShowQrWidget}
       />
