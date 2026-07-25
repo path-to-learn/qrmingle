@@ -24,12 +24,12 @@ export default function ReviewsAdmin() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data: reviews = [], isLoading, error } = useQuery<Review[]>({
-    queryKey: ["/api/admin/reviews"],
+    queryKey: ["/api/reviews/admin"],
   });
 
   const toggleVisibilityMutation = useMutation({
     mutationFn: async ({ id, isVisible }: { id: number; isVisible: boolean }) => {
-      const response = await apiRequest("PATCH", `/api/admin/reviews/${id}`, { isVisible });
+      const response = await apiRequest("PATCH", `/api/reviews/admin/${id}`, { isVisible });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update review");
@@ -37,7 +37,7 @@ export default function ReviewsAdmin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reviews/admin"] });
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
       toast({
         title: "Review Updated",
@@ -55,7 +55,7 @@ export default function ReviewsAdmin() {
 
   const deleteReviewMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/admin/reviews/${id}`);
+      const response = await apiRequest("DELETE", `/api/reviews/admin/${id}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to delete review");
@@ -63,7 +63,7 @@ export default function ReviewsAdmin() {
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reviews/admin"] });
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
       toast({
         title: "Review Deleted",
