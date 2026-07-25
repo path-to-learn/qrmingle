@@ -65,7 +65,7 @@ export default function Premium() {
   const selectedPrice = selectedProduct?.displayPrice ?? selectedPlanDetails.fallbackPrice;
 
   const yearlyMonthlyEquivalent = useMemo(() => {
-    const yearlyPrice = productsById[PREMIUM_PLANS.yearly.productId]?.displayPrice ?? "$19.99";
+    const yearlyPrice = productsById[PREMIUM_PLANS.yearly.productId]?.displayPrice ?? PREMIUM_PLANS.yearly.fallbackPrice;
     return `${yearlyPrice} yearly`;
   }, [productsById]);
 
@@ -153,8 +153,11 @@ export default function Premium() {
           Build more cards, use AI freely, and see what happens after people scan.
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "16px" }}>
+          <span style={{ background: "rgba(255,255,255,0.28)", borderRadius: "99px", padding: "7px 11px", fontSize: "12px", fontWeight: 800 }}>
+            First 2 months free
+          </span>
           <span style={{ background: "rgba(255,255,255,0.18)", borderRadius: "99px", padding: "7px 11px", fontSize: "12px", fontWeight: 700 }}>
-            Starts at $2.99
+            Starts at {PREMIUM_PLANS.monthly.fallbackPrice}
           </span>
           <span style={{ background: "rgba(255,255,255,0.18)", borderRadius: "99px", padding: "7px 11px", fontSize: "12px", fontWeight: 700 }}>
             {yearlyMonthlyEquivalent}
@@ -220,7 +223,7 @@ export default function Premium() {
                 <span style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "5px" }}>
                   <span style={{ color: "#0f172a", fontSize: "15px", fontWeight: 800 }}>{plan.label}</span>
                   {plan.badge && (
-                    <span style={{ background: planKey === "lifetime" ? "#fef3c7" : "#dcfce7", color: planKey === "lifetime" ? "#92400e" : "#166534", borderRadius: "99px", padding: "3px 8px", fontSize: "10px", fontWeight: 800 }}>
+                    <span style={{ background: "#dcfce7", color: "#166534", borderRadius: "99px", padding: "3px 8px", fontSize: "10px", fontWeight: 800 }}>
                       {plan.badge}
                     </span>
                   )}
@@ -280,7 +283,7 @@ export default function Premium() {
             {restoring ? "Restoring..." : "Restore Purchase"}
           </button>
           <p style={{ textAlign: "center", fontSize: "11px", color: "#64748b", margin: "2px 0 0", lineHeight: 1.45 }}>
-            Monthly and yearly renew automatically until canceled in Apple Account settings. Lifetime is a one-time purchase. Payment is processed securely by Apple.
+            Monthly and yearly renew automatically until canceled in Apple Account settings. Payment is processed securely by Apple.
           </p>
         </section>
       ) : (

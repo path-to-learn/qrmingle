@@ -40,7 +40,7 @@ const SECTIONS = [
   {
     title: "Premium, purchases, and refunds",
     body:
-      "QrMingle may offer Premium features such as unlimited card profiles, analytics, advanced styling, unlimited AI profile-builder usage, and priority support. iOS purchases are processed by Apple through the App Store. Monthly and yearly plans renew automatically until canceled in Apple Account settings. Lifetime access is a one-time purchase for the Apple account used. Billing, cancellation, renewal, and refund options are handled through Apple except where required by law.",
+      "QrMingle may offer Premium features such as unlimited card profiles, analytics, advanced styling, unlimited AI profile-builder usage, and priority support. iOS purchases are processed by Apple through the App Store. Monthly and yearly plans renew automatically until canceled in Apple Account settings. Billing, cancellation, renewal, and refund options are handled through Apple except where required by law.",
   },
   {
     title: "App Store terms",

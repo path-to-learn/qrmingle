@@ -4,18 +4,17 @@ export const FREE_AI_ASSIST_LIMIT = 1;
 export const PREMIUM_PRODUCT_IDS = {
   monthly: "com.qrmingle.app.pro.monthly",
   yearly: "com.qrmingle.app.pro.yearly",
-  lifetime: "com.qrmingle.app.pro.lifetime",
+  // No longer sold — kept only so past purchasers keep their entitlement on restore/verify.
   legacyLifetime: "com.qrmingle.app.premium",
 } as const;
 
-export type PremiumPlanKey = keyof Pick<typeof PREMIUM_PRODUCT_IDS, "monthly" | "yearly" | "lifetime">;
+export type PremiumPlanKey = keyof Pick<typeof PREMIUM_PRODUCT_IDS, "monthly" | "yearly">;
 
-export const PREMIUM_PLAN_ORDER: PremiumPlanKey[] = ["yearly", "monthly", "lifetime"];
+export const PREMIUM_PLAN_ORDER: PremiumPlanKey[] = ["yearly", "monthly"];
 
 export const ACTIVE_PREMIUM_PRODUCT_IDS = [
   PREMIUM_PRODUCT_IDS.monthly,
   PREMIUM_PRODUCT_IDS.yearly,
-  PREMIUM_PRODUCT_IDS.lifetime,
   PREMIUM_PRODUCT_IDS.legacyLifetime,
 ] as const;
 
@@ -26,33 +25,25 @@ export const PREMIUM_PLANS: Record<PremiumPlanKey, {
   cadence: string;
   badge?: string;
   note: string;
-  kind: "subscription" | "lifetime";
+  kind: "subscription";
 }> = {
   monthly: {
     productId: PREMIUM_PRODUCT_IDS.monthly,
     label: "Monthly",
-    fallbackPrice: "$2.99",
+    fallbackPrice: "$1.99",
     cadence: "per month",
-    note: "Flexible access. Cancel anytime in Apple Account settings.",
+    badge: "2 months free",
+    note: "First 2 months free, then $1.99/month. Cancel anytime in Apple Account settings.",
     kind: "subscription",
   },
   yearly: {
     productId: PREMIUM_PRODUCT_IDS.yearly,
     label: "Yearly",
-    fallbackPrice: "$19.99",
+    fallbackPrice: "$12.00",
     cadence: "per year",
     badge: "Best value",
-    note: "Save more than 40% compared with monthly.",
+    note: "First 2 months free, then $12/year — save about 50% vs. monthly.",
     kind: "subscription",
-  },
-  lifetime: {
-    productId: PREMIUM_PRODUCT_IDS.lifetime,
-    label: "Lifetime",
-    fallbackPrice: "$39.99",
-    cadence: "one-time",
-    badge: "Founder deal",
-    note: "Pay once and keep Pro access for this Apple account.",
-    kind: "lifetime",
   },
 };
 

@@ -28,21 +28,6 @@
       "productID" : "com.qrmingle.app.premium",
       "referenceName" : "Premium",
       "type" : "NonConsumable"
-    },
-    {
-      "displayPrice" : "39.99",
-      "familyShareable" : false,
-      "internalID" : "5E31E295",
-      "localizations" : [
-        {
-          "description" : "",
-          "displayName" : "QrMingle Pro Lifetime",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.qrmingle.app.pro.lifetime",
-      "referenceName" : "QrMingle Pro Lifetime",
-      "type" : "NonConsumable"
     }
   ],
   "settings" : {
@@ -74,8 +59,8 @@
           "billingPlans" : [
             {
               "billingPlanType" : "BILLED_UPFRONT",
-              "commitmentDisplayPrice" : "2.99",
-              "displayPrice" : "2.99",
+              "commitmentDisplayPrice" : "1.99",
+              "displayPrice" : "1.99",
               "internalID" : "2AEC9C60",
               "isEnabled" : true
             }
@@ -83,7 +68,7 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "2.99",
+          "displayPrice" : "1.99",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "0D197DB9",
@@ -113,8 +98,8 @@
           "billingPlans" : [
             {
               "billingPlanType" : "BILLED_UPFRONT",
-              "commitmentDisplayPrice" : "19.99",
-              "displayPrice" : "19.99",
+              "commitmentDisplayPrice" : "12.00",
+              "displayPrice" : "12.00",
               "internalID" : "A00A0252",
               "isEnabled" : true
             }
@@ -122,7 +107,7 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "19.99",
+          "displayPrice" : "12.00",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "2B1BE80C",
