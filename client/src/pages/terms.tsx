@@ -40,7 +40,7 @@ const SECTIONS = [
   {
     title: "Premium, purchases, and refunds",
     body:
-      "QrMingle may offer Premium features such as unlimited card profiles, analytics, advanced styling, unlimited AI profile-builder usage, and priority support. iOS purchases are processed by Apple through the App Store. Monthly and yearly plans renew automatically until canceled in Apple Account settings. Lifetime access is a one-time purchase for the Apple account used. Billing, cancellation, renewal, and refund options are handled through Apple except where required by law.",
+      "QrMingle may offer Premium features such as unlimited card profiles, analytics, advanced styling, unlimited AI profile-builder usage, and priority support. iOS purchases are processed by Apple through the App Store. Monthly and Yearly plans include a 2-month free trial for new subscribers. If you do not cancel before the trial ends, your Apple Account will automatically be charged the plan's regular price ($1.99/month or $12/year) starting on the first day of the third month, and the subscription will continue to renew at that price until you cancel. You can cancel anytime before the trial ends to avoid being charged, via Apple Account settings. Free trial eligibility is limited to one trial per Apple account per subscription. Billing, cancellation, renewal, and refund options are handled through Apple except where required by law.",
   },
   {
     title: "App Store terms",
@@ -56,6 +56,16 @@ const SECTIONS = [
     title: "Account deletion",
     body:
       "You can delete your account from Settings. Account deletion is intended to permanently remove your account, cards, QR links, analytics, and related account data from QrMingle, subject to limited records we may need to retain for security, legal, payment, or operational reasons.",
+  },
+  {
+    title: "Disclaimer of warranties",
+    body:
+      "QrMingle is provided \"as is\" and \"as available,\" without warranties of any kind, express or implied, including any warranty of merchantability, fitness for a particular purpose, or non-infringement. We do not guarantee that QrMingle will be uninterrupted, error-free, or that it will meet your expectations.",
+  },
+  {
+    title: "Limitation of liability",
+    body:
+      "To the maximum extent permitted by law, QrMingle and its owners are not liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of data, revenue, or goodwill, arising from your use of or inability to use the app. Our total liability for any claim relating to QrMingle will not exceed the amount you paid us in the 12 months before the claim arose.",
   },
   {
     title: "Changes and availability",
@@ -245,7 +255,7 @@ export default function Terms() {
             Email <a href="mailto:support@qrmingle.com" style={{ color: accent, fontWeight: 700 }}>support@qrmingle.com</a> with questions about these Terms.
           </p>
           <p style={{ color: "#94a3b8", fontSize: "12px", lineHeight: 1.4, margin: "10px 0 0" }}>
-            Last updated: May 23, 2026
+            Last updated: July 25, 2026
           </p>
         </div>
       </section>
