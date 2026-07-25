@@ -17,6 +17,7 @@
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 		E0F5ABC72FA574D300896B92 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E0F5ABC62FA574D300896B92 /* PrivacyInfo.xcprivacy */; };
 		E0F5ABCF2FAED89C00896B92 /* IAPPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F5ABCE2FAED89C00896B92 /* IAPPlugin.swift */; };
+		99F5C6FB1D6DA0EC8C56EEBC /* BiometricPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1B62CF2C0007A3D1480162 /* BiometricPlugin.swift */; };
 		E0F5ABD22FAEDF6400896B92 /* Products.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E0F5ABD12FAEDF6400896B92 /* Products.storekit */; };
 /* End PBXBuildFile section */
 
@@ -35,6 +36,7 @@
 		E0F5ABC62FA574D300896B92 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E0F5ABC72FAB0ED100896B92 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		E0F5ABCE2FAED89C00896B92 /* IAPPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPPlugin.swift; sourceTree = "<group>"; };
+		BC1B62CF2C0007A3D1480162 /* BiometricPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricPlugin.swift; sourceTree = "<group>"; };
 		E0F5ABD12FAEDF6400896B92 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -63,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				E0F5ABCE2FAED89C00896B92 /* IAPPlugin.swift */,
+				BC1B62CF2C0007A3D1480162 /* BiometricPlugin.swift */,
 				E0F5ABC62FA574D300896B92 /* PrivacyInfo.xcprivacy */,
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
@@ -224,6 +227,7 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				E0F5ABCF2FAED89C00896B92 /* IAPPlugin.swift in Sources */,
+				99F5C6FB1D6DA0EC8C56EEBC /* BiometricPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
