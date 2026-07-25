@@ -87,3 +87,42 @@ describe("GET /analytics/profile/:id — premium gating", () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe("GET /analytics/profile/:id — device and location bucketing", () => {
+  it("buckets every device label scan-logging can produce, without dumping Desktop/Linux into Unknown", async () => {
+    mockStorage.getProfile.mockResolvedValue({ id: 12, userId: 2, scanCount: 6 });
+    mockStorage.getUser.mockResolvedValue(premiumUser);
+    mockStorage.getScanLogsByProfileId.mockResolvedValue([
+      { timestamp: new Date("2025-01-10"), device: "iPhone", country: "US" },
+      { timestamp: new Date("2025-01-10"), device: "iPad", country: "US" },
+      { timestamp: new Date("2025-01-10"), device: "Android", country: "US" },
+      { timestamp: new Date("2025-01-10"), device: "Desktop", country: "US" },
+      { timestamp: new Date("2025-01-10"), device: "Linux", country: "US" },
+      { timestamp: new Date("2025-01-10"), device: "Windows Phone", country: "US" },
+    ]);
+
+    const res = await request(buildApp(2)).get("/analytics/profile/12");
+    expect(res.status).toBe(200);
+    expect(res.body.deviceDistribution).toEqual({
+      iOS: 2, // iPhone + iPad collapse into one bucket
+      Android: 1,
+      Desktop: 1,
+      Linux: 1,
+      "Windows Phone": 1,
+    });
+    expect(res.body.deviceDistribution.Unknown).toBeUndefined();
+  });
+
+  it("uses the IP-derived city for locationDistribution, since scan logging never sets `location`", async () => {
+    mockStorage.getProfile.mockResolvedValue({ id: 13, userId: 2, scanCount: 2 });
+    mockStorage.getUser.mockResolvedValue(premiumUser);
+    mockStorage.getScanLogsByProfileId.mockResolvedValue([
+      { timestamp: new Date("2025-01-10"), device: "iPhone", country: "US", city: "Austin" },
+      { timestamp: new Date("2025-01-11"), device: "Android", country: "IN", city: "" },
+    ]);
+
+    const res = await request(buildApp(2)).get("/analytics/profile/13");
+    expect(res.status).toBe(200);
+    expect(res.body.locationDistribution).toEqual({ Austin: 1, Unknown: 1 });
+  });
+});

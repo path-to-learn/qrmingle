@@ -93,7 +93,7 @@ export default function ProfilePage() {
   const [showQrWidget, setShowQrWidget] = useState(false);
 
   const { data: profile, isLoading, error } = useQuery<ProfileData>({
-    queryKey: [`/api/p/${slug}`],
+    queryKey: [`/api/p/${slug}${isPreview ? "?preview=1" : ""}`],
     enabled: !!slug,
   });
 

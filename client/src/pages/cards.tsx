@@ -94,6 +94,7 @@ export default function CardsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
       if (updated?.slug) {
         queryClient.invalidateQueries({ queryKey: [`/api/p/${updated.slug}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/p/${updated.slug}?preview=1`] });
       }
       setShowEditor(false);
       setEditingProfileId(null);
