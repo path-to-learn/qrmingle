@@ -14,21 +14,7 @@
 
   ],
   "products" : [
-    {
-      "displayPrice" : "4.99",
-      "familyShareable" : false,
-      "internalID" : "D3F2430C",
-      "localizations" : [
-        {
-          "description" : "Unlock all premium features",
-          "displayName" : "QrMingle Premium",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.qrmingle.app.premium",
-      "referenceName" : "Premium",
-      "type" : "NonConsumable"
-    }
+
   ],
   "settings" : {
     "_askToBuyEnabled" : false,

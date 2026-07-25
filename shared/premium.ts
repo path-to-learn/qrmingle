@@ -4,18 +4,15 @@ export const FREE_AI_ASSIST_LIMIT = 1;
 export const PREMIUM_PRODUCT_IDS = {
   monthly: "com.qrmingle.app.pro.monthly",
   yearly: "com.qrmingle.app.pro.yearly",
-  // No longer sold — kept only so past purchasers keep their entitlement on restore/verify.
-  legacyLifetime: "com.qrmingle.app.premium",
 } as const;
 
-export type PremiumPlanKey = keyof Pick<typeof PREMIUM_PRODUCT_IDS, "monthly" | "yearly">;
+export type PremiumPlanKey = keyof typeof PREMIUM_PRODUCT_IDS;
 
 export const PREMIUM_PLAN_ORDER: PremiumPlanKey[] = ["yearly", "monthly"];
 
 export const ACTIVE_PREMIUM_PRODUCT_IDS = [
   PREMIUM_PRODUCT_IDS.monthly,
   PREMIUM_PRODUCT_IDS.yearly,
-  PREMIUM_PRODUCT_IDS.legacyLifetime,
 ] as const;
 
 export const PREMIUM_PLANS: Record<PremiumPlanKey, {
