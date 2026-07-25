@@ -40,13 +40,14 @@ analyticsRouter.get("/profile/:id", requireAuth, async (req, res) => {
       }
     });
 
+    // log.device is already a categorized label set at scan time (iPhone, iPad, Android,
+    // Windows Phone, Desktop, Mac, Linux, Unknown) — not a raw user-agent string — so it's
+    // used directly rather than re-matched against substrings that don't cover every label
+    // (that mismatch previously bucketed every Desktop/Linux visitor as "Unknown").
     const deviceCounts: Record<string, number> = {};
     scanLogs.forEach((log) => {
-      let deviceType = "Unknown";
-      if (log.device?.includes("Android")) deviceType = "Android";
-      else if (log.device?.includes("iPhone") || log.device?.includes("iPad")) deviceType = "iOS";
-      else if (log.device?.includes("Windows")) deviceType = "Windows";
-      else if (log.device?.includes("Mac")) deviceType = "Mac";
+      const raw = log.device || "Unknown";
+      const deviceType = raw === "iPhone" || raw === "iPad" ? "iOS" : raw;
       deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
     });
 
@@ -55,7 +56,9 @@ analyticsRouter.get("/profile/:id", requireAuth, async (req, res) => {
     const countryCodeMap: Record<string, string> = {};
 
     scanLogs.forEach((log) => {
-      const location = log.location || "Unknown";
+      // log.location is never populated by any client — use the IP-derived city instead,
+      // which is actually captured (see server/routes/profiles.ts) but was previously discarded here.
+      const location = log.city || "Unknown";
       locationCounts[location] = (locationCounts[location] || 0) + 1;
       const country = log.country || "Unknown";
       countryCounts[country] = (countryCounts[country] || 0) + 1;

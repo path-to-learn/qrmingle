@@ -8,6 +8,7 @@ import { requireAuth } from "../middleware";
 import { authLimiter, contactLimiter } from "../limiters";
 import sgMail from "@sendgrid/mail";
 import { isPremiumProductId } from "@shared/premium";
+import { verifyStoreKitTransaction } from "../lib/apple-iap";
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -27,19 +28,12 @@ const contactFormSchema = z.object({
   message: z.string().min(1).max(2000),
 });
 
-function decodeStoreKitPayload(jwsRepresentation: string) {
-  const parts = jwsRepresentation.split(".");
-  if (parts.length !== 3) return null;
-  return JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
-}
-
-function hasActivePremiumEntitlement(payload: any) {
+function hasActivePremiumEntitlement(payload: { productId?: string; revocationDate?: number; expiresDate?: number }) {
   if (!payload?.productId || !isPremiumProductId(payload.productId)) return false;
   if (payload.revocationDate) return false;
 
   if (payload.expiresDate) {
-    const expiresAt = Number(payload.expiresDate);
-    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return false;
+    if (!Number.isFinite(payload.expiresDate) || payload.expiresDate <= Date.now()) return false;
   }
 
   return true;
@@ -137,8 +131,7 @@ miscRouter.post("/iap/verify", requireAuth, async (req, res) => {
   if (!jwsRepresentation) return res.status(400).json({ message: "jwsRepresentation is required" });
 
   try {
-    const payload = decodeStoreKitPayload(jwsRepresentation);
-    if (!payload) return res.status(400).json({ message: "Invalid JWS format" });
+    const payload = await verifyStoreKitTransaction(jwsRepresentation);
 
     if (!hasActivePremiumEntitlement(payload)) {
       return res.status(400).json({ message: "No active Premium entitlement found" });
@@ -150,7 +143,7 @@ miscRouter.post("/iap/verify", requireAuth, async (req, res) => {
     return res.json({ success: true });
   } catch (error) {
     console.error("IAP verify error:", error);
-    return res.status(500).json({ message: "Failed to verify purchase" });
+    return res.status(400).json({ message: "Could not verify this purchase with Apple" });
   }
 });
 
@@ -160,20 +153,20 @@ miscRouter.post("/iap/restore", requireAuth, async (req, res) => {
     return res.json({ restored: false });
   }
 
-  try {
-    for (const tx of transactions) {
-      const payload = decodeStoreKitPayload(tx.jwsRepresentation);
-      if (payload && hasActivePremiumEntitlement(payload)) {
+  for (const tx of transactions) {
+    try {
+      const payload = await verifyStoreKitTransaction(tx.jwsRepresentation);
+      if (hasActivePremiumEntitlement(payload)) {
         const userId = (req.user as any).id;
         await storage.updateUserPremiumStatus(userId, true);
         return res.json({ restored: true });
       }
+    } catch (error) {
+      console.error("IAP restore: skipping unverifiable transaction:", error);
+      // Keep checking the remaining transactions instead of failing the whole restore.
     }
-    return res.json({ restored: false });
-  } catch (error) {
-    console.error("IAP restore error:", error);
-    return res.status(500).json({ message: "Failed to restore purchases" });
   }
+  return res.json({ restored: false });
 });
 
 miscRouter.delete("/auth/account", async (req, res, next) => {

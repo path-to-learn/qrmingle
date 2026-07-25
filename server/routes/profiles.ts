@@ -174,21 +174,24 @@ export async function handlePublicProfile(req: any, res: any) {
       else if (userAgent.includes("Linux")) osInfo = "Linux";
     }
 
-    const visitorIp = getVisitorIp(req);
-    const geo = geoip.lookup(visitorIp);
+    // The owner previewing their own card hits this same endpoint — don't count it as a real scan.
+    if (req.query.preview !== "1") {
+      const visitorIp = getVisitorIp(req);
+      const geo = geoip.lookup(visitorIp);
 
-    await storage.createScanLog({
-      profileId: profile.id,
-      location: req.query.location as string,
-      country: geo?.country || (req.query.country as string) || "Unknown",
-      countryCode: geo?.country || (req.query.countryCode as string) || "",
-      city: geo?.city || (req.query.city as string) || "",
-      device: deviceInfo,
-      browser: browserInfo,
-      os: osInfo,
-      referrer: req.headers.referer || "",
-      ipAddress: visitorIp,
-    });
+      await storage.createScanLog({
+        profileId: profile.id,
+        location: req.query.location as string,
+        country: geo?.country || (req.query.country as string) || "Unknown",
+        countryCode: geo?.country || (req.query.countryCode as string) || "",
+        city: geo?.city || (req.query.city as string) || "",
+        device: deviceInfo,
+        browser: browserInfo,
+        os: osInfo,
+        referrer: req.headers.referer || "",
+        ipAddress: visitorIp,
+      });
+    }
 
     res.json({ ...profile, socialLinks });
   } catch (error) {
