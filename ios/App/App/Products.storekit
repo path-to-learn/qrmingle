@@ -68,7 +68,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.qrmingle.app.pro.monthly",
+          "productID" : "com.qrmingle.app.sub.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "QrMingle Pro Monthly",
           "subscriptionGroupID" : "F8264DE7",
@@ -107,7 +107,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.qrmingle.app.pro.yearly",
+          "productID" : "com.qrmingle.app.sub.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "QrMingle Pro Yearly",
           "subscriptionGroupID" : "F8264DE7",
