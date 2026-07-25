@@ -2,8 +2,11 @@ export const FREE_PROFILE_LIMIT = 2;
 export const FREE_AI_ASSIST_LIMIT = 1;
 
 export const PREMIUM_PRODUCT_IDS = {
-  monthly: "com.qrmingle.app.pro.monthly",
-  yearly: "com.qrmingle.app.pro.yearly",
+  // com.qrmingle.app.pro.monthly / .yearly were permanently locked by Apple after being
+  // created and deleted in App Store Connect before ever being sold — subscription product
+  // IDs can't be reused once claimed, even after deletion. These replace them.
+  monthly: "com.qrmingle.app.sub.monthly",
+  yearly: "com.qrmingle.app.sub.yearly",
 } as const;
 
 export type PremiumPlanKey = keyof typeof PREMIUM_PRODUCT_IDS;
