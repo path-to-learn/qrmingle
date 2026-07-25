@@ -47,5 +47,7 @@
 	<string>QrMingle needs photo library access to choose your profile photo</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>QrMingle needs permission to save photos to your library</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>QrMingle uses Face ID to log you back in securely without re-entering your password</string>
 </dict>
 </plist>

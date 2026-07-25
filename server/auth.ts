@@ -42,6 +42,7 @@ export function setupAuth(app: Express) {
     secret: sessionSecret || 'dev_only_secret_not_for_production',
     resave: false,
     saveUninitialized: false,
+    rolling: true, // reset expiry to a full week on every authenticated request
     store: storage.sessionStore,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week

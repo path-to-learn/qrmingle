@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import {
@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Crown,
   FileText,
+  Fingerprint,
   HelpCircle,
   Info,
   Languages,
@@ -25,6 +26,13 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { IAP } from "@/lib/iap";
 import {
+  checkBiometricAvailability,
+  isFaceIdLoginEnabled,
+  enableFaceIdLogin,
+  disableFaceIdLogin,
+  type BiometryType,
+} from "@/lib/biometric";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -35,6 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 
@@ -180,7 +189,56 @@ export default function Settings() {
   const { t } = useTranslation();
   const [isRestoring, setIsRestoring] = useState(false);
 
+  const [bioAvailable, setBioAvailable] = useState(false);
+  const [biometryType, setBiometryType] = useState<BiometryType>("none");
+  const [faceIdEnabled, setFaceIdEnabled] = useState(false);
+  const [showEnableDialog, setShowEnableDialog] = useState(false);
+  const [enablePassword, setEnablePassword] = useState("");
+  const [enableBusy, setEnableBusy] = useState(false);
+  const [enableError, setEnableError] = useState("");
+
+  useEffect(() => {
+    if (!isNativeApp) return;
+    setFaceIdEnabled(isFaceIdLoginEnabled());
+    checkBiometricAvailability().then(({ isAvailable, biometryType }) => {
+      setBioAvailable(isAvailable);
+      setBiometryType(biometryType);
+    });
+  }, []);
+
   if (!user) return null;
+
+  const biometryLabel = biometryType === "touchId" ? "Touch ID" : "Face ID";
+
+  const handleToggleFaceId = async () => {
+    if (faceIdEnabled) {
+      await disableFaceIdLogin();
+      setFaceIdEnabled(false);
+      toast({ title: `${biometryLabel} disabled`, description: "You'll need your password to log in next time." });
+    } else {
+      setEnablePassword("");
+      setEnableError("");
+      setShowEnableDialog(true);
+    }
+  };
+
+  const handleConfirmEnable = async () => {
+    if (!enablePassword) return;
+    setEnableBusy(true);
+    setEnableError("");
+    try {
+      await apiRequest("POST", "/api/auth/login", { username: user.username, password: enablePassword });
+      await enableFaceIdLogin(user.username, enablePassword);
+      setFaceIdEnabled(true);
+      setShowEnableDialog(false);
+      setEnablePassword("");
+      toast({ title: `${biometryLabel} enabled`, description: "You can now use it to log back in." });
+    } catch {
+      setEnableError("Incorrect password. Please try again.");
+    } finally {
+      setEnableBusy(false);
+    }
+  };
 
   const isPremium = isEffectivelyPremium();
 
@@ -304,6 +362,62 @@ export default function Settings() {
           />
         )}
       </SettingsSection>
+
+      {isNativeApp && bioAvailable && (
+        <SettingsSection title="Security">
+          <SettingsRow
+            icon={Fingerprint}
+            label={biometryLabel}
+            sublabel={faceIdEnabled ? "On — used to log back in" : "Off — log in with password"}
+            color="#6366f1"
+            onClick={handleToggleFaceId}
+            showChevron={false}
+          />
+        </SettingsSection>
+      )}
+
+      <AlertDialog open={showEnableDialog} onOpenChange={(open) => { setShowEnableDialog(open); if (!open) setEnableError(""); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Enable {biometryLabel}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter your password once to confirm. QrMingle will store it securely on this device, protected by {biometryLabel}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            type="password"
+            placeholder="Password"
+            value={enablePassword}
+            onChange={(e) => setEnablePassword(e.target.value)}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          {enableError && (
+            <div style={{ color: "#dc2626", fontSize: "13px", marginTop: "-4px" }}>{enableError}</div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={enableBusy}>Cancel</AlertDialogCancel>
+            <button
+              onClick={handleConfirmEnable}
+              disabled={enableBusy || !enablePassword}
+              style={{
+                background: "#6366f1",
+                color: "white",
+                borderRadius: "8px",
+                border: "none",
+                padding: "9px 17px",
+                fontWeight: 700,
+                fontSize: "14px",
+                cursor: enableBusy || !enablePassword ? "default" : "pointer",
+                opacity: enableBusy || !enablePassword ? 0.6 : 1,
+              }}
+            >
+              {enableBusy ? "Confirming..." : "Confirm"}
+            </button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <SettingsSection title={t("settings.sections.preferences", { defaultValue: "Preferences" })}>
         <div style={{ padding: "14px" }}>
