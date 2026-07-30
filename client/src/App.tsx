@@ -68,16 +68,34 @@ function AppRouter() {
   const fullScreenRoutes = ["/", "/login", "/register", "/forgot-password"];
   const isFullScreenRoute = fullScreenRoutes.includes(currentPath);
 
-  // Handle Universal Links (iOS deep links) — navigate to the path when app opens via URL
+  // Handle Universal Links (iOS deep links) from both cold launch and warm app open.
   useEffect(() => {
-    const listener = CapApp.addListener("appUrlOpen", (event) => {
+    let isMounted = true;
+
+    const openDeepLink = (rawUrl?: string) => {
+      if (!rawUrl) return;
+
       try {
-        const url = new URL(event.url);
+        const url = new URL(rawUrl);
         const path = url.pathname + url.search;
         if (path && path !== "/") navigate(path);
       } catch {}
+    };
+
+    CapApp.getLaunchUrl()
+      .then((launch) => {
+        if (isMounted) openDeepLink(launch?.url);
+      })
+      .catch(() => {});
+
+    const listener = CapApp.addListener("appUrlOpen", (event) => {
+      openDeepLink(event.url);
     });
-    return () => { listener.then(h => h.remove()); };
+
+    return () => {
+      isMounted = false;
+      listener.then(h => h.remove());
+    };
   }, [navigate]);
 
   useEffect(() => {
