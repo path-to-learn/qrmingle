@@ -1,5 +1,5 @@
-export const FREE_PROFILE_LIMIT = 2;
-export const FREE_AI_ASSIST_LIMIT = 1;
+export const FREE_PROFILE_LIMIT: number = 2;
+export const FREE_AI_ASSIST_LIMIT: number = 3;
 
 export const PREMIUM_PRODUCT_IDS = {
   // com.qrmingle.app.pro.monthly / .yearly were permanently locked by Apple after being

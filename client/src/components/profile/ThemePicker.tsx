@@ -72,7 +72,7 @@ export default function ThemePicker({ themeId, teamId, onChange }: ThemePickerPr
 
         {activeThemes.length === 0 && (
           <p style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic" }}>
-            No active event themes right now. Check back during FIFA 2026!
+            No active event themes right now. Check back during future events!
           </p>
         )}
       </div>

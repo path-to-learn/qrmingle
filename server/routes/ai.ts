@@ -163,7 +163,7 @@ aiRouter.post("/card-assist", requireAuth, async (req, res) => {
 
     if (!isPremium && (user.aiAssistCount ?? 0) >= FREE_AI_ASSIST_LIMIT) {
       return res.status(403).json({
-        message: `You've used your ${FREE_AI_ASSIST_LIMIT} free AI profile-builder use. Upgrade to QrMingle Pro for unlimited.`,
+        message: `You've used your ${FREE_AI_ASSIST_LIMIT} free AI profile-builder use${FREE_AI_ASSIST_LIMIT === 1 ? "" : "s"}. Upgrade to QrMingle Pro for unlimited.`,
         type: "AI_LIMIT_REACHED",
       });
     }

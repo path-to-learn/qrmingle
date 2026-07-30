@@ -506,7 +506,7 @@ function WebHome({ authMode }: { authMode?: WebAuthMode }) {
           ))}
         </section>
 
-        {getActiveThemes().length > 0 && (
+        {getActiveThemes()[0] && (
           <button
             onClick={() => navigate("/register")}
             style={{
@@ -525,16 +525,16 @@ function WebHome({ authMode }: { authMode?: WebAuthMode }) {
               margin: "0 auto 72px",
             }}
           >
-            <span style={{ fontSize: "38px", lineHeight: 1, flexShrink: 0 }}>🏆</span>
+            <span style={{ fontSize: "38px", lineHeight: 1, flexShrink: 0 }}>{getActiveThemes()[0].emoji}</span>
             <span>
               <span style={{ display: "block", color: "#fef3c7", fontSize: "12px", fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>
-                {t('home.fifa.eyebrow')}
+                {getActiveThemes()[0].name}
               </span>
               <span style={{ display: "block", color: "white", fontSize: "18px", fontWeight: 800 }}>
-                {t('home.fifa.headline')}
+                {t('home.eventTheme.headline')}
               </span>
               <span style={{ display: "block", color: "rgba(255,255,255,0.78)", fontSize: "14px", marginTop: "4px" }}>
-                {t('home.fifa.sub')}
+                {t('home.eventTheme.sub')}
               </span>
             </span>
           </button>
@@ -2895,8 +2895,8 @@ function LegacyNativeHome() {
         ))}
       </div>
 
-      {/* ── World Cup banner (shown only when a theme is active) ── */}
-      {getActiveThemes().length > 0 && (
+      {/* ── Event theme banner (shown only when a theme is active) ── */}
+      {getActiveThemes()[0] && (
         <div
           onClick={() => navigate("/register")}
           style={{
@@ -2912,16 +2912,16 @@ function LegacyNativeHome() {
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          <div style={{ fontSize: "42px", lineHeight: 1, flexShrink: 0 }}>🏆</div>
+          <div style={{ fontSize: "42px", lineHeight: 1, flexShrink: 0 }}>{getActiveThemes()[0].emoji}</div>
           <div>
             <div style={{ color: "#fef3c7", fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>
-              {t('home.fifa.eyebrow')}
+              {getActiveThemes()[0].name}
             </div>
             <div style={{ color: "white", fontSize: "16px", fontWeight: 700, lineHeight: 1.3 }}>
-              {t('home.fifa.headline')}
+              {t('home.eventTheme.headline')}
             </div>
             <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", marginTop: "4px" }}>
-              {t('home.fifa.sub')}
+              {t('home.eventTheme.sub')}
             </div>
           </div>
         </div>

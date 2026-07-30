@@ -259,14 +259,14 @@ export default function ProfilePage() {
           background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 55%)",
         }} />
 
-        {/* Card type badge — shows FIFA 2026 when themed */}
+        {/* Card type badge — shows the event theme's badge when themed */}
         <div style={{
           position: "absolute", top: isPreview ? "56px" : "16px", left: "50%", transform: "translateX(-50%)",
           background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)",
           color: "white", fontSize: "11px", fontWeight: 700,
           padding: "4px 16px", borderRadius: "6px",
           letterSpacing: "1px", textTransform: "uppercase", whiteSpace: "nowrap",
-        }}>{themeTeam ? t('card.fifaBadge') : profile.name}</div>
+        }}>{themeTeam && theme ? theme.badge : profile.name}</div>
 
         {/* Team badge — top left */}
         {themeTeam && theme && (
@@ -456,7 +456,7 @@ export default function ProfilePage() {
           {themeTeam ? (
             <>
               <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 6px" }}>
-                {t('profile.fifaShareText', { emoji: theme?.emoji })}
+                {t('profile.themeShareText', { emoji: theme?.emoji, themeName: theme?.shortName })}
               </p>
               <Link href="/">
                 <span style={{

@@ -18,8 +18,7 @@
     "getStarted": "Começar — É Grátis",
     "alreadyHaveAccount": "Já tem uma conta?",
     "signIn": "Entrar",
-    "fifa": {
-      "eyebrow": "Copa do Mundo FIFA 2026",
+    "eventTheme": {
       "headline": "Represente seu time. Compartilhe seu cartão.",
       "sub": "Crie um cartão de torcedor grátis em segundos →"
     }
@@ -101,8 +100,7 @@
     "preview": "Visualizar",
     "save": "Salvar",
     "delete": "Excluir",
-    "tapToClose": "Toque em qualquer lugar para fechar",
-    "fifaBadge": "⚽ FIFA 2026"
+    "tapToClose": "Toque em qualquer lugar para fechar"
   },
   "profile": {
     "notFound": "Perfil não encontrado",
@@ -118,7 +116,7 @@
     "contactError": "Houve um problema ao salvar este contato.",
     "linkCopied": "Link copiado",
     "linkCopiedSub": "Link do perfil copiado para a área de transferência!",
-    "fifaShareText": "{{emoji}} Compartilhe seu cartão de torcedor da FIFA 2026 — é grátis!",
+    "themeShareText": "{{emoji}} Compartilhe seu cartão de torcedor de {{themeName}} — é grátis!",
     "createYours": "Crie o seu no QrMingle →",
     "createdWith": "Criado com"
   }

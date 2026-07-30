@@ -15,17 +15,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { IAP, IAPProduct } from "@/lib/iap";
-import { PREMIUM_PLANS, PREMIUM_PLAN_ORDER, PremiumPlanKey } from "@shared/premium";
+import { PREMIUM_PLANS, PREMIUM_PLAN_ORDER, PremiumPlanKey, FREE_PROFILE_LIMIT, FREE_AI_ASSIST_LIMIT } from "@shared/premium";
 
 const isNativeApp = Capacitor.isNativePlatform();
 const PLAN_PRODUCT_IDS = PREMIUM_PLAN_ORDER.map((planKey) => PREMIUM_PLANS[planKey].productId);
 
 const FREE_FEATURES = [
-  "2 card profiles",
-  "1 AI profile-builder use",
+  `${FREE_PROFILE_LIMIT} card profiles`,
+  `${FREE_AI_ASSIST_LIMIT} AI profile-builder uses`,
   "Basic QR and card styles",
   "Total scan count",
-  "FIFA fan cards",
+  "Event theme cards",
   "Shareable public card links",
 ];
 
