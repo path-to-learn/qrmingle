@@ -5,11 +5,9 @@ import fs from "fs";
 import crypto from "crypto";
 import { storage } from "../storage";
 import { requireAdmin } from "../middleware";
-import sgMail from "@sendgrid/mail";
+import { sendMail, isEmailConfigured } from "../mail";
 
-if (process.env.SENDGRID_API_KEY) sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const APP_URL = process.env.APP_URL || "https://www.qrmingle.com";
-const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || "noreply@qrmingle.com";
 
 export const adminRouter = express.Router();
 
@@ -150,7 +148,7 @@ adminRouter.post("/send-reset-email", async (req, res) => {
     const user = await storage.getUserByUsername(username);
     if (!user) return res.json({ success: true, message: "If the email exists, a password reset link has been sent" });
 
-    if (!process.env.SENDGRID_API_KEY) {
+    if (!isEmailConfigured()) {
       return res.status(503).json({ message: "Email service is not configured. Please contact administrator." });
     }
 
@@ -160,9 +158,8 @@ adminRouter.post("/send-reset-email", async (req, res) => {
     await storage.createPasswordResetToken(resetToken, user.id, expiresAt);
 
     const resetLink = `${APP_URL}/forgot-password?token=${resetToken}`;
-    await sgMail.send({
+    await sendMail({
       to: username,
-      from: FROM_EMAIL,
       subject: "Reset your QrMingle password",
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
