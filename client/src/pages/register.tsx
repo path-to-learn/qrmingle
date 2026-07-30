@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Capacitor } from "@capacitor/core";
 import Home from "@/pages/home";
 import NativeAuthShell, { NativeAuthField, NativeAuthPill } from "@/components/auth/NativeAuthShell";
+import { FREE_AI_ASSIST_LIMIT, FREE_PROFILE_LIMIT } from "@shared/premium";
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -109,8 +110,8 @@ export default function Register() {
             disabled={registerMutation.isPending}
           />
           <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-            <NativeAuthPill tone="green">2 free AI assists</NativeAuthPill>
-            <NativeAuthPill>3 profiles</NativeAuthPill>
+            <NativeAuthPill tone="green">{FREE_AI_ASSIST_LIMIT} free AI assist{FREE_AI_ASSIST_LIMIT === 1 ? "" : "s"}</NativeAuthPill>
+            <NativeAuthPill>{FREE_PROFILE_LIMIT} profiles</NativeAuthPill>
           </div>
         </div>
       </NativeAuthShell>

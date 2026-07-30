@@ -11,7 +11,7 @@ import { getPublicProfileUrl } from "@/lib/profileUrl";
 import { saveToContacts, isMobileDevice } from "@/lib/vcard";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLink } from "@shared/schema";
-import { getTeamById } from "@/data/themes";
+import { getTeamById, getThemeById } from "@/data/themes";
 
 type ProfileCardProps = {
   id: number;
@@ -93,6 +93,7 @@ export default function ProfileCard({
   const profileUrl = getPublicProfileUrl(slug);
   const accent = getCardAccent(name, cardColor);
   const themeTeam = themeId && teamId ? getTeamById(themeId, teamId) : null;
+  const theme = themeId ? getThemeById(themeId) : null;
   // Scale photoSize (editor range 60-300) to card-appropriate size (44-88px)
   const cardAvatarSize = Math.min(Math.max(Math.round(photoSize * 0.55), 44), 88);
 
@@ -215,7 +216,7 @@ export default function ProfileCard({
             background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 55%)",
           }} />
 
-          {/* Card name badge — top center; shows FIFA 2026 when themed */}
+          {/* Card name badge — top center; shows the event theme's badge when themed */}
           <div style={{
             position: "absolute", top: "14px", left: "50%", transform: "translateX(-50%)",
             background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)",
@@ -223,7 +224,7 @@ export default function ProfileCard({
             padding: "4px 14px", borderRadius: "6px",
             letterSpacing: "1px", textTransform: "uppercase",
             whiteSpace: "nowrap",
-          }}>{themeTeam ? t('card.fifaBadge') : name}</div>
+          }}>{themeTeam && theme ? theme.badge : name}</div>
 
           {/* Team badge — top left */}
           {themeTeam && (
@@ -316,13 +317,13 @@ export default function ProfileCard({
               }}>
                 <QRCodeSVG value={profileUrl} size={54} fgColor={accent} bgColor="white" level="L" />
               </div>
-              {themeTeam && (
+              {themeTeam && theme && (
                 <div style={{
                   fontSize: "9px", fontWeight: 800, color: accent,
                   letterSpacing: "0.5px", textTransform: "uppercase",
                   whiteSpace: "nowrap",
                 }}>
-                  {t('card.fifaBadge')}
+                  {theme.badge}
                 </div>
               )}
             </div>

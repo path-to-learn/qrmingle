@@ -18,8 +18,7 @@
     "getStarted": "無料で始める",
     "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
     "signIn": "ログイン",
-    "fifa": {
-      "eyebrow": "FIFAワールドカップ2026",
+    "eventTheme": {
       "headline": "チームを応援。カードをシェア。",
       "sub": "無料のファンカードを数秒で作成 →"
     }
@@ -101,8 +100,7 @@
     "preview": "プレビュー",
     "save": "保存",
     "delete": "削除",
-    "tapToClose": "どこかをタップして閉じる",
-    "fifaBadge": "⚽ FIFA 2026"
+    "tapToClose": "どこかをタップして閉じる"
   },
   "profile": {
     "notFound": "プロフィールが見つかりません",
@@ -118,7 +116,7 @@
     "contactError": "連絡先の保存中に問題が発生しました。",
     "linkCopied": "リンクをコピーしました",
     "linkCopiedSub": "プロフィールリンクをクリップボードにコピーしました！",
-    "fifaShareText": "{{emoji}} FIFA 2026ファンカードをシェアしよう — 無料！",
+    "themeShareText": "{{emoji}} {{themeName}}ファンカードをシェアしよう — 無料！",
     "createYours": "QrMingleで作成する →",
     "createdWith": "作成："
   }

@@ -18,8 +18,7 @@
     "getStarted": "Comenzar — Es Gratis",
     "alreadyHaveAccount": "¿Ya tienes una cuenta?",
     "signIn": "Iniciar sesión",
-    "fifa": {
-      "eyebrow": "Copa Mundial FIFA 2026",
+    "eventTheme": {
       "headline": "Representa a tu equipo. Comparte tu tarjeta.",
       "sub": "Crea una tarjeta de fan gratis en segundos →"
     }
@@ -101,8 +100,7 @@
     "preview": "Vista previa",
     "save": "Guardar",
     "delete": "Eliminar",
-    "tapToClose": "Toca en cualquier lugar para cerrar",
-    "fifaBadge": "⚽ FIFA 2026"
+    "tapToClose": "Toca en cualquier lugar para cerrar"
   },
   "profile": {
     "notFound": "Perfil no encontrado",
@@ -118,7 +116,7 @@
     "contactError": "Hubo un problema al guardar este contacto.",
     "linkCopied": "Enlace copiado",
     "linkCopiedSub": "¡Enlace del perfil copiado al portapapeles!",
-    "fifaShareText": "{{emoji}} ¡Comparte tu tarjeta de fan FIFA 2026, es gratis!",
+    "themeShareText": "{{emoji}} ¡Comparte tu tarjeta de fan de {{themeName}}, es gratis!",
     "createYours": "Crea la tuya en QrMingle →",
     "createdWith": "Creado con"
   }

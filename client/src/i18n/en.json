@@ -18,8 +18,7 @@
     "getStarted": "Get Started — It's Free",
     "alreadyHaveAccount": "Already have an account?",
     "signIn": "Sign In",
-    "fifa": {
-      "eyebrow": "FIFA World Cup 2026",
+    "eventTheme": {
       "headline": "Rep your team. Share your card.",
       "sub": "Create a free fan card in seconds →"
     }
@@ -126,8 +125,7 @@
     "preview": "Preview",
     "save": "Save",
     "delete": "Delete",
-    "tapToClose": "Tap anywhere to close",
-    "fifaBadge": "⚽ FIFA 2026"
+    "tapToClose": "Tap anywhere to close"
   },
   "profile": {
     "notFound": "Profile Not Found",
@@ -143,7 +141,7 @@
     "contactError": "There was a problem saving this contact.",
     "linkCopied": "Link Copied",
     "linkCopiedSub": "Profile link copied to clipboard!",
-    "fifaShareText": "{{emoji}} Share your FIFA 2026 fan card — it's free!",
+    "themeShareText": "{{emoji}} Share your {{themeName}} fan card — it's free!",
     "createYours": "Create yours on QrMingle →",
     "createdWith": "Created with"
   }

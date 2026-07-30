@@ -18,8 +18,7 @@
     "getStarted": "ابدأ الآن — مجاناً",
     "alreadyHaveAccount": "هل لديك حساب؟",
     "signIn": "تسجيل الدخول",
-    "fifa": {
-      "eyebrow": "كأس العالم FIFA 2026",
+    "eventTheme": {
       "headline": "مثّل فريقك. شارك بطاقتك.",
       "sub": "أنشئ بطاقة مشجع مجانية في ثوانٍ ←"
     }
@@ -101,8 +100,7 @@
     "preview": "معاينة",
     "save": "حفظ",
     "delete": "حذف",
-    "tapToClose": "اضغط في أي مكان للإغلاق",
-    "fifaBadge": "⚽ FIFA 2026"
+    "tapToClose": "اضغط في أي مكان للإغلاق"
   },
   "profile": {
     "notFound": "الملف الشخصي غير موجود",
@@ -118,7 +116,7 @@
     "contactError": "حدثت مشكلة أثناء حفظ جهة الاتصال.",
     "linkCopied": "تم نسخ الرابط",
     "linkCopiedSub": "تم نسخ رابط الملف الشخصي!",
-    "fifaShareText": "{{emoji}} شارك بطاقة مشجعك لـ FIFA 2026 — مجاناً!",
+    "themeShareText": "{{emoji}} شارك بطاقة مشجعك لـ {{themeName}} — مجاناً!",
     "createYours": "أنشئ بطاقتك على QrMingle ←",
     "createdWith": "تم الإنشاء بواسطة"
   }

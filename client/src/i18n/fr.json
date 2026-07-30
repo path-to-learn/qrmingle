@@ -18,8 +18,7 @@
     "getStarted": "Commencer — C'est gratuit",
     "alreadyHaveAccount": "Déjà un compte ?",
     "signIn": "Se connecter",
-    "fifa": {
-      "eyebrow": "Coupe du Monde FIFA 2026",
+    "eventTheme": {
       "headline": "Soutenez votre équipe. Partagez votre carte.",
       "sub": "Créez une carte fan gratuite en quelques secondes →"
     }
@@ -101,8 +100,7 @@
     "preview": "Aperçu",
     "save": "Enregistrer",
     "delete": "Supprimer",
-    "tapToClose": "Appuyez n'importe où pour fermer",
-    "fifaBadge": "⚽ FIFA 2026"
+    "tapToClose": "Appuyez n'importe où pour fermer"
   },
   "profile": {
     "notFound": "Profil introuvable",
@@ -118,7 +116,7 @@
     "contactError": "Un problème est survenu lors de l'enregistrement du contact.",
     "linkCopied": "Lien copié",
     "linkCopiedSub": "Lien du profil copié dans le presse-papier !",
-    "fifaShareText": "{{emoji}} Partagez votre carte fan FIFA 2026 — c'est gratuit !",
+    "themeShareText": "{{emoji}} Partagez votre carte fan {{themeName}} — c'est gratuit !",
     "createYours": "Créez la vôtre sur QrMingle →",
     "createdWith": "Créé avec"
   }

@@ -24,6 +24,7 @@ vi.mock("@anthropic-ai/sdk", () => ({
 
 import { storage } from "../storage";
 import { aiRouter } from "../routes/ai";
+import { FREE_AI_ASSIST_LIMIT } from "@shared/premium";
 
 const mockStorage = storage as Record<string, ReturnType<typeof vi.fn>>;
 
@@ -40,7 +41,7 @@ function buildApp(userId: number) {
 }
 
 const freeUserAt0 = { id: 1, isPremium: false, isAdmin: false, username: "free@test.com", aiAssistCount: 0 };
-const freeUserAt1 = { id: 1, isPremium: false, isAdmin: false, username: "free@test.com", aiAssistCount: 1 };
+const freeUserAtLimit = { id: 1, isPremium: false, isAdmin: false, username: "free@test.com", aiAssistCount: FREE_AI_ASSIST_LIMIT };
 const premiumUser = { id: 2, isPremium: true, isAdmin: false, username: "paid@test.com", aiAssistCount: 99 };
 
 beforeEach(() => {
@@ -65,8 +66,8 @@ describe("POST /ai/card-assist — assist limit", () => {
     expect(mockStorage.incrementAiAssistCount).toHaveBeenCalledWith(1);
   });
 
-  it("blocks a free user who has used their free profile-builder use", async () => {
-    mockStorage.getUser.mockResolvedValue(freeUserAt1);
+  it("blocks a free user who has used all their free profile-builder uses", async () => {
+    mockStorage.getUser.mockResolvedValue(freeUserAtLimit);
 
     const res = await request(buildApp(1))
       .post("/ai/card-assist")
