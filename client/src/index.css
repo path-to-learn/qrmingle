@@ -125,6 +125,7 @@ html.qrmingle-fullscreen-lock #root {
 
 .main-content {
   overflow-y: var(--route-overflow-y, auto);
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Hide scrollbar on welcome card carousel */
