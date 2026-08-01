@@ -8,7 +8,7 @@ import { requireAuth } from "../middleware";
 import { authLimiter, contactLimiter } from "../limiters";
 import { sendMail } from "../mail";
 import { isPremiumProductId } from "@shared/premium";
-import { verifyStoreKitTransaction } from "../lib/apple-iap";
+import { verifyStoreKitTransaction, verifyStoreKitNotification } from "../lib/apple-iap";
 
 const APP_URL = process.env.APP_URL || "https://www.qrmingle.com";
 
@@ -127,6 +127,15 @@ miscRouter.post("/iap/verify", requireAuth, async (req, res) => {
     }
 
     const userId = (req.user as any).id;
+    if (payload.originalTransactionId) {
+      try {
+        await storage.linkAppleOriginalTransactionId(userId, payload.originalTransactionId);
+      } catch {
+        return res.status(409).json({
+          message: "This purchase is already linked to a different QrMingle account. Log in with that account, or contact support.",
+        });
+      }
+    }
     await storage.updateUserPremiumStatus(userId, true);
 
     return res.json({ success: true });
@@ -147,6 +156,14 @@ miscRouter.post("/iap/restore", requireAuth, async (req, res) => {
       const payload = await verifyStoreKitTransaction(tx.jwsRepresentation);
       if (hasActivePremiumEntitlement(payload)) {
         const userId = (req.user as any).id;
+        if (payload.originalTransactionId) {
+          try {
+            await storage.linkAppleOriginalTransactionId(userId, payload.originalTransactionId);
+          } catch {
+            console.error("IAP restore: transaction already linked to a different account, skipping");
+            continue;
+          }
+        }
         await storage.updateUserPremiumStatus(userId, true);
         return res.json({ restored: true });
       }
@@ -156,6 +173,82 @@ miscRouter.post("/iap/restore", requireAuth, async (req, res) => {
     }
   }
   return res.json({ restored: false });
+});
+
+// Apple's App Store Server Notifications (V2) webhook — no session auth, Apple calls this
+// server-to-server whenever a subscription's status changes (renewal, cancellation, refund,
+// expiration, billing failure, etc). Configure this URL in App Store Connect under
+// App Information > App Store Server Notifications: https://www.qrmingle.com/api/iap/notifications
+//
+// DID_CHANGE_RENEWAL_PREF is deliberately excluded — it only means the plan the user will be
+// billed for at their *next* renewal changed (e.g. monthly -> yearly), not that their current
+// entitlement changed. Granting Premium on it would be wrong.
+const PREMIUM_GRANTING_NOTIFICATIONS = new Set([
+  "SUBSCRIBED",
+  "DID_RENEW",
+  "OFFER_REDEEMED",
+  "RENEWAL_EXTENDED",
+  "REFUND_REVERSED",
+]);
+
+const PREMIUM_REVOKING_NOTIFICATIONS = new Set([
+  "EXPIRED",
+  "REFUND",
+  "REVOKE",
+  "GRACE_PERIOD_EXPIRED",
+]);
+
+miscRouter.post("/iap/notifications", async (req, res) => {
+  try {
+    const { signedPayload } = req.body as { signedPayload?: string };
+    if (!signedPayload) return res.status(400).json({ message: "signedPayload is required" });
+
+    const notification = await verifyStoreKitNotification(signedPayload);
+    const signedTransactionInfo = notification.data?.signedTransactionInfo;
+    const notificationType = notification.notificationType;
+
+    if (!signedTransactionInfo || !notificationType) {
+      // Nothing actionable — e.g. a TEST notification, or a summary/externalPurchaseToken payload.
+      return res.status(200).json({ received: true });
+    }
+
+    const transaction = await verifyStoreKitTransaction(signedTransactionInfo);
+    if (!transaction.originalTransactionId) {
+      return res.status(200).json({ received: true });
+    }
+
+    const user = await storage.getUserByAppleOriginalTransactionId(transaction.originalTransactionId);
+    if (!user) {
+      // Transaction not linked to any user yet (e.g. notification arrived before /iap/verify did).
+      return res.status(200).json({ received: true });
+    }
+
+    // Apple retries failed deliveries and doesn't guarantee ordering, so an old EXPIRED/REFUND
+    // could arrive after we've already processed a newer DID_RENEW (or vice versa). Ignore
+    // anything older than (or equal to) the last notification we actually applied for this user.
+    const incomingSignedDate = notification.signedDate ? new Date(notification.signedDate) : null;
+    if (incomingSignedDate && user.appleLastNotificationSignedDate &&
+        incomingSignedDate <= new Date(user.appleLastNotificationSignedDate)) {
+      return res.status(200).json({ received: true, stale: true });
+    }
+
+    if (PREMIUM_GRANTING_NOTIFICATIONS.has(notificationType) && !user.isPremium) {
+      await storage.updateUserPremiumStatus(user.id, true);
+    } else if (PREMIUM_REVOKING_NOTIFICATIONS.has(notificationType) && user.isPremium) {
+      await storage.updateUserPremiumStatus(user.id, false);
+    }
+
+    if (incomingSignedDate) {
+      await storage.updateAppleLastNotificationSignedDate(user.id, incomingSignedDate);
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (error) {
+    console.error("IAP notification error:", error);
+    // 500 so Apple retries — most failures here are transient (DB hiccup, etc), not a reason
+    // to silently drop a subscription-status change.
+    return res.status(500).json({ message: "Failed to process notification" });
+  }
 });
 
 miscRouter.delete("/auth/account", async (req, res, next) => {

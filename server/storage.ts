@@ -18,9 +18,12 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByAppleOriginalTransactionId(originalTransactionId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserPassword(id: number, newPassword: string): Promise<User>;
   updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User>;
+  linkAppleOriginalTransactionId(id: number, originalTransactionId: string): Promise<void>;
+  updateAppleLastNotificationSignedDate(id: number, signedDate: Date): Promise<void>;
   updateUserAdminStatus(id: number, isAdmin: boolean): Promise<User>;
   updateUserStripeCustomerId(id: number, stripeCustomerId: string): Promise<User>;
   startPremiumTrial(id: number, durationDays: number): Promise<User>;
@@ -184,17 +187,52 @@ export class DatabaseStorage implements IStorage {
   async updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User> {
     const { db, eq } = await import('./db');
     const { users } = await import('@shared/schema');
-    
+
     const [updatedUser] = await db.update(users)
       .set({ isPremium })
       .where(eq(users.id, id))
       .returning();
-    
+
     if (!updatedUser) {
       throw new Error(`User with id ${id} not found`);
     }
-    
+
     return updatedUser;
+  }
+
+  async getUserByAppleOriginalTransactionId(originalTransactionId: string): Promise<User | undefined> {
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+
+    const [user] = await db.select().from(users).where(eq(users.appleOriginalTransactionId, originalTransactionId));
+    return user;
+  }
+
+  async linkAppleOriginalTransactionId(id: number, originalTransactionId: string): Promise<void> {
+    const { db, eq, and, ne } = await import('./db');
+    const { users } = await import('@shared/schema');
+
+    // Guard against the same Apple subscription being linked to more than one QrMingle
+    // account (e.g. someone hits "Restore Purchases" while logged into a different account
+    // than the one that originally bought it).
+    const [conflict] = await db.select({ id: users.id }).from(users)
+      .where(and(eq(users.appleOriginalTransactionId, originalTransactionId), ne(users.id, id)));
+    if (conflict) {
+      throw new Error(`Apple transaction ${originalTransactionId} is already linked to a different account`);
+    }
+
+    await db.update(users)
+      .set({ appleOriginalTransactionId: originalTransactionId })
+      .where(eq(users.id, id));
+  }
+
+  async updateAppleLastNotificationSignedDate(id: number, signedDate: Date): Promise<void> {
+    const { db, eq } = await import('./db');
+    const { users } = await import('@shared/schema');
+
+    await db.update(users)
+      .set({ appleLastNotificationSignedDate: signedDate })
+      .where(eq(users.id, id));
   }
 
   async updateUserAdminStatus(id: number, isAdmin: boolean): Promise<User> {

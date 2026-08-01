@@ -26,4 +26,4 @@ if (isNeon) {
 }
 
 export { db };
-export { eq, and, desc, sql, asc } from 'drizzle-orm';
+export { eq, ne, and, desc, sql, asc } from 'drizzle-orm';

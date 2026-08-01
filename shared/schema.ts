@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   trialExpiresAt: timestamp("trial_expires_at"),
   stripeCustomerId: text("stripe_customer_id"),
   aiAssistCount: integer("ai_assist_count").default(0).notNull(),
+  appleOriginalTransactionId: text("apple_original_transaction_id").unique(),
+  appleLastNotificationSignedDate: timestamp("apple_last_notification_signed_date"),
 });
 
 export const profiles = pgTable("profiles", {
