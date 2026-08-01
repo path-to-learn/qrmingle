@@ -1,4 +1,4 @@
-import { SignedDataVerifier, Environment, type JWSTransactionDecodedPayload } from "@apple/app-store-server-library";
+import { SignedDataVerifier, Environment, type JWSTransactionDecodedPayload, type ResponseBodyV2DecodedPayload } from "@apple/app-store-server-library";
 
 const BUNDLE_ID = "com.qrmingle.app";
 
@@ -49,4 +49,19 @@ export async function verifyStoreKitTransaction(jwsRepresentation: string): Prom
     }
   }
   return await sandboxVerifier.verifyAndDecodeTransaction(jwsRepresentation);
+}
+
+// Verifies an App Store Server Notification (V2) signedPayload — the webhook Apple calls
+// whenever a subscription's status changes (renewal, cancellation, refund, expiration, etc).
+// Same production-then-sandbox fallback as transaction verification, since both environments
+// can call the same configured webhook URL.
+export async function verifyStoreKitNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload> {
+  if (productionVerifier) {
+    try {
+      return await productionVerifier.verifyAndDecodeNotification(signedPayload);
+    } catch {
+      // Falls through to sandbox.
+    }
+  }
+  return await sandboxVerifier.verifyAndDecodeNotification(signedPayload);
 }
