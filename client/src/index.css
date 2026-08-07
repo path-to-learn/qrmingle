@@ -244,6 +244,15 @@ html.qrmingle-fullscreen-lock #root {
   }
 }
 
+@media (max-width: 1024px) {
+  /* These decorative hero cards use absolute positioning tuned for wide
+     screens (calc formulas assume >=1180px). Below that they collapse onto
+     a fixed offset and overlap the real headline text, so hide them. */
+  .web-floating-card {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .web-floating-card,
   .web-scan-beam,
