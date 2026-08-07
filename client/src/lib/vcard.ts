@@ -180,17 +180,6 @@ export function downloadVCard(profile: ProfileLike, socialLinks: SocialLink[] | 
 }
 
 /**
- * Creates a data URL for the vCard that can be used in a link
- * @param profile The user profile data
- * @param socialLinks The user's social links
- * @returns A data URL containing the vCard data
- */
-export function getVCardDataUrl(profile: ProfileLike, socialLinks: SocialLink[] | any[]): string {
-  const vCardString = generateVCard(profile, socialLinks);
-  return `data:text/vcard;charset=utf-8,${encodeURIComponent(vCardString)}`;
-}
-
-/**
  * Determines if the current device is a mobile device
  * @returns boolean true if the device is mobile, false otherwise
  */
@@ -208,16 +197,13 @@ export function isMobileDevice(): boolean {
 export async function saveToContacts(profile: ProfileLike, socialLinks: SocialLink[] | any[]): Promise<void> {
   if (isMobileDevice()) {
     try {
-      // On mobile devices, try to use the direct mechanism
-      const dataUrl = getVCardDataUrl(profile, socialLinks);
-      
       // Check if Web Share API is available as a fallback for mobile
       if (navigator.share && /Android/i.test(navigator.userAgent)) {
         // Create a file to share
         const vCardString = generateVCard(profile, socialLinks);
         const blob = new Blob([vCardString], { type: 'text/vcard' });
         const file = new File([blob], `${profile.displayName || profile.name}.vcf`, { type: 'text/vcard' });
-        
+
         try {
           await navigator.share({
             title: `${profile.displayName || profile.name}'s Contact Info`,
@@ -228,9 +214,15 @@ export async function saveToContacts(profile: ProfileLike, socialLinks: SocialLi
           // Fall back to direct URL approach if share fails
         }
       }
-      
-      // Direct URL approach for iOS and as fallback
-      window.location.href = dataUrl;
+
+      // Direct URL approach for iOS and as fallback. Safari blocks top-level
+      // navigation to data: URIs (silently — no error, nothing happens), so
+      // use a blob: URL instead, which Safari hands off to Contacts normally.
+      const vCardString = generateVCard(profile, socialLinks);
+      const blob = new Blob([vCardString], { type: 'text/vcard' });
+      const blobUrl = window.URL.createObjectURL(blob);
+      window.location.href = blobUrl;
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
     } catch (error) {
       console.error('Error saving contact on mobile:', error);
       // Fallback to download if anything fails
