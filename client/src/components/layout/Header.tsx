@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Capacitor } from "@capacitor/core";
+import { PREMIUM_PURCHASES_ENABLED } from "@shared/premium";
 
 export default function Header() {
   const { user, logoutMutation, isEffectivelyPremium } = useAuth();
@@ -46,7 +47,7 @@ export default function Header() {
     menuItems.push({ icon: <Shield className="h-5 w-5" />, label: "Admin Panel", path: "/admin" });
   }
 
-  if (user && !isPremium) {
+  if (user && !isPremium && PREMIUM_PURCHASES_ENABLED) {
     menuItems.push({ icon: <Crown className="h-5 w-5" />, label: "Upgrade to Premium", path: "/premium" });
   }
 

@@ -37,6 +37,7 @@ import {
   Bar,
 } from "recharts";
 import { Activity, CreditCard, Globe2, Loader2, LockKeyhole } from "lucide-react";
+import { PREMIUM_PURCHASES_ENABLED } from "@shared/premium";
 
 // Types for analytics data
 interface ProfileType {
@@ -188,19 +189,25 @@ function LockedAnalyticsUpsell() {
         ))}
       </div>
 
-      <Link to="/premium" style={{ width: "100%", maxWidth: "320px" }}>
-        <Button style={{
-          width: "100%",
-          minHeight: "48px",
-          borderRadius: "14px",
-          background: "var(--app-accent, #6366f1)",
-          color: "white",
-          fontWeight: 800,
-          border: "none",
-        }}>
-          Upgrade to Premium
-        </Button>
-      </Link>
+      {PREMIUM_PURCHASES_ENABLED ? (
+        <Link to="/premium" style={{ width: "100%", maxWidth: "320px" }}>
+          <Button style={{
+            width: "100%",
+            minHeight: "48px",
+            borderRadius: "14px",
+            background: "var(--app-accent, #6366f1)",
+            color: "white",
+            fontWeight: 800,
+            border: "none",
+          }}>
+            Upgrade to Premium
+          </Button>
+        </Link>
+      ) : (
+        <p style={{ color: "#94a3b8", fontSize: "13px", maxWidth: "320px" }}>
+          Premium upgrades aren't available right now.
+        </p>
+      )}
     </div>
   );
 }
