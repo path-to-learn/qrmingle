@@ -13,6 +13,7 @@ import ProfilePage from "@/pages/profile-page";
 import AdminPage from "@/pages/admin";
 import Premium from "@/pages/premium";
 import PremiumSuccess from "@/pages/premium-success";
+import { PREMIUM_PURCHASES_ENABLED } from "@shared/premium";
 import Analytics from "@/pages/analytics";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -59,6 +60,15 @@ function OfflineBanner() {
       No internet connection — some features may be unavailable
     </div>
   );
+}
+
+function RequirePremiumEnabled({ children }: { children: React.ReactNode }) {
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    if (!PREMIUM_PURCHASES_ENABLED) navigate("/profiles");
+  }, [navigate]);
+  if (!PREMIUM_PURCHASES_ENABLED) return null;
+  return <>{children}</>;
 }
 
 // Router component
@@ -182,12 +192,16 @@ function AppRouter() {
           </Route>
           <Route path="/premium">
             <RequireAuth>
-              <Premium />
+              <RequirePremiumEnabled>
+                <Premium />
+              </RequirePremiumEnabled>
             </RequireAuth>
           </Route>
           <Route path="/premium/success">
             <RequireAuth>
-              <PremiumSuccess />
+              <RequirePremiumEnabled>
+                <PremiumSuccess />
+              </RequirePremiumEnabled>
             </RequireAuth>
           </Route>
           <Route path="/analytics">

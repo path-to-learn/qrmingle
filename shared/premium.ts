@@ -1,6 +1,13 @@
 export const FREE_PROFILE_LIMIT: number = 2;
 export const FREE_AI_ASSIST_LIMIT: number = 3;
 
+// Temporarily pausing new Premium purchases app-wide — every entry point that lets a
+// user start a purchase (nav links, upgrade prompts, the /premium page itself) is gated
+// behind this flag. Existing premium entitlements (from real or sandbox purchases) and
+// Restore Purchase are untouched — this only stops *new* purchases. Flip back to true to
+// re-enable everything; nothing else needs to change.
+export const PREMIUM_PURCHASES_ENABLED = false;
+
 export const PREMIUM_PRODUCT_IDS = {
   // com.qrmingle.app.pro.monthly / .yearly were permanently locked by Apple after being
   // created and deleted in App Store Connect before ever being sold — subscription product

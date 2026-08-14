@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { PlusIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormData } from "@shared/schema";
-import { FREE_PROFILE_LIMIT } from "@shared/premium";
+import { FREE_PROFILE_LIMIT, PREMIUM_PURCHASES_ENABLED } from "@shared/premium";
 import ProfileCard, { getCardAccent } from "@/components/profile/ProfileCard";
 import ProfileEditor from "@/components/profile/ProfileEditor";
 import { celebrateCreation } from "@/lib/confetti";
@@ -426,14 +426,18 @@ export default function CardsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Profile Limit Reached</AlertDialogTitle>
             <AlertDialogDescription>
-              Free accounts include {FREE_PROFILE_LIMIT} card profiles. Upgrade to QrMingle Pro for unlimited cards, unlimited AI profile-builder use, and analytics.
+              {PREMIUM_PURCHASES_ENABLED
+                ? `Free accounts include ${FREE_PROFILE_LIMIT} card profiles. Upgrade to QrMingle Pro for unlimited cards, unlimited AI profile-builder use, and analytics.`
+                : `Free accounts include up to ${FREE_PROFILE_LIMIT} card profiles.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Not Now</AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate("/premium")}>
-              Upgrade
-            </AlertDialogAction>
+            <AlertDialogCancel>{PREMIUM_PURCHASES_ENABLED ? "Not Now" : "Okay"}</AlertDialogCancel>
+            {PREMIUM_PURCHASES_ENABLED && (
+              <AlertDialogAction onClick={() => navigate("/premium")}>
+                Upgrade
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

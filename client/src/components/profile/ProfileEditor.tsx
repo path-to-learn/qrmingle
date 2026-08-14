@@ -38,7 +38,7 @@ import { getTeamById } from "@/data/themes";
 import { useAuth } from "@/hooks/use-auth";
 import { API_BASE, capacitorHeaders } from "@/lib/queryClient";
 import { scheduleHorizontalReset } from "@/lib/viewport";
-import { FREE_AI_ASSIST_LIMIT } from "@shared/premium";
+import { FREE_AI_ASSIST_LIMIT, PREMIUM_PURCHASES_ENABLED } from "@shared/premium";
 
 type ProfileEditorProps = {
   profileData?: ProfileFormData & { id?: number };
@@ -760,7 +760,7 @@ export default function ProfileEditor({
                 <div className="mb-6">
                   <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
                     <FormLabel className="block">QR Code Style</FormLabel>
-                    {!isPremium && (
+                    {!isPremium && PREMIUM_PURCHASES_ENABLED && (
                       <a href="/premium" className="text-xs text-primary hover:underline">
                         Upgrade for premium styles
                       </a>

@@ -46,6 +46,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
+import { PREMIUM_PURCHASES_ENABLED } from "@shared/premium";
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇺🇸" },
@@ -330,17 +331,19 @@ export default function Settings() {
       </div>
 
       <SettingsSection title={t("settings.sections.account", { defaultValue: "Account" })}>
-        <SettingsRow
-          icon={isPremium ? BadgeCheck : Crown}
-          label={isPremium
-            ? t("settings.menu.managePremium", { defaultValue: "Manage Premium" })
-            : t("settings.menu.upgrade")}
-          sublabel={isPremium
-            ? t("settings.menu.managePremiumSub", { defaultValue: "Premium is active" })
-            : t("settings.menu.upgradeSub", { defaultValue: "Unlock analytics and more" })}
-          color={isPremium ? "#10b981" : "#f59e0b"}
-          onClick={() => navigate("/premium")}
-        />
+        {(isPremium || PREMIUM_PURCHASES_ENABLED) && (
+          <SettingsRow
+            icon={isPremium ? BadgeCheck : Crown}
+            label={isPremium
+              ? t("settings.menu.managePremium", { defaultValue: "Manage Premium" })
+              : t("settings.menu.upgrade")}
+            sublabel={isPremium
+              ? t("settings.menu.managePremiumSub", { defaultValue: "Premium is active" })
+              : t("settings.menu.upgradeSub", { defaultValue: "Unlock analytics and more" })}
+            color={isPremium ? "#10b981" : "#f59e0b"}
+            onClick={() => navigate("/premium")}
+          />
+        )}
         {isNativeApp && (
           <SettingsRow
             icon={RotateCcw}
